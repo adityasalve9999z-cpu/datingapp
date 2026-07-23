@@ -10,59 +10,191 @@ class DatingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dating App',
+      title: 'GlowDate',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.pinkAccent),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFF5F6D), Color(0xFFFFC371)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.favorite, size: 80, color: Colors.white),
+                const SizedBox(height: 16),
+                const Text(
+                  'Meet your match',
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Find meaningful connections, chat instantly, and build real chemistry.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.rocket_launch),
+                  label: const Text('Get started'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.pinkAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final List<MatchProfile> matches = [
-    MatchProfile(
-      name: 'Maya',
-      age: 26,
-      bio: 'Coffee dates, sunset walks, and good conversations.',
-      imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
-    ),
-    MatchProfile(
-      name: 'Noah',
-      age: 29,
-      bio: 'Travel lover and amateur chef.',
-      imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-    ),
-  ];
+class RegisterScreen extends StatelessWidget {
+  const RegisterScreen({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Create account')),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Sign up', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            const TextField(decoration: InputDecoration(labelText: 'Email')),
+            const SizedBox(height: 12),
+            const TextField(decoration: InputDecoration(labelText: 'Phone number')),
+            const SizedBox(height: 12),
+            const TextField(obscureText: true, decoration: InputDecoration(labelText: 'Password')),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
+                  );
+                },
+                child: const Text('Continue'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: const [
+                Chip(label: Text('Google')),
+                Chip(label: Text('Apple')),
+                Chip(label: Text('Phone OTP')),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ProfileSetupScreen extends StatelessWidget {
+  const ProfileSetupScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profile setup')),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: ListView(
+          children: [
+            const Text('Create your profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            const TextField(decoration: InputDecoration(labelText: 'Display name')),
+            const SizedBox(height: 12),
+            const TextField(maxLines: 3, decoration: InputDecoration(labelText: 'Bio')),
+            const SizedBox(height: 12),
+            const TextField(decoration: InputDecoration(labelText: 'Interests')),
+            const SizedBox(height: 16),
+            const Text('Upload photos, add a selfie, and verify your profile later.', style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const DiscoverScreen()),
+                );
+              },
+              child: const Text('Save profile'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DiscoverScreen extends StatefulWidget {
+  const DiscoverScreen({super.key});
+
+  @override
+  State<DiscoverScreen> createState() => _DiscoverScreenState();
+}
+
+class _DiscoverScreenState extends State<DiscoverScreen> {
+  final List<MatchProfile> matches = [
+    MatchProfile(name: 'Maya', age: 26, bio: 'Coffee dates, hiking, and deep conversations.', imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80'),
+    MatchProfile(name: 'Noah', age: 29, bio: 'Travel lover, dog dad, and good food enthusiast.', imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80'),
+  ];
   int selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final profile = matches[selectedIndex];
-
+    final profile = matches[selectedIndex % matches.length];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dating App'),
+        title: const Text('Discover'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.message_rounded),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ChatScreen(profile: profile),
-                ),
-              );
-            },
+            icon: const Icon(Icons.tune),
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              builder: (_) => const FiltersSheet(),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MatchesScreen())),
           ),
         ],
       ),
@@ -71,44 +203,27 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Find your match',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text('Nearby matches', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Expanded(
               child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 elevation: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(20),
-                        child: Image.network(
-                          profile.imageUrl,
-                          height: 260,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+                        child: Image.network(profile.imageUrl, height: 260, width: double.infinity, fit: BoxFit.cover),
                       ),
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          Text(
-                            '${profile.name}, ${profile.age}',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text('${profile.name}, ${profile.age}', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                           const Spacer(),
-                          const Icon(Icons.favorite, color: Colors.pinkAccent),
+                          const Icon(Icons.location_on, color: Colors.pinkAccent),
+                          const Text('2 km away'),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -116,31 +231,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Spacer(),
                       Row(
                         children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  selectedIndex = (selectedIndex + 1) % matches.length;
-                                });
-                              },
-                              icon: const Icon(Icons.close),
-                              label: const Text('Skip'),
-                            ),
-                          ),
+                          Expanded(child: OutlinedButton.icon(onPressed: () => setState(() => selectedIndex++), icon: const Icon(Icons.close), label: const Text('Pass'))),
                           const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => ChatScreen(profile: profile),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.chat_bubble),
-                              label: const Text('Chat'),
-                            ),
-                          ),
+                          Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatScreen(profile: profile))), icon: const Icon(Icons.favorite), label: const Text('Like'))),
                         ],
                       ),
                     ],
@@ -155,9 +248,52 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+class FiltersSheet extends StatelessWidget {
+  const FiltersSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Filters', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          const Text('Age range: 24-34'),
+          const SizedBox(height: 8),
+          const Text('Distance: 10 km'),
+          const SizedBox(height: 8),
+          const Text('Interests: Coffee, Travel, Music'),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Apply filters')),
+        ],
+      ),
+    );
+  }
+}
+
+class MatchesScreen extends StatelessWidget {
+  const MatchesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Matches & chats')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: const [
+          ListTile(leading: CircleAvatar(child: Icon(Icons.person)), title: Text('Maya'), subtitle: Text('Would love to meet this weekend!')),
+          ListTile(leading: CircleAvatar(child: Icon(Icons.person)), title: Text('Noah'), subtitle: Text('Let’s grab coffee tomorrow')),
+        ],
+      ),
+    );
+  }
+}
+
 class ChatScreen extends StatefulWidget {
   final MatchProfile profile;
-
   const ChatScreen({super.key, required this.profile});
 
   @override
@@ -173,10 +309,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _sendMessage() {
     final text = _controller.text.trim();
-    if (text.isEmpty) {
-      return;
-    }
-
+    if (text.isEmpty) return;
     setState(() {
       _messages.add(Message(text: text, isMine: true));
       _controller.clear();
@@ -188,6 +321,11 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.profile.name),
+        actions: [
+          IconButton(icon: const Icon(Icons.report_problem_outlined), onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User reported and blocked.')));
+          }),
+        ],
       ),
       body: Column(
         children: [
@@ -216,21 +354,9 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Say something sweet...',
-                      border: OutlineInputBorder(),
-                    ),
-                    onSubmitted: (_) => _sendMessage(),
-                  ),
-                ),
+                Expanded(child: TextField(controller: _controller, decoration: const InputDecoration(hintText: 'Say something sweet...', border: OutlineInputBorder()), onSubmitted: (_) => _sendMessage())),
                 const SizedBox(width: 8),
-                FloatingActionButton(
-                  onPressed: _sendMessage,
-                  child: const Icon(Icons.send),
-                ),
+                FloatingActionButton(onPressed: _sendMessage, child: const Icon(Icons.send)),
               ],
             ),
           ),
@@ -245,18 +371,11 @@ class MatchProfile {
   final int age;
   final String bio;
   final String imageUrl;
-
-  MatchProfile({
-    required this.name,
-    required this.age,
-    required this.bio,
-    required this.imageUrl,
-  });
+  MatchProfile({required this.name, required this.age, required this.bio, required this.imageUrl});
 }
 
 class Message {
   final String text;
   final bool isMine;
-
   Message({required this.text, required this.isMine});
 }

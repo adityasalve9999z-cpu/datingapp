@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:datingapp/main.dart';
 
 void main() {
-  testWidgets('App shows match discovery screen', (tester) async {
+  testWidgets('App shows onboarding welcome message', (tester) async {
     await tester.pumpWidget(const DatingApp());
 
-    expect(find.text('Find your match'), findsOneWidget);
+    expect(find.text('Meet your match'), findsOneWidget);
   });
 }
