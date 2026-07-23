@@ -1,0 +1,13 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub-cache/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Build outputs
+build/
+.android/
+.ios/
