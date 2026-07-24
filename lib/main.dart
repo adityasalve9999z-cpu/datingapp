@@ -220,7 +220,7 @@ class RegisterScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFDF2F8), Color(0xFFFFE4EC)],
+            colors: [Color(0xFFFFF0F5), Color(0xFFFFD6E7)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -232,27 +232,41 @@ class RegisterScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                const Text('Create account', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 700),
+                  builder: (context, value, child) {
+                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
+                  },
+                  child: Row(
+                    children: const [
+                      Icon(Icons.favorite, color: Colors.pinkAccent, size: 28),
+                      SizedBox(width: 8),
+                      Text('Create account', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
                 const Text('Join GlowDate and start meeting people you genuinely connect with.', style: TextStyle(color: Colors.grey, fontSize: 15)),
                 const SizedBox(height: 24),
                 TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 800),
+                  duration: const Duration(milliseconds: 900),
                   builder: (context, value, child) {
                     return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
                   },
                   child: Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: const [
-                          TextField(decoration: InputDecoration(labelText: 'Email')),
+                          TextField(decoration: InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined))),
                           SizedBox(height: 12),
-                          TextField(decoration: InputDecoration(labelText: 'Phone number')),
+                          TextField(decoration: InputDecoration(labelText: 'Phone number', prefixIcon: Icon(Icons.phone_outlined))),
                           SizedBox(height: 12),
-                          TextField(obscureText: true, decoration: InputDecoration(labelText: 'Password')),
+                          TextField(obscureText: true, decoration: InputDecoration(labelText: 'Password', prefixIcon: Icon(Icons.lock_outline))),
                         ],
                       ),
                     ),
@@ -261,16 +275,24 @@ class RegisterScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/profile');
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 1000),
+                    builder: (context, value, child) {
+                      return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
                     },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.pinkAccent,
-                      foregroundColor: Colors.white,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/profile');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: Colors.pinkAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      ),
+                      child: const Text('Continue'),
                     ),
-                    child: const Text('Continue'),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -300,7 +322,7 @@ class ProfileSetupScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFDF2F8), Color(0xFFFFE4EC)],
+            colors: [Color(0xFFFFF0F5), Color(0xFFFFD6E7)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -310,38 +332,67 @@ class ProfileSetupScreen extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             child: ListView(
               children: [
-                const Text('Create your profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 700),
+                  builder: (context, value, child) {
+                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
+                  },
+                  child: Row(
+                    children: const [
+                      Icon(Icons.favorite_border, color: Colors.pinkAccent, size: 26),
+                      SizedBox(width: 8),
+                      Text('Create your profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 8),
                 const Text('Show your personality, interests, and style in a few beautiful details.', style: TextStyle(color: Colors.grey, fontSize: 15)),
                 const SizedBox(height: 20),
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: const [
-                        TextField(decoration: InputDecoration(labelText: 'Display name')),
-                        SizedBox(height: 12),
-                        TextField(maxLines: 3, decoration: InputDecoration(labelText: 'Bio')),
-                        SizedBox(height: 12),
-                        TextField(decoration: InputDecoration(labelText: 'Interests')),
-                      ],
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 900),
+                  builder: (context, value, child) {
+                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
+                  },
+                  child: Card(
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: const [
+                          TextField(decoration: InputDecoration(labelText: 'Display name', prefixIcon: Icon(Icons.person_outline))),
+                          SizedBox(height: 12),
+                          TextField(maxLines: 3, decoration: InputDecoration(labelText: 'Bio', prefixIcon: Icon(Icons.edit_note_outlined))),
+                          SizedBox(height: 12),
+                          TextField(decoration: InputDecoration(labelText: 'Interests', prefixIcon: Icon(Icons.favorite_outline))),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 const Text('Upload photos, add a selfie, and verify your profile later.', style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/discover');
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 1000),
+                  builder: (context, value, child) {
+                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
                   },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: Colors.pinkAccent,
-                    foregroundColor: Colors.white,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacementNamed('/discover');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.pinkAccent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    ),
+                    child: const Text('Save profile'),
                   ),
-                  child: const Text('Save profile'),
                 ),
               ],
             ),
