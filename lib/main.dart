@@ -297,28 +297,55 @@ class ProfileSetupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile setup')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            const Text('Create your profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            const TextField(decoration: InputDecoration(labelText: 'Display name')),
-            const SizedBox(height: 12),
-            const TextField(maxLines: 3, decoration: InputDecoration(labelText: 'Bio')),
-            const SizedBox(height: 12),
-            const TextField(decoration: InputDecoration(labelText: 'Interests')),
-            const SizedBox(height: 16),
-            const Text('Upload photos, add a selfie, and verify your profile later.', style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacementNamed('/discover');
-              },
-              child: const Text('Save profile'),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFDF2F8), Color(0xFFFFE4EC)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: ListView(
+              children: [
+                const Text('Create your profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                const Text('Show your personality, interests, and style in a few beautiful details.', style: TextStyle(color: Colors.grey, fontSize: 15)),
+                const SizedBox(height: 20),
+                Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: const [
+                        TextField(decoration: InputDecoration(labelText: 'Display name')),
+                        SizedBox(height: 12),
+                        TextField(maxLines: 3, decoration: InputDecoration(labelText: 'Bio')),
+                        SizedBox(height: 12),
+                        TextField(decoration: InputDecoration(labelText: 'Interests')),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Upload photos, add a selfie, and verify your profile later.', style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pushReplacementNamed('/discover');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: Colors.pinkAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Save profile'),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
