@@ -43,6 +43,35 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(fontSize: 15, color: Colors.grey),
             ),
             const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF5F6D), Color(0xFFFFC371)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.local_fire_department, color: Colors.white, size: 32),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Daily Spark', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                        SizedBox(height: 4),
+                        Text('3 new likes today', style: TextStyle(color: Colors.white70)),
+                      ],
+                    ),
+                  ),
+                  Text('7 day streak', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -92,13 +121,19 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pinkAccent,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('View'),
+                  Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pinkAccent,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('View'),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text('Online now', style: TextStyle(color: Colors.green, fontSize: 12)),
+                    ],
                   ),
                 ],
               ),
