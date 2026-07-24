@@ -17,6 +17,31 @@ class DatingApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const SplashScreen(),
+      onGenerateRoute: (settings) {
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) {
+            switch (settings.name) {
+              case '/welcome':
+                return const WelcomeScreen();
+              case '/register':
+                return const RegisterScreen();
+              case '/profile':
+                return const ProfileSetupScreen();
+              case '/discover':
+                return const DiscoverScreen();
+              default:
+                return const SplashScreen();
+            }
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeOutCubic;
+            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(position: animation.drive(tween), child: child);
+          },
+        );
+      },
     );
   }
 }
@@ -46,9 +71,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-      );
+      Navigator.of(context).pushReplacementNamed('/welcome');
     });
   }
 
@@ -194,41 +217,74 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Sign up', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            const TextField(decoration: InputDecoration(labelText: 'Email')),
-            const SizedBox(height: 12),
-            const TextField(decoration: InputDecoration(labelText: 'Phone number')),
-            const SizedBox(height: 12),
-            const TextField(obscureText: true, decoration: InputDecoration(labelText: 'Password')),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
-                  );
-                },
-                child: const Text('Continue'),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: const [
-                Chip(label: Text('Google')),
-                Chip(label: Text('Apple')),
-                Chip(label: Text('Phone OTP')),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFDF2F8), Color(0xFFFFE4EC)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                const Text('Create account', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                const Text('Join GlowDate and start meeting people you genuinely connect with.', style: TextStyle(color: Colors.grey, fontSize: 15)),
+                const SizedBox(height: 24),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 800),
+                  builder: (context, value, child) {
+                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
+                  },
+                  child: Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: const [
+                          TextField(decoration: InputDecoration(labelText: 'Email')),
+                          SizedBox(height: 12),
+                          TextField(decoration: InputDecoration(labelText: 'Phone number')),
+                          SizedBox(height: 12),
+                          TextField(obscureText: true, decoration: InputDecoration(labelText: 'Password')),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/profile');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.pinkAccent,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Continue'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: const [
+                    Chip(label: Text('Google')),
+                    Chip(label: Text('Apple')),
+                    Chip(label: Text('Phone OTP')),
+                  ],
+                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -258,9 +314,7 @@ class ProfileSetupScreen extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const DiscoverScreen()),
-                );
+                Navigator.of(context).pushReplacementNamed('/discover');
               },
               child: const Text('Save profile'),
             ),
@@ -313,37 +367,47 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             Text('Nearby matches', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Expanded(
-              child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.network(profile.imageUrl, height: 260, width: double.infinity, fit: BoxFit.cover),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Text('${profile.name}, ${profile.age}', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          const Icon(Icons.location_on, color: Colors.pinkAccent),
-                          const Text('2 km away'),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(profile.bio),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Expanded(child: OutlinedButton.icon(onPressed: () => setState(() => selectedIndex++), icon: const Icon(Icons.close), label: const Text('Pass'))),
-                          const SizedBox(width: 12),
-                          Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatScreen(profile: profile))), icon: const Icon(Icons.favorite), label: const Text('Like'))),
-                        ],
-                      ),
-                    ],
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 700),
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child),
+                  );
+                },
+                child: Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  elevation: 8,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(profile.imageUrl, height: 260, width: double.infinity, fit: BoxFit.cover),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Text('${profile.name}, ${profile.age}', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                            const Spacer(),
+                            const Icon(Icons.location_on, color: Colors.pinkAccent),
+                            const Text('2 km away'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(profile.bio),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            Expanded(child: OutlinedButton.icon(onPressed: () => setState(() => selectedIndex++), icon: const Icon(Icons.close), label: const Text('Pass'))),
+                            const SizedBox(width: 12),
+                            Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatScreen(profile: profile))), icon: const Icon(Icons.favorite), label: const Text('Like'))),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -442,16 +506,26 @@ class _ChatScreenState extends State<ChatScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
-                return Align(
-                  alignment: message.isMine ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: message.isMine ? Colors.pinkAccent : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(16),
+                return TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: Duration(milliseconds: 400 + (index * 120)),
+                  builder: (context, value, child) {
+                    return Opacity(
+                      opacity: value,
+                      child: Transform.translate(offset: Offset(0, 12 * (1 - value)), child: child),
+                    );
+                  },
+                  child: Align(
+                    alignment: message.isMine ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: message.isMine ? Colors.pinkAccent : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(message.text),
                     ),
-                    child: Text(message.text),
                   ),
                 );
               },
