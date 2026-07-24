@@ -1,84 +1,149 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const DatingApp());
+void main() => runApp(const LumeApp());
+
+// ---------------------------------------------------------------------------
+// Design tokens — "Lume" dating app
+// Palette: deep midnight plum background, warm champagne-gold accent,
+// soft blush for secondary highlights. Built for a premium, intimate feel —
+// not the generic purple-gradient SaaS look.
+// ---------------------------------------------------------------------------
+class LumeColors {
+  static const bg = Color(0xFF160D1C);         // near-black plum
+  static const bgGradientEnd = Color(0xFF2A1830); // lighter plum
+  static const surface = Color(0xFF221328);     // card/field surface
+  static const surfaceBorder = Color(0xFF3A2740);
+  static const gold = Color(0xFFD4A857);        // champagne gold accent
+  static const goldDim = Color(0xFF8A7245);
+  static const blush = Color(0xFFE8A7A0);       // secondary warm accent
+  static const textPrimary = Color(0xFFF3EEE9);
+  static const textSecondary = Color(0xFFA79AAE);
+  static const error = Color(0xFFE07A6B);
 }
 
-class DatingApp extends StatelessWidget {
-  const DatingApp({super.key});
+class LumeApp extends StatelessWidget {
+  const LumeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'GlowDate',
+      title: 'Lume',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.pinkAccent),
         useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: LumeColors.bg,
+        colorScheme: const ColorScheme.dark(
+          primary: LumeColors.gold,
+          surface: LumeColors.surface,
+        ),
       ),
-      home: const SplashScreen(),
-      onGenerateRoute: (settings) {
-        return PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) {
-            switch (settings.name) {
-              case '/welcome':
-                return const WelcomeScreen();
-              case '/register':
-                return const RegisterScreen();
-              case '/profile':
-                return const ProfileSetupScreen();
-              case '/discover':
-                return const DiscoverScreen();
-              default:
-                return const SplashScreen();
-            }
-          },
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            return SlideTransition(position: animation.drive(tween), child: child);
-          },
-        );
-      },
+      home: const SignupScreen(),
     );
   }
 }
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
+class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _obscurePassword = true;
+  bool _agreedToTerms = false;
+  double _passwordStrength = 0;
+
+  // Heartbeat pulse for the signature spark icon — two quick beats then rest,
+  // like an actual pulse, not a generic sine "breathing" loop.
+  late final AnimationController _heartbeatController;
+  late final Animation<double> _heartbeatScale;
+
+  // Ambient floating hearts drifting up behind the content — a single
+  // orchestrated love-themed moment, kept subtle so it doesn't fight the form.
+  late final AnimationController _driftController;
+  final List<_FloatingHeart> _hearts = List.generate(7, (i) => _FloatingHeart(seed: i));
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(_controller);
-    _controller.forward();
 
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/welcome');
-    });
+    _heartbeatController = AnimationController(
+      duration: const Duration(milliseconds: 1400),
+      vsync: this,
+    )..repeat();
+
+    _heartbeatScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.22).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
+      TweenSequenceItem(tween: Tween(begin: 1.22, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.16).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
+      TweenSequenceItem(tween: Tween(begin: 1.16, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 56),
+    ]).animate(_heartbeatController);
+
+    _driftController = AnimationController(
+      duration: const Duration(seconds: 12),
+      vsync: this,
+    )..repeat();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _heartbeatController.dispose();
+    _driftController.dispose();
     super.dispose();
+  }
+
+  void _evaluateStrength(String value) {
+    double score = 0;
+    if (value.length >= 8) score += 0.34;
+    if (RegExp(r'[A-Z]').hasMatch(value)) score += 0.33;
+    if (RegExp(r'[0-9!@#\$%^&*]').hasMatch(value)) score += 0.33;
+    setState(() => _passwordStrength = score.clamp(0, 1));
+  }
+
+  Color get _strengthColor {
+    if (_passwordStrength < 0.34) return LumeColors.error;
+    if (_passwordStrength < 0.7) return LumeColors.blush;
+    return LumeColors.gold;
+  }
+
+  String get _strengthLabel {
+    if (_passwordStrength == 0) return '';
+    if (_passwordStrength < 0.34) return 'Weak';
+    if (_passwordStrength < 0.7) return 'Getting there';
+    return 'Strong';
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please agree to the Terms to continue'),
+          backgroundColor: LumeColors.surface,
+        ),
+      );
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Welcome to Lume — let\'s find your person'),
+        backgroundColor: LumeColors.surface,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -87,554 +152,476 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFF5F6D), Color(0xFFFFC371)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [LumeColors.bg, LumeColors.bgGradientEnd],
           ),
         ),
-        child: Center(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _driftController,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: _FloatingHeartsPainter(
+                      hearts: _hearts,
+                      progress: _driftController.value,
+                    ),
+                  );
+                },
+              ),
+            ),
+            SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(28, 12, 28, 24),
+            child: Form(
+              key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.favorite, size: 90, color: Colors.white),
-                  SizedBox(height: 16),
-                  Text(
-                    'GlowDate',
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  _buildSignatureMotif(),
+                  const SizedBox(height: 28),
+                  const Text(
+                    'Create your space',
                     style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: LumeColors.textPrimary,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                      height: 1.1,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Find your perfect spark',
-                    style: TextStyle(fontSize: 16, color: Colors.white70),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'A few details, and you\'re one step from\nreal conversations that go somewhere.',
+                    style: TextStyle(
+                      color: LumeColors.textSecondary,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
                   ),
+                  const SizedBox(height: 32),
+
+                  _buildLabel('Your name'),
+                  _buildField(
+                    controller: _nameController,
+                    hint: 'How should matches see you?',
+                    icon: Icons.person_outline_rounded,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                  ),
+                  const SizedBox(height: 18),
+
+                  _buildLabel('Email'),
+                  _buildField(
+                    controller: _emailController,
+                    hint: 'you@example.com',
+                    icon: Icons.alternate_email_rounded,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Enter your email';
+                      if (!v.contains('@') || !v.contains('.')) return 'Enter a valid email';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 18),
+
+                  _buildLabel('Password'),
+                  _buildField(
+                    controller: _passwordController,
+                    hint: 'At least 8 characters',
+                    icon: Icons.lock_outline_rounded,
+                    obscureText: _obscurePassword,
+                    onChanged: _evaluateStrength,
+                    suffix: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: LumeColors.textSecondary,
+                        size: 20,
+                      ),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Create a password';
+                      if (v.length < 8) return 'At least 8 characters';
+                      return null;
+                    },
+                  ),
+
+                  if (_passwordController.text.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: _passwordStrength,
+                              minHeight: 4,
+                              backgroundColor: LumeColors.surfaceBorder,
+                              valueColor: AlwaysStoppedAnimation(_strengthColor),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          _strengthLabel,
+                          style: TextStyle(fontSize: 11, color: _strengthColor, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: 22),
+                  _buildTermsRow(),
+
+                  const SizedBox(height: 28),
+                  _buildPrimaryButton(),
+
+                  const SizedBox(height: 24),
+                  _buildDivider(),
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      Expanded(child: _buildSocialButton(Icons.g_mobiledata_rounded, 'Google')),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildSocialButton(Icons.apple_rounded, 'Apple')),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+                  Center(
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 13.5, color: LumeColors.textSecondary),
+                        children: [
+                          const TextSpan(text: 'Already have an account?  '),
+                          TextSpan(
+                            text: 'Log in',
+                            style: const TextStyle(color: LumeColors.gold, fontWeight: FontWeight.w700),
+                            recognizer: null,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF5F6D), Color(0xFFFFC371)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 700),
-                  builder: (context, value, child) {
-                    return Opacity(
-                      opacity: value,
-                      child: Transform.translate(
-                        offset: Offset(0, 20 * (1 - value)),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: const Icon(Icons.favorite, size: 80, color: Colors.white),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Meet your match',
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Find meaningful connections, chat instantly, and build real chemistry.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
-                ),
-                const SizedBox(height: 24),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 900),
-                  builder: (context, value, child) {
-                    return Opacity(
-                      opacity: value,
-                      child: Transform.translate(
-                        offset: Offset(0, 20 * (1 - value)),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                      );
-                    },
-                    icon: const Icon(Icons.rocket_launch),
-                    label: const Text('Get started'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.pinkAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFFF0F5), Color(0xFFFFD6E7)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 700),
-                  builder: (context, value, child) {
-                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
-                  },
-                  child: Row(
-                    children: const [
-                      Icon(Icons.favorite, color: Colors.pinkAccent, size: 28),
-                      SizedBox(width: 8),
-                      Text('Create account', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text('Join GlowDate and start meeting people you genuinely connect with.', style: TextStyle(color: Colors.grey, fontSize: 15)),
-                const SizedBox(height: 24),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 900),
-                  builder: (context, value, child) {
-                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
-                  },
-                  child: Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: const [
-                          TextField(decoration: InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined))),
-                          SizedBox(height: 12),
-                          TextField(decoration: InputDecoration(labelText: 'Phone number', prefixIcon: Icon(Icons.phone_outlined))),
-                          SizedBox(height: 12),
-                          TextField(obscureText: true, decoration: InputDecoration(labelText: 'Password', prefixIcon: Icon(Icons.lock_outline))),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 1000),
-                    builder: (context, value, child) {
-                      return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
-                    },
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('/profile');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: Colors.pinkAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                      ),
-                      child: const Text('Continue'),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  children: const [
-                    Chip(label: Text('Google')),
-                    Chip(label: Text('Apple')),
-                    Chip(label: Text('Phone OTP')),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class ProfileSetupScreen extends StatelessWidget {
-  const ProfileSetupScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFFF0F5), Color(0xFFFFD6E7)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: ListView(
-              children: [
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 700),
-                  builder: (context, value, child) {
-                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
-                  },
-                  child: Row(
-                    children: const [
-                      Icon(Icons.favorite_border, color: Colors.pinkAccent, size: 26),
-                      SizedBox(width: 8),
-                      Text('Create your profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text('Show your personality, interests, and style in a few beautiful details.', style: TextStyle(color: Colors.grey, fontSize: 15)),
-                const SizedBox(height: 20),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 900),
-                  builder: (context, value, child) {
-                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
-                  },
-                  child: Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: const [
-                          TextField(decoration: InputDecoration(labelText: 'Display name', prefixIcon: Icon(Icons.person_outline))),
-                          SizedBox(height: 12),
-                          TextField(maxLines: 3, decoration: InputDecoration(labelText: 'Bio', prefixIcon: Icon(Icons.edit_note_outlined))),
-                          SizedBox(height: 12),
-                          TextField(decoration: InputDecoration(labelText: 'Interests', prefixIcon: Icon(Icons.favorite_outline))),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text('Upload photos, add a selfie, and verify your profile later.', style: TextStyle(color: Colors.grey)),
-                const SizedBox(height: 20),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 1000),
-                  builder: (context, value, child) {
-                    return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child));
-                  },
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacementNamed('/discover');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.pinkAccent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    ),
-                    child: const Text('Save profile'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({super.key});
-
-  @override
-  State<DiscoverScreen> createState() => _DiscoverScreenState();
-}
-
-class _DiscoverScreenState extends State<DiscoverScreen> {
-  final List<MatchProfile> matches = [
-    MatchProfile(name: 'Maya', age: 26, bio: 'Coffee dates, hiking, and deep conversations.', imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80'),
-    MatchProfile(name: 'Noah', age: 29, bio: 'Travel lover, dog dad, and good food enthusiast.', imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80'),
-  ];
-  int selectedIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final profile = matches[selectedIndex % matches.length];
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Discover'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.tune),
-            onPressed: () => showModalBottomSheet(
-              context: context,
-              builder: (_) => const FiltersSheet(),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MatchesScreen())),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Nearby matches', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Expanded(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 700),
-                builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child),
-                  );
-                },
-                child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                  elevation: 8,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.network(profile.imageUrl, height: 260, width: double.infinity, fit: BoxFit.cover),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Text('${profile.name}, ${profile.age}', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                            const Spacer(),
-                            const Icon(Icons.location_on, color: Colors.pinkAccent),
-                            const Text('2 km away'),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(profile.bio),
-                        const Spacer(),
-                        Row(
-                          children: [
-                            Expanded(child: OutlinedButton.icon(onPressed: () => setState(() => selectedIndex++), icon: const Icon(Icons.close), label: const Text('Pass'))),
-                            const SizedBox(width: 12),
-                            Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatScreen(profile: profile))), icon: const Icon(Icons.favorite), label: const Text('Like'))),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ),
           ],
         ),
       ),
     );
   }
-}
 
-class FiltersSheet extends StatelessWidget {
-  const FiltersSheet({super.key});
+  /// Signature element: an overlapping trio of avatar rings converging on a
+  /// small warm spark — a quiet visual metaphor for "your circle is about to
+  /// widen," instead of a generic logo mark.
+  Widget _buildSignatureMotif() {
+    return SizedBox(
+      height: 84,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            child: _avatarRing(color: LumeColors.blush, opacity: 0.55),
+          ),
+          Positioned(
+            left: 34,
+            child: _avatarRing(color: LumeColors.gold, opacity: 0.85),
+          ),
+          Positioned(
+            left: 68,
+            top: 4,
+            child: _avatarRing(color: LumeColors.blush, opacity: 0.4, size: 56),
+          ),
+          Positioned(
+            left: 96,
+            top: 22,
+            child: AnimatedBuilder(
+              animation: _heartbeatScale,
+              builder: (context, child) => Transform.scale(
+                scale: _heartbeatScale.value,
+                child: child,
+              ),
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: LumeColors.gold,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: LumeColors.gold.withOpacity(0.55), blurRadius: 14, spreadRadius: 1),
+                  ],
+                ),
+                child: const Icon(Icons.favorite_rounded, size: 12, color: LumeColors.bg),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _avatarRing({required Color color, required double opacity, double size = 64}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: color.withOpacity(opacity), width: 1.6),
+        color: LumeColors.surface,
+      ),
+      child: Icon(Icons.person_rounded, color: color.withOpacity(opacity + 0.15), size: size * 0.42),
+    );
+  }
+
+  Widget _buildLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      padding: const EdgeInsets.only(bottom: 8, left: 2),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: LumeColors.textSecondary,
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    Widget? suffix,
+    ValueChanged<String>? onChanged,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      validator: validator,
+      style: const TextStyle(color: LumeColors.textPrimary, fontSize: 14.5),
+      cursorColor: LumeColors.gold,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFF6E6274), fontSize: 14),
+        prefixIcon: Icon(icon, color: LumeColors.textSecondary, size: 20),
+        suffixIcon: suffix,
+        filled: true,
+        fillColor: LumeColors.surface,
+        errorStyle: const TextStyle(color: LumeColors.error, fontSize: 11.5),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: LumeColors.surfaceBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: LumeColors.surfaceBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: LumeColors.gold, width: 1.4),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: LumeColors.error, width: 1.2),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTermsRow() {
+    return GestureDetector(
+      onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
+      behavior: HitTestBehavior.opaque,
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Filters', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          const Text('Age range: 24-34'),
-          const SizedBox(height: 8),
-          const Text('Distance: 10 km'),
-          const SizedBox(height: 8),
-          const Text('Interests: Coffee, Travel, Music'),
-          const SizedBox(height: 12),
-          ElevatedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Apply filters')),
-        ],
-      ),
-    );
-  }
-}
-
-class MatchesScreen extends StatelessWidget {
-  const MatchesScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Matches & chats')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: const [
-          ListTile(leading: CircleAvatar(child: Icon(Icons.person)), title: Text('Maya'), subtitle: Text('Would love to meet this weekend!')),
-          ListTile(leading: CircleAvatar(child: Icon(Icons.person)), title: Text('Noah'), subtitle: Text('Let’s grab coffee tomorrow')),
-        ],
-      ),
-    );
-  }
-}
-
-class ChatScreen extends StatefulWidget {
-  final MatchProfile profile;
-  const ChatScreen({super.key, required this.profile});
-
-  @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
-
-class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final List<Message> _messages = [
-    Message(text: 'Hey! I saw your profile and wanted to say hi.', isMine: false),
-    Message(text: 'Hi! I’d love to get to know you better.', isMine: true),
-  ];
-
-  void _sendMessage() {
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _messages.add(Message(text: text, isMine: true));
-      _controller.clear();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.profile.name),
-        actions: [
-          IconButton(icon: const Icon(Icons.report_problem_outlined), onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User reported and blocked.')));
-          }),
-        ],
-      ),
-      body: Column(
-        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 1),
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              color: _agreedToTerms ? LumeColors.gold : Colors.transparent,
+              border: Border.all(
+                color: _agreedToTerms ? LumeColors.gold : LumeColors.surfaceBorder,
+                width: 1.4,
+              ),
+            ),
+            child: _agreedToTerms
+                ? const Icon(Icons.check_rounded, size: 14, color: LumeColors.bg)
+                : null,
+          ),
+          const SizedBox(width: 10),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: Duration(milliseconds: 400 + (index * 120)),
-                  builder: (context, value, child) {
-                    return Opacity(
-                      opacity: value,
-                      child: Transform.translate(offset: Offset(0, 12 * (1 - value)), child: child),
-                    );
-                  },
-                  child: Align(
-                    alignment: message.isMine ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: message.isMine ? Colors.pinkAccent : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(message.text),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(child: TextField(controller: _controller, decoration: const InputDecoration(hintText: 'Say something sweet...', border: OutlineInputBorder()), onSubmitted: (_) => _sendMessage())),
-                const SizedBox(width: 8),
-                FloatingActionButton(onPressed: _sendMessage, child: const Icon(Icons.send)),
-              ],
+            child: Text.rich(
+              TextSpan(
+                style: const TextStyle(color: LumeColors.textSecondary, fontSize: 12.5, height: 1.4),
+                children: [
+                  const TextSpan(text: 'I agree to Lume\'s '),
+                  TextSpan(text: 'Terms of Service', style: TextStyle(color: LumeColors.gold.withOpacity(0.9), fontWeight: FontWeight.w600)),
+                  const TextSpan(text: ' and '),
+                  TextSpan(text: 'Privacy Policy', style: TextStyle(color: LumeColors.gold.withOpacity(0.9), fontWeight: FontWeight.w600)),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildPrimaryButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(colors: [LumeColors.gold, Color(0xFFC79340)]),
+          boxShadow: [
+            BoxShadow(color: LumeColors.gold.withOpacity(0.28), blurRadius: 20, offset: const Offset(0, 8)),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: _submit,
+            child: const Center(
+              child: Text(
+                'Create Account',
+                style: TextStyle(
+                  color: LumeColors.bg,
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(child: Container(height: 1, color: LumeColors.surfaceBorder)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Text('or sign up with', style: TextStyle(color: LumeColors.textSecondary.withOpacity(0.8), fontSize: 12)),
+        ),
+        Expanded(child: Container(height: 1, color: LumeColors.surfaceBorder)),
+      ],
+    );
+  }
+
+  Widget _buildSocialButton(IconData icon, String label) {
+    return SizedBox(
+      height: 50,
+      child: OutlinedButton.icon(
+        onPressed: () {},
+        icon: Icon(icon, color: LumeColors.textPrimary, size: 22),
+        label: Text(label, style: const TextStyle(color: LumeColors.textPrimary, fontSize: 13.5)),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: LumeColors.surfaceBorder),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+      ),
+    );
+  }
 }
 
-class MatchProfile {
-  final String name;
-  final int age;
-  final String bio;
-  final String imageUrl;
-  MatchProfile({required this.name, required this.age, required this.bio, required this.imageUrl});
+/// A single ambient heart with a randomized horizontal lane, size, speed
+/// offset, and drift — so the loop never feels mechanical or synced.
+class _FloatingHeart {
+  final double lane;       // 0..1 horizontal position
+  final double size;
+  final double speed;      // relative speed multiplier
+  final double phaseOffset; // 0..1 stagger so hearts don't move in lockstep
+  final double swayAmount;
+  final double opacity;
+  final bool isGold;
+
+  _FloatingHeart({required int seed})
+      : lane = _rand(seed, 1),
+        size = 10 + _rand(seed, 2) * 14,
+        speed = 0.6 + _rand(seed, 3) * 0.8,
+        phaseOffset = _rand(seed, 4),
+        swayAmount = 10 + _rand(seed, 5) * 18,
+        opacity = 0.10 + _rand(seed, 6) * 0.16,
+        isGold = _rand(seed, 7) > 0.5;
+
+  static double _rand(int seed, int salt) {
+    final r = Random(seed * 97 + salt * 131);
+    return r.nextDouble();
+  }
 }
 
-class Message {
-  final String text;
-  final bool isMine;
-  Message({required this.text, required this.isMine});
+class _FloatingHeartsPainter extends CustomPainter {
+  final List<_FloatingHeart> hearts;
+  final double progress; // 0..1 looping
+
+  _FloatingHeartsPainter({required this.hearts, required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final heart in hearts) {
+      final t = (progress * heart.speed + heart.phaseOffset) % 1.0;
+      // Drift from bottom to top, fading in and out at the ends.
+      final dy = size.height * (1.0 - t) - size.height * 0.15;
+      final sway = sin((t + heart.phaseOffset) * 2 * pi) * heart.swayAmount;
+      final dx = heart.lane * size.width + sway;
+
+      double fade = 1.0;
+      if (t < 0.12) fade = t / 0.12;
+      if (t > 0.85) fade = (1.0 - t) / 0.15;
+      fade = fade.clamp(0.0, 1.0);
+
+      final paint = Paint()
+        ..color = (heart.isGold ? LumeColors.gold : LumeColors.blush)
+            .withOpacity(heart.opacity * fade)
+        ..style = PaintingStyle.fill;
+
+      _drawHeart(canvas, Offset(dx, dy), heart.size, paint);
+    }
+  }
+
+  void _drawHeart(Canvas canvas, Offset center, double size, Paint paint) {
+    final path = Path();
+    final w = size;
+    final h = size;
+    path.moveTo(center.dx, center.dy + h * 0.32);
+    path.cubicTo(
+      center.dx - w * 0.7, center.dy - h * 0.25,
+      center.dx - w * 0.3, center.dy - h * 0.75,
+      center.dx, center.dy - h * 0.28,
+    );
+    path.cubicTo(
+      center.dx + w * 0.3, center.dy - h * 0.75,
+      center.dx + w * 0.7, center.dy - h * 0.25,
+      center.dx, center.dy + h * 0.32,
+    );
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _FloatingHeartsPainter oldDelegate) => true;
 }
