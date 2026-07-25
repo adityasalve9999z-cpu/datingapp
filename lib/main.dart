@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'profilescreen.dart';
@@ -578,8 +577,6 @@ class MessagesScreen extends StatelessWidget {
     );
   }
 }
-
-class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
