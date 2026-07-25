@@ -23,10 +23,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
     );
     
-    _titleSlide = Tween<double>(begin: -30, end: 0).animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeOut),
-    );
-    
     // Card stagger animation
     _cardController = AnimationController(
       duration: const Duration(milliseconds: 1200),

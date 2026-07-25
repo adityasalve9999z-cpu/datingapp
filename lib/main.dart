@@ -577,8 +577,6 @@ class MessagesScreen extends StatelessWidget {
     );
   }
 }
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
