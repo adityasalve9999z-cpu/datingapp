@@ -11,7 +11,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _titleController;
   late AnimationController _cardController;
   late AnimationController _pulseController;
-  late Animation<double> _titleSlide;
   late Animation<double> _pulseAnimation;
 
   @override
@@ -269,7 +268,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       foregroundColor: Colors.deepPurpleAccent,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     ),
-                    child: const Text('Upgrade Now', fontWeight: FontWeight.bold),
+                    child: const Text(
+                      'Upgrade Now',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
