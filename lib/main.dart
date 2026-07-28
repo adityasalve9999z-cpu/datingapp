@@ -577,7 +577,6 @@ class MessagesScreen extends StatelessWidget {
     );
   }
 }
-  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
