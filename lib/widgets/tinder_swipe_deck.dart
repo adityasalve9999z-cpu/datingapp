@@ -29,7 +29,6 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
   late List<ProfileModel> _deck;
   Offset _dragOffset = Offset.zero;
   double _dragAngle = 0.0;
-  bool _isDragging = false;
   int _currentPhotoIndex = 0;
 
   late AnimationController _swipeAnimController;
@@ -96,9 +95,6 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
 
   void _onPanStart(DragStartDetails details) {
     if (_deck.isEmpty || _swipeAnimController.isAnimating) return;
-    setState(() {
-      _isDragging = true;
-    });
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
@@ -200,7 +196,6 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
       _deck.removeAt(0);
       _dragOffset = Offset.zero;
       _dragAngle = 0.0;
-      _isDragging = false;
       _currentPhotoIndex = 0;
     });
 
@@ -594,9 +589,9 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                     profile.bio,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white90,
+                      color: Colors.white.withOpacity(0.9),
                       height: 1.4,
                     ),
                   ),

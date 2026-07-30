@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: AppTheme.darkBackground,
       body: Container(
         decoration: const BoxDecoration(
-          radialGradient: RadialGradient(
+          gradient: RadialGradient(
             colors: [
               Color(0x33FF2A6D),
               AppTheme.darkBackground,

@@ -73,7 +73,7 @@ class AppTheme {
         onSurface: textPrimary,
       ),
       fontFamily: 'Roboto',
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surfaceCard,
         elevation: 8,
         shadowColor: Colors.black.withOpacity(0.4),

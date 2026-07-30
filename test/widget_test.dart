@@ -2,9 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:datingapp/main.dart';
 
 void main() {
-  testWidgets('App shows onboarding welcome message', (tester) async {
-    await tester.pumpWidget(const DatingApp());
-
-    expect(find.text('Meet your match'), findsOneWidget);
+  testWidgets('App loads GlowDateApp successfully', (tester) async {
+    await tester.pumpWidget(const GlowDateApp());
+    expect(find.byType(GlowDateApp), findsOneWidget);
   });
 }

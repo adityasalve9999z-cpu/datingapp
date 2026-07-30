@@ -46,7 +46,7 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
       backgroundColor: AppTheme.darkBackground,
       body: Container(
         decoration: const BoxDecoration(
-          radialGradient: RadialGradient(
+          gradient: RadialGradient(
             colors: [
               Color(0x2BFF2A6D),
               AppTheme.darkBackground,
@@ -132,9 +132,20 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                   const SizedBox(height: 28),
 
                   // Login Button
-                  SizedBox(
+                  Container(
                     width: double.infinity,
                     height: 56,
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryRose.withOpacity(0.4),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.pushReplacementNamed(context, '/home');
@@ -155,7 +166,7 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                           color: Colors.white,
                         ),
                       ),
-                    ).decorationGradient(AppTheme.primaryGradient),
+                    ),
                   ),
 
                   const SizedBox(height: 20),
