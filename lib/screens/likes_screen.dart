@@ -80,7 +80,8 @@ class _LikesScreenState extends State<LikesScreen>
                       shape: BoxShape.circle,
                       gradient: AppTheme.goldGradient,
                     ),
-                    child: const Icon(Icons.star_rounded, color: Colors.white, size: 24),
+                    child: const Icon(Icons.star_rounded,
+                        color: Colors.white, size: 24),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -194,7 +195,8 @@ class _LikesScreenState extends State<LikesScreen>
                           if (shouldBlur)
                             Positioned.fill(
                               child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                                filter:
+                                    ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                                 child: Container(
                                   color: Colors.black.withOpacity(0.4),
                                   child: const Center(
@@ -222,7 +224,8 @@ class _LikesScreenState extends State<LikesScreen>
                             top: 12,
                             left: 12,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 gradient: AppTheme.primaryGradient,
                                 borderRadius: BorderRadius.circular(14),
@@ -247,7 +250,9 @@ class _LikesScreenState extends State<LikesScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  shouldBlur ? 'Secret Admirer' : '${profile.name.split(' ').first}, ${profile.age}',
+                                  shouldBlur
+                                      ? 'Secret Admirer'
+                                      : '${profile.name.split(' ').first}, ${profile.age}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
