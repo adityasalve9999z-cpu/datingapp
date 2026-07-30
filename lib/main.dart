@@ -246,7 +246,7 @@ class SignupScreenAuth extends StatelessWidget {
                 height: 54,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/home');
+                    Navigator.pushReplacementNamed(context, '/onboarding');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryRose,
