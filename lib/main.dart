@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'splash.dart';
 import 'home.dart';
+import 'screens/onboarding_wizard_screen.dart';
+import 'screens/edit_profile_screen.dart';
+import 'screens/subscription_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +27,9 @@ class GlowDateApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreenAuth(),
         '/signup': (context) => const SignupScreenAuth(),
+        '/onboarding': (context) => const OnboardingWizardScreen(),
+        '/edit-profile': (context) => const EditProfileScreen(),
+        '/subscription': (context) => const SubscriptionScreen(),
       },
     );
   }
