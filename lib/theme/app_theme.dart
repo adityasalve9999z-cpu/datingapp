@@ -68,7 +68,6 @@ class AppTheme {
         primary: primaryRose,
         secondary: primaryPurple,
         surface: surfaceDark,
-        background: darkBackground,
         onPrimary: Colors.white,
         onSurface: textPrimary,
       ),
