@@ -514,28 +514,31 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.flag_rounded, color: AppTheme.primaryRose),
-                title: const Text('Report Profile', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Profile reported. Thank you for keeping GlowDate safe.')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.block_rounded, color: Colors.white70),
-                title: const Text('Block User', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+          child: Material(
+            color: AppTheme.surfaceDark,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.flag_rounded, color: AppTheme.primaryRose),
+                  title: const Text('Report Profile', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Profile reported. Thank you for keeping GlowDate safe.')),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.block_rounded, color: Colors.white70),
+                  title: const Text('Block User', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },

@@ -326,11 +326,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 12),
 
-            Container(
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(20),
-              ),
+            Material(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(20),
               child: Column(
                 children: [
                   SwitchListTile(
