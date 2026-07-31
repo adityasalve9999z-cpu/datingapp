@@ -5,8 +5,8 @@ class ProfileModel {
   final String occupation;
   final String bio;
   final List<String> photos;
-  final int compatibilityScore; // e.g. 98%
-  final String distance; // e.g. "3 miles away"
+  final int compatibilityScore;
+  final String distance;
   final bool isVerified;
   final List<String> interests;
   final String location;
@@ -17,6 +17,20 @@ class ProfileModel {
   final String height;
   final String zodiac;
   final String relationshipGoal;
+
+  // ── New flexible fields ──────────────────────────────────────
+  final String education;        // e.g. "Stanford University"
+  final String degree;           // e.g. "B.Sc. Computer Science"
+  final List<String> languages;  // e.g. ["English", "French"]
+  final String mbti;             // e.g. "INFJ"
+  final String drinking;         // "Never" | "Socially" | "Often"
+  final String smoking;          // "Never" | "Occasionally" | "Yes"
+  final String exercise;         // "Rarely" | "Sometimes" | "Often" | "Daily"
+  final String pets;             // "Dog lover" | "Cat person" | "No pets" | "Has pets"
+  final int mutualFriends;       // count of mutual connections
+  final List<String> lookingFor; // e.g. ["Deep conversations", "Weekend adventures"]
+  final String? instagramHandle; // optional, e.g. "@elena.designs"
+  final int profileCompletion;   // 0–100 percentage
 
   ProfileModel({
     required this.id,
@@ -37,6 +51,19 @@ class ProfileModel {
     this.height = "5'7\"",
     this.zodiac = "Leo ♌",
     this.relationshipGoal = "Long-term connection",
+    // New fields with sensible defaults
+    this.education = "University Graduate",
+    this.degree = "Bachelor's Degree",
+    this.languages = const ["English"],
+    this.mbti = "INFP",
+    this.drinking = "Socially",
+    this.smoking = "Never",
+    this.exercise = "Sometimes",
+    this.pets = "No pets",
+    this.mutualFriends = 0,
+    this.lookingFor = const ["Genuine connection"],
+    this.instagramHandle,
+    this.profileCompletion = 85,
   });
 }
 
@@ -64,6 +91,18 @@ final List<ProfileModel> mockProfiles = [
     height: "5'8\"",
     zodiac: "Libra ♎",
     relationshipGoal: "Long-term relationship",
+    education: "Stanford University",
+    degree: "B.A. Human-Computer Interaction",
+    languages: ["English", "Russian", "French"],
+    mbti: "ENFJ",
+    drinking: "Socially",
+    smoking: "Never",
+    exercise: "Often",
+    pets: "Dog lover 🐶",
+    mutualFriends: 7,
+    lookingFor: ["Deep conversations", "Weekend adventures", "Someone creative"],
+    instagramHandle: "@elena.designs",
+    profileCompletion: 97,
   ),
   ProfileModel(
     id: 'p2',
@@ -83,18 +122,30 @@ final List<ProfileModel> mockProfiles = [
     location: 'Berkeley, CA',
     audioPromptTitle: 'A random fact I love...',
     audioPromptDuration: '0:24',
-    promptQuestion: 'We’ll get along if...',
+    promptQuestion: 'We\'ll get along if...',
     promptAnswer: 'You appreciate brutalist design and know where to find the best ramen.',
     height: "5'6\"",
     zodiac: "Gemini ♊",
     relationshipGoal: "Datable partner",
+    education: "UC Berkeley",
+    degree: "M.Arch Architecture",
+    languages: ["English", "Mandarin"],
+    mbti: "INTJ",
+    drinking: "Socially",
+    smoking: "Never",
+    exercise: "Daily",
+    pets: "Cat person 🐱",
+    mutualFriends: 3,
+    lookingFor: ["Intellectual spark", "Art & culture dates", "Long walks"],
+    instagramHandle: "@sophiachen.arch",
+    profileCompletion: 92,
   ),
   ProfileModel(
     id: 'p3',
     name: 'Chloe Moreau',
     age: 24,
     occupation: 'Fashion Designer & Creative Strategist',
-    bio: 'Parisian vibes in California 🥐🎨. Building eco-conscious street style couture. Let’s hunt for vintage treasures and hidden jazz clubs.',
+    bio: 'Parisian vibes in California 🥐🎨. Building eco-conscious street style couture. Let\'s hunt for vintage treasures and hidden jazz clubs.',
     photos: [
       'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=1000&q=80',
       'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=1000&q=80',
@@ -107,11 +158,23 @@ final List<ProfileModel> mockProfiles = [
     location: 'Oakland, CA',
     audioPromptTitle: 'My non-negotiable...',
     audioPromptDuration: '0:15',
-    promptQuestion: 'I’m overly passionate about...',
+    promptQuestion: 'I\'m overly passionate about...',
     promptAnswer: 'Sustainable fashion ethics and finding the crispest natural wine.',
     height: "5'7\"",
     zodiac: "Taurus ♉",
     relationshipGoal: "Open to romance",
+    education: "Parsons School of Design",
+    degree: "B.F.A. Fashion Design",
+    languages: ["English", "French"],
+    mbti: "ISFP",
+    drinking: "Occasionally",
+    smoking: "Never",
+    exercise: "Sometimes",
+    pets: "Has pets 🐇",
+    mutualFriends: 12,
+    lookingFor: ["Creative soul", "Jazz nights out", "Slow Sunday mornings"],
+    instagramHandle: "@chloe.couture",
+    profileCompletion: 88,
   ),
   ProfileModel(
     id: 'p4',
@@ -135,5 +198,51 @@ final List<ProfileModel> mockProfiles = [
     height: "5'5\"",
     zodiac: "Pisces ♓",
     relationshipGoal: "Long-term partner",
+    education: "Berklee College of Music",
+    degree: "B.Mus. Electronic Production",
+    languages: ["English", "Japanese"],
+    mbti: "INFP",
+    drinking: "Rarely",
+    smoking: "Never",
+    exercise: "Often",
+    pets: "Plant parent 🌿",
+    mutualFriends: 5,
+    lookingFor: ["Late-night creativity", "Beach sunsets", "Plant enthusiast"],
+    instagramHandle: "@maya.sounds",
+    profileCompletion: 95,
+  ),
+  ProfileModel(
+    id: 'p5',
+    name: 'Aisha Patel',
+    age: 28,
+    occupation: 'Neuroscience Researcher @ UCSF',
+    bio: 'Brain science by day, sourdough baker by weekend 🧠🍞. Passionate about mindfulness, trail running, and honest conversations over chai.',
+    photos: [
+      'https://images.unsplash.com/photo-1488716820095-cbe80883c496?auto=format&fit=crop&w=1000&q=80',
+      'https://images.unsplash.com/photo-1484863137850-59afcfe05386?auto=format&fit=crop&w=1000&q=80',
+    ],
+    compatibilityScore: 86,
+    distance: '6 miles away',
+    isVerified: true,
+    interests: ['Neuroscience', 'Baking', 'Trail Running', 'Mindfulness', 'Chai'],
+    location: 'San Francisco, CA',
+    audioPromptTitle: 'The thing about the brain...',
+    audioPromptDuration: '0:22',
+    promptQuestion: 'I geek out about...',
+    promptAnswer: 'Neuroplasticity, how we literally rewire ourselves through experience.',
+    height: "5'4\"",
+    zodiac: "Virgo ♍",
+    relationshipGoal: "Serious relationship",
+    education: "MIT",
+    degree: "Ph.D. Neuroscience",
+    languages: ["English", "Hindi", "Gujarati"],
+    mbti: "INFJ",
+    drinking: "Never",
+    smoking: "Never",
+    exercise: "Daily",
+    pets: "No pets",
+    mutualFriends: 9,
+    lookingFor: ["Intellectual depth", "Active lifestyle partner", "Genuine emotional connection"],
+    profileCompletion: 99,
   ),
 ];

@@ -10,10 +10,11 @@ class OnboardingWizardScreen extends StatefulWidget {
 
 class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   int _currentStep = 0;
-  final int _totalSteps = 4;
+  final int _totalSteps = 6;
 
   final TextEditingController _nameController = TextEditingController(text: 'Maya');
   final TextEditingController _bioController = TextEditingController(text: 'Art gallery explorer & coffee fanatic ☕');
+  final TextEditingController _educationController = TextEditingController(text: 'Stanford University');
   
   final List<String> _selectedInterests = ['Design', 'Vinyl Records', 'Coffee'];
   final List<String> _allInterests = [
@@ -28,6 +29,31 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
     'Short-term fun',
     'Open to explore',
     'New friends'
+  ];
+
+  // Step 4 — Lifestyle
+  String _drinking = 'Socially';
+  String _smoking = 'Never';
+  String _exercise = 'Sometimes';
+  String _pets = 'No pets';
+  final List<String> _drinkingOptions = ['Never', 'Socially', 'Often'];
+  final List<String> _smokingOptions = ['Never', 'Occasionally', 'Yes'];
+  final List<String> _exerciseOptions = ['Rarely', 'Sometimes', 'Often', 'Daily'];
+  final List<String> _petsOptions = ['Dog lover 🐶', 'Cat person 🐱', 'Has pets 🐇', 'Plant parent 🌿', 'No pets'];
+
+  // Step 5 — Basic Details
+  String _selectedMbti = 'INFP';
+  String _selectedHeight = "5'6"";
+  final List<String> _mbtiOptions = [
+    'INTJ', 'INTP', 'ENTJ', 'ENTP',
+    'INFJ', 'INFP', 'ENFJ', 'ENFP',
+    'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
+    'ISTP', 'ISFP', 'ESTP', 'ESFP',
+  ];
+  final List<String> _heightOptions = [
+    "4'10\"", "4'11\"", "5'0\"", "5'1\"", "5'2\"", "5'3\"",
+    "5'4\"", "5'5\"", "5'6\"", "5'7\"", "5'8\"", "5'9\"",
+    "5'10\"", "5'11\"", "6'0\"", "6'1\"", "6'2\"", "6'3+\""
   ];
 
   void _nextStep() {
@@ -254,7 +280,6 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         );
 
       case 3:
-      default:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -309,6 +334,109 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
             ),
           ],
         );
+
+      // ── Step 4: Lifestyle ─────────────────────────────────────────────────
+      case 4:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Your lifestyle 🌿',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            const Text('Help matches understand how you live.', style: TextStyle(color: AppTheme.textSecondary)),
+            const SizedBox(height: 28),
+            _buildLifestyleSection('🍷 Drinking', _drinkingOptions, _drinking, (v) => setState(() => _drinking = v)),
+            const SizedBox(height: 20),
+            _buildLifestyleSection('🚬 Smoking', _smokingOptions, _smoking, (v) => setState(() => _smoking = v)),
+            const SizedBox(height: 20),
+            _buildLifestyleSection('🏃 Exercise', _exerciseOptions, _exercise, (v) => setState(() => _exercise = v)),
+            const SizedBox(height: 20),
+            _buildLifestyleSection('🐾 Pets', _petsOptions, _pets, (v) => setState(() => _pets = v)),
+          ],
+        );
+
+      // ── Step 5: Basic Details ─────────────────────────────────────────────
+      case 5:
+      default:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'A few more details ✨',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            const Text('These help us find your best matches.', style: TextStyle(color: AppTheme.textSecondary)),
+            const SizedBox(height: 28),
+            _buildInputField('University / College', _educationController, Icons.school_rounded),
+            const SizedBox(height: 24),
+            const Text('Your Height', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 15)),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _heightOptions.map((h) {
+                final isSelected = _selectedHeight == h;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedHeight = h),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: isSelected ? AppTheme.primaryGradient : null,
+                      color: isSelected ? null : AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: isSelected ? Colors.transparent : Colors.white12),
+                    ),
+                    child: Text(
+                      h,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppTheme.textSecondary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+            const Text('Personality Type (MBTI)', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 15)),
+            const SizedBox(height: 4),
+            const Text('Optional — helps with compatibility', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _mbtiOptions.map((type) {
+                final isSelected = _selectedMbti == type;
+                final color = _mbtiColorForType(type);
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedMbti = type),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? color.withOpacity(0.25) : AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: isSelected ? color : Colors.white12, width: isSelected ? 2 : 1),
+                    ),
+                    child: Text(
+                      type,
+                      style: TextStyle(
+                        color: isSelected ? color : AppTheme.textSecondary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        );
     }
   }
 
@@ -333,4 +461,53 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       ),
     );
   }
+
+  Widget _buildLifestyleSection(String label, List<String> options, String selected, ValueChanged<String> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 15)),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: options.map((opt) {
+            final isSelected = selected == opt;
+            return GestureDetector(
+              onTap: () => onChanged(opt),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: isSelected ? AppTheme.primaryGradient : null,
+                  color: isSelected ? null : AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSelected ? Colors.transparent : Colors.white12),
+                ),
+                child: Text(
+                  opt,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Color _mbtiColorForType(String type) {
+    const analysts = ['INTJ', 'INTP', 'ENTJ', 'ENTP'];
+    const diplomats = ['INFJ', 'INFP', 'ENFJ', 'ENFP'];
+    const sentinels = ['ISTJ', 'ISFJ', 'ESTJ', 'ESFJ'];
+    if (analysts.contains(type)) return AppTheme.primaryPurple;
+    if (diplomats.contains(type)) return AppTheme.emeraldGreen;
+    if (sentinels.contains(type)) return AppTheme.accentCyan;
+    return AppTheme.accentGold; // explorers
+  }
 }
+

@@ -179,101 +179,152 @@ class _LikesScreenState extends State<LikesScreen>
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
                       child: Stack(
-                        children: [
-                          // Profile Image
-                          Positioned.fill(
-                            child: Hero(
-                              tag: 'likes_photo_${profile.id}_$index',
-                              child: Image.network(
-                                profile.photos.first,
-                                fit: BoxFit.cover,
+                          children: [
+                            // Profile Image
+                            Positioned.fill(
+                              child: Hero(
+                                tag: 'likes_photo_${profile.id}_$index',
+                                child: Image.network(
+                                  profile.photos.first,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
-                          ),
 
-                          // Blur Filter for Non-Gold Users
-                          if (shouldBlur)
-                            Positioned.fill(
-                              child: BackdropFilter(
-                                filter:
-                                    ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                                child: Container(
-                                  color: Colors.black.withOpacity(0.4),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.lock_rounded,
-                                      color: AppTheme.accentGold,
-                                      size: 36,
+                            // Blur Filter for Non-Gold Users
+                            if (shouldBlur)
+                              Positioned.fill(
+                                child: BackdropFilter(
+                                  filter:
+                                      ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                                  child: Container(
+                                    color: Colors.black.withOpacity(0.4),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.lock_rounded,
+                                        color: AppTheme.accentGold,
+                                        size: 36,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
 
-                          // Gradient Overlay
-                          Positioned.fill(
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                gradient: AppTheme.cardOverlayGradient,
-                              ),
-                            ),
-                          ),
-
-                          // Top Match Badge
-                          Positioned(
-                            top: 12,
-                            left: 12,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                gradient: AppTheme.primaryGradient,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Text(
-                                '${profile.compatibilityScore}% Match',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                            // Gradient Overlay
+                            Positioned.fill(
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  gradient: AppTheme.cardOverlayGradient,
                                 ),
                               ),
                             ),
-                          ),
 
-                          // Profile Info at Bottom
-                          Positioned(
-                            left: 14,
-                            right: 14,
-                            bottom: 14,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  shouldBlur
-                                      ? 'Secret Admirer'
-                                      : '${profile.name.split(' ').first}, ${profile.age}',
+                            // Match % Badge (top left)
+                            Positioned(
+                              top: 12,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  gradient: AppTheme.primaryGradient,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Text(
+                                  '${profile.compatibilityScore}% Match',
                                   style: const TextStyle(
                                     color: Colors.white,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  profile.occupation.split('@').first,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+
+                            // Zodiac badge (top right)
+                            if (!shouldBlur)
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.55),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    profile.zodiac.split(' ').last,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            // Profile Info at Bottom
+                            Positioned(
+                              left: 12,
+                              right: 12,
+                              bottom: 12,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    shouldBlur
+                                        ? 'Secret Admirer'
+                                        : '${profile.name.split(' ').first}, ${profile.age}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    profile.occupation.split('@').first.trim(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  if (!shouldBlur) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.location_on_rounded, size: 11, color: AppTheme.accentCyan),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          profile.distance,
+                                          style: const TextStyle(
+                                            color: AppTheme.accentCyan,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (profile.mutualFriends > 0) ...[
+                                          const SizedBox(width: 8),
+                                          const Icon(Icons.people_rounded, size: 11, color: AppTheme.accentGold),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            '${profile.mutualFriends} mutual',
+                                            style: const TextStyle(
+                                              color: AppTheme.accentGold,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                     ),
                   ),
                 );

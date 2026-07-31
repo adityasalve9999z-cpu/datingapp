@@ -140,4 +140,66 @@ class AppTheme {
       ),
     );
   }
+
+  /// Returns a color for a given MBTI type group
+  static Color mbtiColor(String mbti) {
+    const analysts = ['INTJ', 'INTP', 'ENTJ', 'ENTP'];
+    const diplomats = ['INFJ', 'INFP', 'ENFJ', 'ENFP'];
+    const sentinels = ['ISTJ', 'ISFJ', 'ESTJ', 'ESFJ'];
+    const explorers = ['ISTP', 'ISFP', 'ESTP', 'ESFP'];
+    if (analysts.contains(mbti)) return const Color(0xFF8B5CF6);   // purple
+    if (diplomats.contains(mbti)) return const Color(0xFF10B981);   // emerald
+    if (sentinels.contains(mbti)) return const Color(0xFF3B82F6);   // blue
+    if (explorers.contains(mbti)) return const Color(0xFFFFB800);   // gold
+    return primaryRose;
+  }
+
+  /// Returns an icon for a given lifestyle field value
+  static IconData lifestyleIcon(String category, String value) {
+    switch (category) {
+      case 'drinking':
+        switch (value.toLowerCase()) {
+          case 'never': return Icons.no_drinks_rounded;
+          case 'socially': return Icons.wine_bar_rounded;
+          default: return Icons.local_bar_rounded;
+        }
+      case 'smoking':
+        return value.toLowerCase() == 'never'
+            ? Icons.smoke_free_rounded
+            : Icons.smoking_rooms_rounded;
+      case 'exercise':
+        switch (value.toLowerCase()) {
+          case 'daily': return Icons.directions_run_rounded;
+          case 'often': return Icons.fitness_center_rounded;
+          case 'sometimes': return Icons.directions_walk_rounded;
+          default: return Icons.weekend_rounded;
+        }
+      case 'pets':
+        if (value.contains('Dog')) return Icons.pets_rounded;
+        if (value.contains('Cat')) return Icons.catching_pokemon_rounded;
+        if (value.contains('Plant')) return Icons.eco_rounded;
+        if (value.contains('Has')) return Icons.cruelty_free_rounded;
+        return Icons.block_rounded;
+      default:
+        return Icons.info_outline_rounded;
+    }
+  }
+
+  /// Returns a color for a lifestyle value
+  static Color lifestyleColor(String category, String value) {
+    switch (category) {
+      case 'drinking':
+        if (value == 'Never') return emeraldGreen;
+        if (value == 'Socially') return accentCyan;
+        return primaryCoral;
+      case 'smoking':
+        return value == 'Never' ? emeraldGreen : primaryCoral;
+      case 'exercise':
+        if (value == 'Daily') return emeraldGreen;
+        if (value == 'Often') return accentCyan;
+        return textSecondary;
+      default:
+        return accentGold;
+    }
+  }
 }

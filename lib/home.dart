@@ -158,56 +158,256 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showFilterSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.surfaceDark,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Discovery Filters',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text('Verified profiles only', style: TextStyle(color: Colors.white)),
-              const SizedBox(height: 8),
-              const Text('Has bio & audio prompt', style: TextStyle(color: Colors.white70)),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryRose,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                  ),
-                  child: const Text('Apply Filters', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (context) => const _FilterSheet(),
     );
   }
 }
+
+// ── Stateful Filter Sheet ────────────────────────────────────────────────────
+class _FilterSheet extends StatefulWidget {
+  const _FilterSheet();
+  @override
+  State<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends State<_FilterSheet> {
+  RangeValues _ageRange = const RangeValues(20, 35);
+  double _maxDistance = 25;
+  String? _selectedGoal;
+  bool _verifiedOnly = true;
+  bool _hasAudio = false;
+  bool _hasBio = true;
+
+  final List<String> _goals = [
+    'Long-term',
+    'Short-term',
+    'Open to explore',
+    'New friends',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppTheme.surfaceDark,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Discovery Filters',
+                  style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                TextButton(
+                  onPressed: () => setState(() {
+                    _ageRange = const RangeValues(20, 35);
+                    _maxDistance = 25;
+                    _selectedGoal = null;
+                    _verifiedOnly = true;
+                    _hasAudio = false;
+                    _hasBio = true;
+                  }),
+                  child: const Text('Reset', style: TextStyle(color: AppTheme.primaryRose)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Age Range
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Age Range', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_ageRange.start.toInt()} – ${_ageRange.end.toInt()} yrs',
+                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            RangeSlider(
+              values: _ageRange,
+              min: 18,
+              max: 60,
+              divisions: 42,
+              activeColor: AppTheme.primaryRose,
+              inactiveColor: Colors.white12,
+              onChanged: (v) => setState(() => _ageRange = v),
+            ),
+            const SizedBox(height: 16),
+
+            // Max Distance
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Max Distance', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_maxDistance.toInt()} miles',
+                    style: const TextStyle(color: AppTheme.accentCyan, fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            Slider(
+              value: _maxDistance,
+              min: 1,
+              max: 100,
+              divisions: 99,
+              activeColor: AppTheme.accentCyan,
+              inactiveColor: Colors.white12,
+              onChanged: (v) => setState(() => _maxDistance = v),
+            ),
+            const SizedBox(height: 20),
+
+            // Relationship Goals
+            const Text('Relationship Goal', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _goals.map((goal) {
+                final isSelected = _selectedGoal == goal;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedGoal = isSelected ? null : goal),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: isSelected ? AppTheme.primaryGradient : null,
+                      color: isSelected ? null : AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? Colors.transparent : Colors.white12,
+                      ),
+                    ),
+                    child: Text(
+                      goal,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppTheme.textSecondary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+
+            // Lifestyle Toggles
+            const Text('Preferences', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            _buildToggleTile(
+              Icons.verified_rounded, 'Verified profiles only',
+              _verifiedOnly, (v) => setState(() => _verifiedOnly = v),
+              AppTheme.accentCyan,
+            ),
+            _buildToggleTile(
+              Icons.mic_rounded, 'Has audio prompt',
+              _hasAudio, (v) => setState(() => _hasAudio = v),
+              AppTheme.primaryPurple,
+            ),
+            _buildToggleTile(
+              Icons.short_text_rounded, 'Has bio',
+              _hasBio, (v) => setState(() => _hasBio = v),
+              AppTheme.emeraldGreen,
+            ),
+            const SizedBox(height: 28),
+
+            // Apply Button
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(27),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryRose.withOpacity(0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
+                  ),
+                  child: const Text(
+                    'Apply Filters',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleTile(IconData icon, String label, bool value, ValueChanged<bool> onChanged, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 12),
+          Expanded(child: Text(label, style: const TextStyle(color: AppTheme.textPrimary))),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: color,
+          ),
+        ],
+      ),
+    );
+  }
+
