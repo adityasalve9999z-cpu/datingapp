@@ -1,567 +1,628 @@
 import 'package:flutter/material.dart';
-import 'models/profile_model.dart';
-import 'theme/app_theme.dart';
-import 'widgets/tinder_swipe_deck.dart';
-import 'widgets/modern_bottom_nav.dart';
-import 'widgets/match_dialog.dart';
-import 'screens/likes_screen.dart';
-import 'screens/chat_list_screen.dart';
-import 'screens/chat_room_screen.dart';
-import 'profilescreen.dart';
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+import '../theme/app_theme.dart';
+i
+/// Wraps a widget with a mouse-hover reaction: a slight scale-up plus a
+/// softened/lifted shadow, using MouseRegion + AnimatedContainer exactly like
+/// the pattern for `onEnter`/`onExit` hover detection. Only fires with an
+/// actual pointer (web/desktop, or a mouse plugged into a tablet) — it's a
+/// no-op on touch, which is fine since touch has no hover concept.
+class _HoverLift extends StatefulWidget {
+  final Widget child;
+  final double scale;
+  final Color glowColor;
+  const _HoverLift({
+    required this.child,
+    this.scale = 1.02,
+    this.glowColor = AppTheme.primaryRose,
+  });
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<_HoverLift> createState() => _HoverLiftState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  int _currentTabIndex = 0;
-  List<ProfileModel> _activeProfiles = List.from(mockProfiles);
-  final List<ProfileModel> _swipedHistory = [];
+class _HoverLiftState extends State<_HoverLift> {
+  bool _isHovered = false;
 
-  // Heartbeat pulse for the logo mark — two quick beats then a rest, like an
-  // actual pulse, rather than a generic smooth breathing loop.
-  late final AnimationController _heartbeatController;
-  late final Animation<double> _heartbeatScale;
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        transform: _isHovered ? (Matrix4.identity()..scale(widget.scale)) : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: widget.glowColor.withOpacity(0.25),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : [],
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}
 
-  // Cross-fade played whenever the bottom nav switches tabs. IndexedStack is
-  // kept underneath so each tab's state (scroll position, form input, swipe
-  // deck progress, etc.) is preserved — this only animates the visual swap.
-  late final AnimationController _tabFadeController;
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
 
-  // Rotates the filter (tune) icon open/closed when the discovery filter
-  // sheet is shown, so it reads as a toggle rather than a static button.
-  late final AnimationController _filterIconController;
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStateMixin {
+  // Toggles
+  bool _showMeOnDiscovery = true;
+  bool _globalMode = false;
+  bool _newMatches = true;
+  bool _newMessages = true;
+  bool _likesYou = true;
+  bool _promotions = false;
+  bool _readReceipts = true;
+  bool _onlineStatus = true;
+  bool _incognitoMode = false;
+
+  RangeValues _ageRange = const RangeValues(21, 34);
+  double _maxDistance = 30;
+
+  // Slow pulsing glow behind the Premium upsell card — draws the eye without
+  // being distracting, using the same heartbeat-style rhythm as other
+  // screens in the app rather than a generic sine breathing loop.
+  late final AnimationController _premiumGlowController;
+  late final Animation<double> _premiumGlow;
 
   @override
   void initState() {
     super.initState();
-
-    _heartbeatController = AnimationController(
-      duration: const Duration(milliseconds: 1400),
+    _premiumGlowController = AnimationController(
+      duration: const Duration(milliseconds: 2200),
       vsync: this,
-    )..repeat();
-
-    _heartbeatScale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.22).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
-      TweenSequenceItem(tween: Tween(begin: 1.22, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.16).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
-      TweenSequenceItem(tween: Tween(begin: 1.16, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
-      TweenSequenceItem(tween: ConstantTween(1.0), weight: 56),
-    ]).animate(_heartbeatController);
-
-    _tabFadeController = AnimationController(
-      duration: const Duration(milliseconds: 260),
-      vsync: this,
-    )..value = 1.0;
-
-    _filterIconController = AnimationController(
-      duration: const Duration(milliseconds: 260),
-      vsync: this,
-    );
+    )..repeat(reverse: true);
+    _premiumGlow = CurvedAnimation(parent: _premiumGlowController, curve: Curves.easeInOut);
   }
 
   @override
   void dispose() {
-    _heartbeatController.dispose();
-    _tabFadeController.dispose();
-    _filterIconController.dispose();
+    _premiumGlowController.dispose();
     super.dispose();
-  }
-
-  void _switchTab(int index) {
-    if (index == _currentTabIndex) return;
-    setState(() => _currentTabIndex = index);
-    _tabFadeController.forward(from: 0);
-  }
-
-  void _handleSwipe(ProfileModel profile, SwipeDirection direction) {
-    setState(() {
-      _swipedHistory.add(profile);
-      _activeProfiles.removeWhere((p) => p.id == profile.id);
-    });
-  }
-
-  void _handleUndo() {
-    if (_swipedHistory.isNotEmpty) {
-      setState(() {
-        final lastSwiped = _swipedHistory.removeLast();
-        _activeProfiles.insert(0, lastSwiped);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Swiped profile restored!'),
-          duration: Duration(seconds: 1),
-          backgroundColor: AppTheme.surfaceCard,
-        ),
-      );
-    }
-  }
-
-  void _triggerMatchPopup(ProfileModel profile) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => MatchDialog(
-        matchedProfile: profile,
-        onSendChat: () {
-          _switchTab(2); // Jump to Chat tab, animated
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ChatRoomScreen(profile: profile),
-            ),
-          );
-        },
-        onKeepSwiping: () {},
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> screens = [
-      _buildDiscoverTab(),
-      const LikesScreen(),
-      const ChatListScreen(),
-      const ProfileScreen(),
-    ];
-
-    return Scaffold(
-      backgroundColor: AppTheme.darkBackground,
-      body: Stack(
-        children: [
-          // Current Selected Tab View, cross-faded on switch, state preserved
-          FadeTransition(
-            opacity: CurvedAnimation(parent: _tabFadeController, curve: Curves.easeOut),
-            child: IndexedStack(
-              index: _currentTabIndex,
-              children: screens,
-            ),
-          ),
-
-          // Modern Glassmorphic Bottom Navigation Bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: ModernBottomNav(
-              currentIndex: _currentTabIndex,
-              onTap: _switchTab,
-              unreadChatCount: 2,
-              newMatchCount: 5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDiscoverTab() {
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
+        title: const Text('Settings'),
         centerTitle: false,
-        title: Row(
-          children: [
-            AnimatedBuilder(
-              animation: _heartbeatScale,
-              builder: (context, child) => Transform.scale(
-                scale: _heartbeatScale.value,
-                child: child,
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppTheme.primaryGradient,
-                ),
-                child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 20),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
+        physics: const BouncingScrollPhysics(),
+        children: [
+          _HoverLift(child: _buildProfileCard()),
+          const SizedBox(height: 20),
+          _HoverLift(scale: 1.015, glowColor: AppTheme.primaryPurple, child: _buildPremiumCard()),
+          const SizedBox(height: 24),
+
+          _sectionLabel('Discovery'),
+          _groupCard([
+            _switchTile(
+              icon: Icons.visibility_rounded,
+              label: 'Show me on Discovery',
+              color: AppTheme.primaryRose,
+              value: _showMeOnDiscovery,
+              onChanged: (v) => setState(() => _showMeOnDiscovery = v),
+            ),
+            _switchTile(
+              icon: Icons.public_rounded,
+              label: 'Global Mode',
+              color: AppTheme.accentCyan,
+              value: _globalMode,
+              onChanged: (v) => setState(() => _globalMode = v),
+            ),
+            _rangeTile(
+              icon: Icons.cake_rounded,
+              label: 'Age Range',
+              valueLabel: '${_ageRange.start.toInt()} – ${_ageRange.end.toInt()} yrs',
+              color: AppTheme.primaryPurple,
+              child: RangeSlider(
+                values: _ageRange,
+                min: 18,
+                max: 60,
+                divisions: 42,
+                activeColor: AppTheme.primaryRose,
+                inactiveColor: Colors.white12,
+                onChanged: (v) => setState(() => _ageRange = v),
               ),
             ),
-            const SizedBox(width: 10),
-            ShaderMask(
-              shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
+            _rangeTile(
+              icon: Icons.location_on_rounded,
+              label: 'Max Distance',
+              valueLabel: '${_maxDistance.toInt()} miles',
+              color: AppTheme.accentGold,
+              child: Slider(
+                value: _maxDistance,
+                min: 1,
+                max: 100,
+                divisions: 99,
+                activeColor: AppTheme.accentGold,
+                inactiveColor: Colors.white12,
+                onChanged: (v) => setState(() => _maxDistance = v),
+              ),
+            ),
+          ]),
+
+          const SizedBox(height: 20),
+          _sectionLabel('Notifications'),
+          _groupCard([
+            _switchTile(
+              icon: Icons.favorite_rounded,
+              label: 'New Matches',
+              color: AppTheme.primaryRose,
+              value: _newMatches,
+              onChanged: (v) => setState(() => _newMatches = v),
+            ),
+            _switchTile(
+              icon: Icons.chat_bubble_rounded,
+              label: 'New Messages',
+              color: AppTheme.accentCyan,
+              value: _newMessages,
+              onChanged: (v) => setState(() => _newMessages = v),
+            ),
+            _switchTile(
+              icon: Icons.emoji_emotions_rounded,
+              label: 'Likes You',
+              color: AppTheme.emeraldGreen,
+              value: _likesYou,
+              onChanged: (v) => setState(() => _likesYou = v),
+            ),
+            _switchTile(
+              icon: Icons.local_offer_rounded,
+              label: 'Promotions & Tips',
+              color: AppTheme.primaryPurple,
+              value: _promotions,
+              onChanged: (v) => setState(() => _promotions = v),
+            ),
+          ]),
+
+          const SizedBox(height: 20),
+          _sectionLabel('Privacy & Safety'),
+          _groupCard([
+            _switchTile(
+              icon: Icons.done_all_rounded,
+              label: 'Read Receipts',
+              color: AppTheme.accentCyan,
+              value: _readReceipts,
+              onChanged: (v) => setState(() => _readReceipts = v),
+            ),
+            _switchTile(
+              icon: Icons.circle_rounded,
+              label: 'Show Online Status',
+              color: AppTheme.emeraldGreen,
+              value: _onlineStatus,
+              onChanged: (v) => setState(() => _onlineStatus = v),
+            ),
+            _switchTile(
+              icon: Icons.visibility_off_rounded,
+              label: 'Incognito Mode',
+              color: AppTheme.primaryPurple,
+              value: _incognitoMode,
+              onChanged: (v) => setState(() => _incognitoMode = v),
+            ),
+            _actionTile(icon: Icons.block_rounded, label: 'Blocked Accounts', color: AppTheme.textMuted, onTap: () {}),
+            _actionTile(icon: Icons.shield_rounded, label: 'Safety Center', color: AppTheme.accentGold, onTap: () {}),
+          ]),
+
+          const SizedBox(height: 20),
+          _sectionLabel('Account'),
+          _groupCard([
+            _actionTile(icon: Icons.verified_user_rounded, label: 'Verify Your Profile', color: AppTheme.accentCyan, onTap: () {}),
+            _actionTile(icon: Icons.lock_rounded, label: 'Change Password', color: AppTheme.primaryPurple, onTap: () {}),
+            _actionTile(icon: Icons.link_rounded, label: 'Linked Accounts', color: AppTheme.emeraldGreen, onTap: () {}),
+            _actionTile(icon: Icons.language_rounded, label: 'Language', value: 'English', color: AppTheme.accentGold, onTap: () {}),
+          ]),
+
+          const SizedBox(height: 20),
+          _sectionLabel('Support'),
+          _groupCard([
+            _actionTile(icon: Icons.help_rounded, label: 'Help Center', color: AppTheme.accentCyan, onTap: () {}),
+            _actionTile(icon: Icons.description_rounded, label: 'Community Guidelines', color: AppTheme.primaryPurple, onTap: () {}),
+            _actionTile(icon: Icons.privacy_tip_rounded, label: 'Privacy Policy', color: AppTheme.textMuted, onTap: () {}),
+            _actionTile(icon: Icons.info_rounded, label: 'About GlowDate', value: 'v2.4.0', color: AppTheme.textMuted, onTap: () {}),
+          ]),
+
+          const SizedBox(height: 28),
+          _AnimatedDangerButton(
+            label: 'Log Out',
+            icon: Icons.logout_rounded,
+            onPressed: () => _confirmLogout(context),
+          ),
+          const SizedBox(height: 14),
+          Center(
+            child: TextButton(
+              onPressed: () => _confirmDelete(context),
               child: const Text(
-                'GlowDate',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
+                'Delete Account',
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 12.5, decoration: TextDecoration.underline),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          AnimatedBuilder(
-            animation: _filterIconController,
-            builder: (context, child) {
-              return Transform.rotate(
-                angle: _filterIconController.value * 0.78, // ~45°
-                child: child,
-              );
-            },
-            child: IconButton(
-              icon: const Icon(Icons.tune_rounded, color: AppTheme.textPrimary),
-              onPressed: () => _showFilterSheet(context),
             ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: TinderSwipeDeck(
-          profiles: _activeProfiles,
-          onSwipe: _handleSwipe,
-          onUndo: _handleUndo,
-          onMatch: _triggerMatchPopup,
-        ),
-      ),
     );
   }
 
-  void _showFilterSheet(BuildContext context) {
-    _filterIconController.forward();
-    showModalBottomSheet(
+  void _confirmLogout(BuildContext context) {
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      builder: (context) => const _FilterSheet(),
-    ).whenComplete(() => _filterIconController.reverse());
-  }
-}
-
-// ── Stateful Filter Sheet ────────────────────────────────────────────────────
-class _FilterSheet extends StatefulWidget {
-  const _FilterSheet();
-  @override
-  State<_FilterSheet> createState() => _FilterSheetState();
-}
-
-class _FilterSheetState extends State<_FilterSheet> with SingleTickerProviderStateMixin {
-  RangeValues _ageRange = const RangeValues(20, 35);
-  double _maxDistance = 25;
-  String? _selectedGoal;
-  bool _verifiedOnly = true;
-  bool _hasAudio = false;
-  bool _hasBio = true;
-
-  // Entrance animation for the sheet content — a soft rise + fade rather than
-  // relying only on the default modal-sheet slide, so it feels considered.
-  late final AnimationController _entranceController;
-  late final Animation<double> _entranceFade;
-  late final Animation<Offset> _entranceSlide;
-
-  final List<String> _goals = [
-    'Long-term',
-    'Short-term',
-    'Open to explore',
-    'New friends',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _entranceController = AnimationController(
-      duration: const Duration(milliseconds: 380),
-      vsync: this,
-    )..forward();
-    _entranceFade = CurvedAnimation(parent: _entranceController, curve: Curves.easeOut);
-    _entranceSlide = Tween<Offset>(
-      begin: const Offset(0, 0.06),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _entranceController, curve: Curves.easeOutCubic));
-  }
-
-  @override
-  void dispose() {
-    _entranceController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _entranceFade,
-      child: SlideTransition(
-        position: _entranceSlide,
-        child: Container(
-          decoration: const BoxDecoration(
-            color: AppTheme.surfaceDark,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Discovery Filters',
-                      style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    TextButton(
-                      onPressed: () => setState(() {
-                        _ageRange = const RangeValues(20, 35);
-                        _maxDistance = 25;
-                        _selectedGoal = null;
-                        _verifiedOnly = true;
-                        _hasAudio = false;
-                        _hasBio = true;
-                      }),
-                      child: const Text('Reset', style: TextStyle(color: AppTheme.primaryRose)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Age Range
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Age Range', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: ScaleTransition(scale: animation, child: child),
-                      ),
-                      child: Container(
-                        key: ValueKey('${_ageRange.start}-${_ageRange.end}'),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          gradient: AppTheme.primaryGradient,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${_ageRange.start.toInt()} – ${_ageRange.end.toInt()} yrs',
-                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                RangeSlider(
-                  values: _ageRange,
-                  min: 18,
-                  max: 60,
-                  divisions: 42,
-                  activeColor: AppTheme.primaryRose,
-                  inactiveColor: Colors.white12,
-                  onChanged: (v) => setState(() => _ageRange = v),
-                ),
-                const SizedBox(height: 16),
-
-                // Max Distance
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Max Distance', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: ScaleTransition(scale: animation, child: child),
-                      ),
-                      child: Container(
-                        key: ValueKey(_maxDistance),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceCard,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${_maxDistance.toInt()} miles',
-                          style: const TextStyle(color: AppTheme.accentCyan, fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Slider(
-                  value: _maxDistance,
-                  min: 1,
-                  max: 100,
-                  divisions: 99,
-                  activeColor: AppTheme.accentCyan,
-                  inactiveColor: Colors.white12,
-                  onChanged: (v) => setState(() => _maxDistance = v),
-                ),
-                const SizedBox(height: 20),
-
-                // Relationship Goals
-                const Text('Relationship Goal', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: _goals.map((goal) {
-                    final isSelected = _selectedGoal == goal;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedGoal = isSelected ? null : goal),
-                      child: AnimatedScale(
-                        scale: isSelected ? 1.05 : 1.0,
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutBack,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                          decoration: BoxDecoration(
-                            gradient: isSelected ? AppTheme.primaryGradient : null,
-                            color: isSelected ? null : AppTheme.surfaceCard,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isSelected ? Colors.transparent : Colors.white12,
-                            ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: AppTheme.primaryRose.withOpacity(0.35),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ]
-                                : [],
-                          ),
-                          child: Text(
-                            goal,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : AppTheme.textSecondary,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 24),
-
-                // Lifestyle Toggles
-                const Text('Preferences', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                _buildToggleTile(
-                  Icons.verified_rounded, 'Verified profiles only',
-                  _verifiedOnly, (v) => setState(() => _verifiedOnly = v),
-                  AppTheme.accentCyan,
-                ),
-                _buildToggleTile(
-                  Icons.mic_rounded, 'Has audio prompt',
-                  _hasAudio, (v) => setState(() => _hasAudio = v),
-                  AppTheme.primaryPurple,
-                ),
-                _buildToggleTile(
-                  Icons.short_text_rounded, 'Has bio',
-                  _hasBio, (v) => setState(() => _hasBio = v),
-                  AppTheme.emeraldGreen,
-                ),
-                const SizedBox(height: 28),
-
-                // Apply Button
-                _AnimatedApplyButton(onPressed: () => Navigator.pop(context)),
-              ],
-            ),
-          ),
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.surfaceDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Log out?', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'You can always log back in to continue where you left off.',
+          style: TextStyle(color: AppTheme.textSecondary),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Log Out', style: TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildToggleTile(IconData icon, String label, bool value, ValueChanged<bool> onChanged, Color color) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.surfaceDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete your account?', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'This permanently removes your profile, matches, and messages. This can\u2019t be undone.',
+          style: TextStyle(color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Building blocks ────────────────────────────────────────────────────────
+
+  Widget _buildProfileCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: value ? color.withOpacity(0.4) : Colors.transparent, width: 1.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white12),
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 12),
-          Expanded(child: Text(label, style: const TextStyle(color: AppTheme.textPrimary))),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: color,
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppTheme.primaryGradient,
+            ),
+            child: Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.surfaceCard, width: 2),
+                image: const DecorationImage(
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                  ),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
           ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    Text('Maya, 27', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    SizedBox(width: 6),
+                    Icon(Icons.verified_rounded, color: AppTheme.accentCyan, size: 16),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                const Text('Edit your profile & preferences', style: TextStyle(color: AppTheme.textMuted, fontSize: 12.5)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumCard() {
+    return AnimatedBuilder(
+      animation: _premiumGlow,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryRose.withOpacity(0.18 + _premiumGlow.value * 0.22),
+                blurRadius: 20 + _premiumGlow.value * 10,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.18),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Upgrade to GlowDate+', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 3),
+                  Text('Unlimited likes, see who likes you & more', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      child: Text(
+        text.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.textMuted,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _groupCard(List<Widget> tiles) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        children: List.generate(tiles.length, (i) {
+          return Column(
+            children: [
+              tiles[i],
+              if (i != tiles.length - 1) const Divider(height: 1, indent: 56, color: Colors.white10),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _switchTile({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: value ? color.withOpacity(0.05) : Colors.transparent,
+      ),
+      child: SwitchListTile(
+        hoverColor: color.withOpacity(0.06),
+        mouseCursor: SystemMouseCursors.click,
+        secondary: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color, size: 18),
+        ),
+        title: Text(label, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14)),
+        value: value,
+        activeColor: color,
+        onChanged: onChanged,
+      ),
+    );
+  }
+
+  Widget _actionTile({
+    required IconData icon,
+    required String label,
+    String? value,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      hoverColor: color.withOpacity(0.06),
+      mouseCursor: SystemMouseCursors.click,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: color, size: 18),
+      ),
+      title: Text(label, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14)),
+      trailing: value != null
+          ? Text(value, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13))
+          : const Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted, size: 20),
+      onTap: onTap,
+    );
+  }
+
+  Widget _rangeTile({
+    required IconData icon,
+    required String label,
+    required String valueLabel,
+    required Color color,
+    required Widget child,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(label, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14))),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(scale: animation, child: child),
+                ),
+                child: Container(
+                  key: ValueKey(valueLabel),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    valueLabel,
+                    style: TextStyle(color: color, fontSize: 12.5, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          child,
         ],
       ),
     );
   }
 }
 
-/// Apply button with a press-in scale for tactile feedback — a plain
-/// ElevatedButton doesn't give this, so it's built on a GestureDetector.
-class _AnimatedApplyButton extends StatefulWidget {
+/// Log Out button with press-in feedback, styled as a subtle outlined
+/// "danger" action rather than a filled button — it shouldn't visually
+/// compete with the primary gradient CTAs used elsewhere in the app.
+class _AnimatedDangerButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
   final VoidCallback onPressed;
-  const _AnimatedApplyButton({required this.onPressed});
+  const _AnimatedDangerButton({required this.label, required this.icon, required this.onPressed});
 
   @override
-  State<_AnimatedApplyButton> createState() => _AnimatedApplyButtonState();
+  State<_AnimatedDangerButton> createState() => _AnimatedDangerButtonState();
 }
 
-class _AnimatedApplyButtonState extends State<_AnimatedApplyButton> {
+class _AnimatedDangerButtonState extends State<_AnimatedDangerButton> {
   bool _pressed = false;
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onPressed,
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: DecoratedBox(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onPressed,
+        child: AnimatedScale(
+          scale: _pressed ? 0.97 : (_isHovered ? 1.015 : 1.0),
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: double.infinity,
+            height: 54,
             decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(27),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryRose.withOpacity(_pressed ? 0.2 : 0.4),
-                  blurRadius: _pressed ? 8 : 16,
-                  offset: Offset(0, _pressed ? 3 : 6),
+              color: _isHovered ? AppTheme.primaryRose.withOpacity(0.08) : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.primaryRose.withOpacity(_pressed ? 0.4 : (_isHovered ? 1.0 : 0.7)),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(widget.icon, color: AppTheme.primaryRose, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  widget.label,
+                  style: const TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ],
-            ),
-            child: const Center(
-              child: Text(
-                'Apply Filters',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-              ),
             ),
           ),
         ),
