@@ -2,6 +2,48 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'home.dart';
 
+/// Wraps the logo mark with a mouse-hover reaction (scale + brighter glow),
+/// same MouseRegion + AnimatedContainer pattern used across the app's other
+/// screens. Only fires with an actual pointer (web/desktop) — harmless no-op
+/// on touch devices, which have no hover concept.
+class _HoverGlow extends StatefulWidget {
+  final Widget child;
+  const _HoverGlow({required this.child});
+
+  @override
+  State<_HoverGlow> createState() => _HoverGlowState();
+}
+
+class _HoverGlowState extends State<_HoverGlow> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        transform: _isHovered ? (Matrix4.identity()..scale(1.06)) : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryRose.withOpacity(_isHovered ? 0.75 : 0.5),
+              blurRadius: _isHovered ? 46 : 35,
+              spreadRadius: _isHovered ? 8 : 5,
+            ),
+          ],
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -10,10 +52,16 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _animController;
   late Animation<double> _scaleAnim;
   late Animation<double> _fadeAnim;
+
+  // Heartbeat pulse for the logo mark once the entrance animation settles —
+  // two quick beats then a rest, matching the rhythm used on the home and
+  // settings screens, rather than a generic smooth breathing loop.
+  late final AnimationController _heartbeatController;
+  late final Animation<double> _heartbeatScale;
 
   @override
   void initState() {
@@ -31,7 +79,24 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _animController, curve: Curves.easeIn),
     );
 
-    _animController.forward();
+    _heartbeatController = AnimationController(
+      duration: const Duration(milliseconds: 1400),
+      vsync: this,
+    );
+
+    _heartbeatScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.14).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
+      TweenSequenceItem(tween: Tween(begin: 1.14, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.08).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
+      TweenSequenceItem(tween: Tween(begin: 1.08, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 56),
+    ]).animate(_heartbeatController);
+
+    _animController.forward().whenComplete(() {
+      // Start the ambient heartbeat only after the entrance pop finishes,
+      // so the two animations don't fight each other on the same scale value.
+      if (mounted) _heartbeatController.repeat();
+    });
 
     Future.delayed(const Duration(milliseconds: 2200), () {
       if (!mounted) return;
@@ -51,6 +116,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _animController.dispose();
+    _heartbeatController.dispose();
     super.dispose();
   }
 
@@ -70,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
         ),
         child: Center(
           child: AnimatedBuilder(
-            animation: _animController,
+            animation: Listenable.merge([_animController, _heartbeatController]),
             builder: (context, child) {
               return FadeTransition(
                 opacity: _fadeAnim,
@@ -79,23 +145,21 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(28),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: AppTheme.sunsetGradient,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primaryRose.withOpacity(0.5),
-                              blurRadius: 35,
-                              spreadRadius: 5,
+                      Transform.scale(
+                        scale: _heartbeatScale.value,
+                        child: _HoverGlow(
+                          child: Container(
+                            padding: const EdgeInsets.all(28),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: AppTheme.sunsetGradient,
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.favorite_rounded,
-                          size: 70,
-                          color: Colors.white,
+                            child: const Icon(
+                              Icons.favorite_rounded,
+                              size: 70,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 28),
