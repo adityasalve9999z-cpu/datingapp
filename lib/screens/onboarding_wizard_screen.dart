@@ -12,10 +12,14 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   int _currentStep = 0;
   final int _totalSteps = 6;
 
+  // +1 when moving forward, -1 when moving back — drives the direction of
+  // the slide transition between steps so "next" and "back" feel distinct.
+  int _direction = 1;
+
   final TextEditingController _nameController = TextEditingController(text: 'Maya');
   final TextEditingController _bioController = TextEditingController(text: 'Art gallery explorer & coffee fanatic ☕');
   final TextEditingController _educationController = TextEditingController(text: 'Stanford University');
-  
+
   final List<String> _selectedInterests = ['Design', 'Vinyl Records', 'Coffee'];
   final List<String> _allInterests = [
     'Design', 'Vinyl Records', 'Coffee', 'Art Openings', 'Surfing',
@@ -43,7 +47,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
 
   // Step 5 — Basic Details
   String _selectedMbti = 'INFP';
-  String _selectedHeight = "5'6"";
+  String _selectedHeight = "5'6\""; // FIX: was missing an escape, terminated the string early and broke the file
   final List<String> _mbtiOptions = [
     'INTJ', 'INTP', 'ENTJ', 'ENTP',
     'INFJ', 'INFP', 'ENFJ', 'ENFP',
@@ -59,6 +63,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   void _nextStep() {
     if (_currentStep < _totalSteps - 1) {
       setState(() {
+        _direction = 1;
         _currentStep++;
       });
     } else {
@@ -69,6 +74,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   void _previousStep() {
     if (_currentStep > 0) {
       setState(() {
+        _direction = -1;
         _currentStep--;
       });
     }
@@ -85,12 +91,19 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                 onPressed: _previousStep,
               )
             : null,
-        title: Text('Step ${_currentStep + 1} of $_totalSteps'),
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: Text(
+            'Step ${_currentStep + 1} of $_totalSteps',
+            key: ValueKey(_currentStep),
+          ),
+        ),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          // Step Progress Bar
+          // Step Progress Bar — active segment gets a soft glow so the
+          // current position reads clearly, not just a color change.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: Row(
@@ -99,12 +112,22 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                 (idx) => Expanded(
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
                     height: 4,
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     decoration: BoxDecoration(
                       gradient: idx <= _currentStep ? AppTheme.primaryGradient : null,
                       color: idx <= _currentStep ? null : Colors.white12,
                       borderRadius: BorderRadius.circular(2),
+                      boxShadow: idx == _currentStep
+                          ? [
+                              BoxShadow(
+                                color: AppTheme.primaryRose.withOpacity(0.6),
+                                blurRadius: 6,
+                                spreadRadius: 0.5,
+                              ),
+                            ]
+                          : [],
                     ),
                   ),
                 ),
@@ -116,7 +139,25 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(28),
               physics: const BouncingScrollPhysics(),
-              child: _buildStepContent(),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 320),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, animation) {
+                  final offsetAnimation = Tween<Offset>(
+                    begin: Offset(_direction * 0.08, 0),
+                    end: Offset.zero,
+                  ).animate(animation);
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(position: offsetAnimation, child: child),
+                  );
+                },
+                child: KeyedSubtree(
+                  key: ValueKey(_currentStep),
+                  child: _buildStepContent(),
+                ),
+              ),
             ),
           ),
 
@@ -124,27 +165,9 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(28, 0, 28, 20),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _nextStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryRose,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: Text(
-                    _currentStep == _totalSteps - 1 ? 'COMPLETE PROFILE' : 'CONTINUE',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
+              child: _AnimatedContinueButton(
+                label: _currentStep == _totalSteps - 1 ? 'COMPLETE PROFILE' : 'CONTINUE',
+                onPressed: _nextStep,
               ),
             ),
           ),
@@ -160,7 +183,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'What’s your name & bio?',
+              'What\u2019s your name & bio?',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 8),
@@ -200,32 +223,38 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                   'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
                 ];
 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceCard,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white12),
-                    image: hasImage
-                        ? DecorationImage(
-                            image: NetworkImage(imageUrls[idx]),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: !hasImage
-                      ? const Icon(Icons.add_a_photo_rounded, color: AppTheme.primaryRose, size: 28)
-                      : Align(
-                          alignment: Alignment.topRight,
-                          child: Container(
-                            margin: const EdgeInsets.all(6),
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.black54,
-                              shape: BoxShape.circle,
+                return TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: Duration(milliseconds: 280 + idx * 60),
+                  curve: Curves.easeOutBack,
+                  builder: (context, value, child) => Transform.scale(scale: value, child: child),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white12),
+                      image: hasImage
+                          ? DecorationImage(
+                              image: NetworkImage(imageUrls[idx]),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: !hasImage
+                        ? const Icon(Icons.add_a_photo_rounded, color: AppTheme.primaryRose, size: 28)
+                        : Align(
+                            alignment: Alignment.topRight,
+                            child: Container(
+                              margin: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
                             ),
-                            child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
                           ),
-                        ),
+                  ),
                 );
               },
             ),
@@ -249,28 +278,33 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
               children: _allInterests.map((interest) {
                 final isSelected = _selectedInterests.contains(interest);
 
-                return FilterChip(
-                  label: Text(interest),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedInterests.add(interest);
-                      } else {
-                        _selectedInterests.remove(interest);
-                      }
-                    });
-                  },
-                  selectedColor: AppTheme.primaryRose,
-                  backgroundColor: AppTheme.surfaceCard,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textPrimary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(
-                      color: isSelected ? AppTheme.primaryRose : Colors.white12,
+                return AnimatedScale(
+                  scale: isSelected ? 1.05 : 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutBack,
+                  child: FilterChip(
+                    label: Text(interest),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedInterests.add(interest);
+                        } else {
+                          _selectedInterests.remove(interest);
+                        }
+                      });
+                    },
+                    selectedColor: AppTheme.primaryRose,
+                    backgroundColor: AppTheme.surfaceCard,
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : AppTheme.textPrimary,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: isSelected ? AppTheme.primaryRose : Colors.white12,
+                      ),
                     ),
                   ),
                 );
@@ -300,33 +334,54 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                       _selectedGoal = goal;
                     });
                   },
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceCard,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? AppTheme.primaryRose : Colors.white12,
-                        width: isSelected ? 2 : 1,
+                  child: AnimatedScale(
+                    scale: isSelected ? 1.02 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutBack,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected ? AppTheme.primaryRose : Colors.white12,
+                          width: isSelected ? 2 : 1,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppTheme.primaryRose.withOpacity(0.25),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ]
+                            : [],
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          goal,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            goal,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
                           ),
-                        ),
-                        Icon(
-                          isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                          color: isSelected ? AppTheme.primaryRose : Colors.white24,
-                        ),
-                      ],
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(scale: animation, child: child),
+                            child: Icon(
+                              isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                              key: ValueKey(isSelected),
+                              color: isSelected ? AppTheme.primaryRose : Colors.white24,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -381,21 +436,26 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                 final isSelected = _selectedHeight == h;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedHeight = h),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      gradient: isSelected ? AppTheme.primaryGradient : null,
-                      color: isSelected ? null : AppTheme.surfaceCard,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isSelected ? Colors.transparent : Colors.white12),
-                    ),
-                    child: Text(
-                      h,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : AppTheme.textSecondary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 13,
+                  child: AnimatedScale(
+                    scale: isSelected ? 1.06 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutBack,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        gradient: isSelected ? AppTheme.primaryGradient : null,
+                        color: isSelected ? null : AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: isSelected ? Colors.transparent : Colors.white12),
+                      ),
+                      child: Text(
+                        h,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : AppTheme.textSecondary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
@@ -415,20 +475,25 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                 final color = _mbtiColorForType(type);
                 return GestureDetector(
                   onTap: () => setState(() => _selectedMbti = type),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected ? color.withOpacity(0.25) : AppTheme.surfaceCard,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isSelected ? color : Colors.white12, width: isSelected ? 2 : 1),
-                    ),
-                    child: Text(
-                      type,
-                      style: TextStyle(
-                        color: isSelected ? color : AppTheme.textSecondary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 13,
+                  child: AnimatedScale(
+                    scale: isSelected ? 1.06 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutBack,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? color.withOpacity(0.25) : AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: isSelected ? color : Colors.white12, width: isSelected ? 2 : 1),
+                      ),
+                      child: Text(
+                        type,
+                        style: TextStyle(
+                          color: isSelected ? color : AppTheme.textSecondary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
@@ -475,21 +540,26 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
             final isSelected = selected == opt;
             return GestureDetector(
               onTap: () => onChanged(opt),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: isSelected ? AppTheme.primaryGradient : null,
-                  color: isSelected ? null : AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isSelected ? Colors.transparent : Colors.white12),
-                ),
-                child: Text(
-                  opt,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textSecondary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 13,
+              child: AnimatedScale(
+                scale: isSelected ? 1.05 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutBack,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: isSelected ? AppTheme.primaryGradient : null,
+                    color: isSelected ? null : AppTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: isSelected ? Colors.transparent : Colors.white12),
+                  ),
+                  child: Text(
+                    opt,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : AppTheme.textSecondary,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ),
@@ -511,3 +581,65 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   }
 }
 
+/// Continue/Complete button with real press feedback — scales down and
+/// softens on tap-down, springs back on release. Mirrors the button used on
+/// the discovery filter sheet so the whole app feels like one product.
+class _AnimatedContinueButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+  const _AnimatedContinueButton({required this.label, required this.onPressed});
+
+  @override
+  State<_AnimatedContinueButton> createState() => _AnimatedContinueButtonState();
+}
+
+class _AnimatedContinueButtonState extends State<_AnimatedContinueButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onPressed,
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppTheme.primaryRose,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryRose.withOpacity(_pressed ? 0.2 : 0.4),
+                  blurRadius: _pressed ? 8 : 16,
+                  offset: Offset(0, _pressed ? 3 : 6),
+                ),
+              ],
+            ),
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Text(
+                  widget.label,
+                  key: ValueKey(widget.label),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
