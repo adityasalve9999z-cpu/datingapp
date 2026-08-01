@@ -370,8 +370,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 ),
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
+                  style: ElevatedButton.styleFrom(                  String _selectedHeight = "5'6\"";
                     shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
                   ),
