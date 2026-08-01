@@ -233,7 +233,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
               ),
               const SizedBox(height: 24),
               const Text(
-                'You’ve seen everyone near you!',
+                'You\u2019ve seen everyone near you!',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -248,22 +248,17 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              ElevatedButton.icon(
+              // Refresh Deck — hover brightens the button background using
+              // MaterialStateProperty.resolveWith, same concept as a
+              // MaterialState-driven ElevatedButton hover.
+              _HoverElevatedButton(
                 onPressed: () {
                   setState(() {
                     _deck = List.from(widget.profiles);
                   });
                 },
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Refresh Deck'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryRose,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
+                icon: Icons.refresh_rounded,
+                label: 'Refresh Deck',
               ),
             ],
           ),
@@ -538,8 +533,11 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                         ),
                       ),
 
-                      // Info Button to open Profile Detail Screen
-                      GestureDetector(
+                      // Info Button to open Profile Detail Screen — now with
+                      // a hover reaction (scale + brighter border) for
+                      // web/desktop pointers, on top of the existing tap.
+                      _HoverCircleIconButton(
+                        icon: Icons.arrow_upward_rounded,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -559,19 +557,6 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                             ),
                           );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.2),
-                            border: Border.all(color: Colors.white38),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_upward_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -823,6 +808,10 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
   }
 }
 
+/// The circular action buttons (undo, pass, super like, like, boost).
+/// Now hover-aware: on web/desktop, hovering lifts the button slightly and
+/// brightens its glow before the user even clicks — the existing tap-down
+/// press animation (scale to 0.85) is untouched and still layers on top.
 class _ActionButton extends StatefulWidget {
   final IconData icon;
   final Color color;
@@ -844,6 +833,7 @@ class _ActionButtonState extends State<_ActionButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -865,36 +855,149 @@ class _ActionButtonState extends State<_ActionButton>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _controller.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          width: widget.size,
-          height: widget.size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppTheme.surfaceCard,
-            border: Border.all(color: widget.color.withOpacity(0.4), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withOpacity(0.25),
-                blurRadius: 12,
-                spreadRadius: 1,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) => _controller.forward(),
+        onTapUp: (_) {
+          _controller.reverse();
+          widget.onTap();
+        },
+        onTapCancel: () => _controller.reverse(),
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: AnimatedScale(
+            scale: _isHovered ? 1.08 : 1.0,
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.surfaceCard,
+                border: Border.all(
+                  color: widget.color.withOpacity(_isHovered ? 0.9 : 0.4),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.color.withOpacity(_isHovered ? 0.45 : 0.25),
+                    blurRadius: _isHovered ? 18 : 12,
+                    spreadRadius: _isHovered ? 2 : 1,
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Icon(
-            widget.icon,
-            color: widget.color,
-            size: widget.size * 0.5,
+              child: Icon(
+                widget.icon,
+                color: widget.color,
+                size: widget.size * 0.5,
+              ),
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The small circular "open profile detail" button overlaid on each card.
+/// Adds a hover scale + brighter border, same MouseRegion pattern used
+/// throughout the rest of the app.
+class _HoverCircleIconButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _HoverCircleIconButton({required this.icon, required this.onTap});
+
+  @override
+  State<_HoverCircleIconButton> createState() => _HoverCircleIconButtonState();
+}
+
+class _HoverCircleIconButtonState extends State<_HoverCircleIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isHovered ? 1.1 : 1.0,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(_isHovered ? 0.32 : 0.2),
+              border: Border.all(color: Colors.white.withOpacity(_isHovered ? 0.7 : 0.38)),
+            ),
+            child: Icon(
+              widget.icon,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The "Refresh Deck" button shown once the user has swiped through
+/// everyone. Uses MaterialStateProperty.resolveWith to change background
+/// color on hover — the built-in Material hover-state pattern, rather than
+/// a custom MouseRegion wrapper.
+class _HoverElevatedButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final String label;
+  const _HoverElevatedButton({
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: ButtonStyle(
+        foregroundColor: const MaterialStatePropertyAll(Colors.white),
+        padding: const MaterialStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        ),
+        shape: MaterialStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+        overlayColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.hovered)) {
+            return Colors.white.withOpacity(0.12);
+          }
+          if (states.contains(MaterialState.pressed)) {
+            return Colors.white.withOpacity(0.2);
+          }
+          return null;
+        }),
+        backgroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.hovered)) {
+            // Slightly lighter rose on hover so the button visibly "wakes up"
+            return const Color(0xFFFF4785);
+          }
+          return AppTheme.primaryRose;
+        }),
+        elevation: MaterialStateProperty.resolveWith((states) {
+          return states.contains(MaterialState.hovered) ? 8 : 2;
+        }),
       ),
     );
   }
