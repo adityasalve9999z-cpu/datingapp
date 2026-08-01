@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-i
+
 /// Wraps a widget with a mouse-hover reaction: a slight scale-up plus a
 /// softened/lifted shadow, using MouseRegion + AnimatedContainer exactly like
 /// the pattern for `onEnter`/`onExit` hover detection. Only fires with an
@@ -60,6 +60,9 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStateMixin {
+  // Scroll Controller for Scrollbar
+  final ScrollController _scrollController = ScrollController();
+
   // Toggles
   bool _showMeOnDiscovery = true;
   bool _globalMode = false;
@@ -74,9 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
   RangeValues _ageRange = const RangeValues(21, 34);
   double _maxDistance = 30;
 
-  // Slow pulsing glow behind the Premium upsell card — draws the eye without
-  // being distracting, using the same heartbeat-style rhythm as other
-  // screens in the app rather than a generic sine breathing loop.
+  // Slow pulsing glow behind the Premium upsell card
   late final AnimationController _premiumGlowController;
   late final Animation<double> _premiumGlow;
 
@@ -92,6 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _premiumGlowController.dispose();
     super.dispose();
   }
@@ -104,159 +106,166 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         title: const Text('Settings'),
         centerTitle: false,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
-        physics: const BouncingScrollPhysics(),
-        children: [
-          _HoverLift(child: _buildProfileCard()),
-          const SizedBox(height: 20),
-          _HoverLift(scale: 1.015, glowColor: AppTheme.primaryPurple, child: _buildPremiumCard()),
-          const SizedBox(height: 24),
+      body: Scrollbar(
+        controller: _scrollController,
+        thumbVisibility: true,
+        thickness: 6.0,
+        radius: const Radius.circular(10),
+        child: ListView(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
+          physics: const BouncingScrollPhysics(),
+          children: [
+            _HoverLift(child: _buildProfileCard()),
+            const SizedBox(height: 20),
+            _HoverLift(scale: 1.015, glowColor: AppTheme.primaryPurple, child: _buildPremiumCard()),
+            const SizedBox(height: 24),
 
-          _sectionLabel('Discovery'),
-          _groupCard([
-            _switchTile(
-              icon: Icons.visibility_rounded,
-              label: 'Show me on Discovery',
-              color: AppTheme.primaryRose,
-              value: _showMeOnDiscovery,
-              onChanged: (v) => setState(() => _showMeOnDiscovery = v),
+            _sectionLabel('Discovery'),
+            _groupCard([
+              _switchTile(
+                icon: Icons.visibility_rounded,
+                label: 'Show me on Discovery',
+                color: AppTheme.primaryRose,
+                value: _showMeOnDiscovery,
+                onChanged: (v) => setState(() => _showMeOnDiscovery = v),
+              ),
+              _switchTile(
+                icon: Icons.public_rounded,
+                label: 'Global Mode',
+                color: AppTheme.accentCyan,
+                value: _globalMode,
+                onChanged: (v) => setState(() => _globalMode = v),
+              ),
+              _rangeTile(
+                icon: Icons.cake_rounded,
+                label: 'Age Range',
+                valueLabel: '${_ageRange.start.toInt()} – ${_ageRange.end.toInt()} yrs',
+                color: AppTheme.primaryPurple,
+                child: RangeSlider(
+                  values: _ageRange,
+                  min: 18,
+                  max: 60,
+                  divisions: 42,
+                  activeColor: AppTheme.primaryRose,
+                  inactiveColor: Colors.white12,
+                  onChanged: (v) => setState(() => _ageRange = v),
+                ),
+              ),
+              _rangeTile(
+                icon: Icons.location_on_rounded,
+                label: 'Max Distance',
+                valueLabel: '${_maxDistance.toInt()} miles',
+                color: AppTheme.accentGold,
+                child: Slider(
+                  value: _maxDistance,
+                  min: 1,
+                  max: 100,
+                  divisions: 99,
+                  activeColor: AppTheme.accentGold,
+                  inactiveColor: Colors.white12,
+                  onChanged: (v) => setState(() => _maxDistance = v),
+                ),
+              ),
+            ]),
+
+            const SizedBox(height: 20),
+            _sectionLabel('Notifications'),
+            _groupCard([
+              _switchTile(
+                icon: Icons.favorite_rounded,
+                label: 'New Matches',
+                color: AppTheme.primaryRose,
+                value: _newMatches,
+                onChanged: (v) => setState(() => _newMatches = v),
+              ),
+              _switchTile(
+                icon: Icons.chat_bubble_rounded,
+                label: 'New Messages',
+                color: AppTheme.accentCyan,
+                value: _newMessages,
+                onChanged: (v) => setState(() => _newMessages = v),
+              ),
+              _switchTile(
+                icon: Icons.emoji_emotions_rounded,
+                label: 'Likes You',
+                color: AppTheme.emeraldGreen,
+                value: _likesYou,
+                onChanged: (v) => setState(() => _likesYou = v),
+              ),
+              _switchTile(
+                icon: Icons.local_offer_rounded,
+                label: 'Promotions & Tips',
+                color: AppTheme.primaryPurple,
+                value: _promotions,
+                onChanged: (v) => setState(() => _promotions = v),
+              ),
+            ]),
+
+            const SizedBox(height: 20),
+            _sectionLabel('Privacy & Safety'),
+            _groupCard([
+              _switchTile(
+                icon: Icons.done_all_rounded,
+                label: 'Read Receipts',
+                color: AppTheme.accentCyan,
+                value: _readReceipts,
+                onChanged: (v) => setState(() => _readReceipts = v),
+              ),
+              _switchTile(
+                icon: Icons.circle_rounded,
+                label: 'Show Online Status',
+                color: AppTheme.emeraldGreen,
+                value: _onlineStatus,
+                onChanged: (v) => setState(() => _onlineStatus = v),
+              ),
+              _switchTile(
+                icon: Icons.visibility_off_rounded,
+                label: 'Incognito Mode',
+                color: AppTheme.primaryPurple,
+                value: _incognitoMode,
+                onChanged: (v) => setState(() => _incognitoMode = v),
+              ),
+              _actionTile(icon: Icons.block_rounded, label: 'Blocked Accounts', color: AppTheme.textMuted, onTap: () {}),
+              _actionTile(icon: Icons.shield_rounded, label: 'Safety Center', color: AppTheme.accentGold, onTap: () {}),
+            ]),
+
+            const SizedBox(height: 20),
+            _sectionLabel('Account'),
+            _groupCard([
+              _actionTile(icon: Icons.verified_user_rounded, label: 'Verify Your Profile', color: AppTheme.accentCyan, onTap: () {}),
+              _actionTile(icon: Icons.lock_rounded, label: 'Change Password', color: AppTheme.primaryPurple, onTap: () {}),
+              _actionTile(icon: Icons.link_rounded, label: 'Linked Accounts', color: AppTheme.emeraldGreen, onTap: () {}),
+              _actionTile(icon: Icons.language_rounded, label: 'Language', value: 'English', color: AppTheme.accentGold, onTap: () {}),
+            ]),
+
+            const SizedBox(height: 20),
+            _sectionLabel('Support'),
+            _groupCard([
+              _actionTile(icon: Icons.help_rounded, label: 'Help Center', color: AppTheme.accentCyan, onTap: () {}),
+              _actionTile(icon: Icons.description_rounded, label: 'Community Guidelines', color: AppTheme.primaryPurple, onTap: () {}),
+              _actionTile(icon: Icons.privacy_tip_rounded, label: 'Privacy Policy', color: AppTheme.textMuted, onTap: () {}),
+              _actionTile(icon: Icons.info_rounded, label: 'About GlowDate', value: 'v2.4.0', color: AppTheme.textMuted, onTap: () {}),
+            ]),
+
+            const SizedBox(height: 28),
+            _AnimatedDangerButton(
+              label: 'Log Out',
+              icon: Icons.logout_rounded,
+              onPressed: () => _confirmLogout(context),
             ),
-            _switchTile(
-              icon: Icons.public_rounded,
-              label: 'Global Mode',
-              color: AppTheme.accentCyan,
-              value: _globalMode,
-              onChanged: (v) => setState(() => _globalMode = v),
-            ),
-            _rangeTile(
-              icon: Icons.cake_rounded,
-              label: 'Age Range',
-              valueLabel: '${_ageRange.start.toInt()} – ${_ageRange.end.toInt()} yrs',
-              color: AppTheme.primaryPurple,
-              child: RangeSlider(
-                values: _ageRange,
-                min: 18,
-                max: 60,
-                divisions: 42,
-                activeColor: AppTheme.primaryRose,
-                inactiveColor: Colors.white12,
-                onChanged: (v) => setState(() => _ageRange = v),
+            const SizedBox(height: 14),
+            Center(
+              child: TextButton(
+                onPressed: () => _confirmDelete(context),
+                child: const Text(
+                  'Delete Account',
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 12.5, decoration: TextDecoration.underline),
+                ),
               ),
             ),
-            _rangeTile(
-              icon: Icons.location_on_rounded,
-              label: 'Max Distance',
-              valueLabel: '${_maxDistance.toInt()} miles',
-              color: AppTheme.accentGold,
-              child: Slider(
-                value: _maxDistance,
-                min: 1,
-                max: 100,
-                divisions: 99,
-                activeColor: AppTheme.accentGold,
-                inactiveColor: Colors.white12,
-                onChanged: (v) => setState(() => _maxDistance = v),
-              ),
-            ),
-          ]),
-
-          const SizedBox(height: 20),
-          _sectionLabel('Notifications'),
-          _groupCard([
-            _switchTile(
-              icon: Icons.favorite_rounded,
-              label: 'New Matches',
-              color: AppTheme.primaryRose,
-              value: _newMatches,
-              onChanged: (v) => setState(() => _newMatches = v),
-            ),
-            _switchTile(
-              icon: Icons.chat_bubble_rounded,
-              label: 'New Messages',
-              color: AppTheme.accentCyan,
-              value: _newMessages,
-              onChanged: (v) => setState(() => _newMessages = v),
-            ),
-            _switchTile(
-              icon: Icons.emoji_emotions_rounded,
-              label: 'Likes You',
-              color: AppTheme.emeraldGreen,
-              value: _likesYou,
-              onChanged: (v) => setState(() => _likesYou = v),
-            ),
-            _switchTile(
-              icon: Icons.local_offer_rounded,
-              label: 'Promotions & Tips',
-              color: AppTheme.primaryPurple,
-              value: _promotions,
-              onChanged: (v) => setState(() => _promotions = v),
-            ),
-          ]),
-
-          const SizedBox(height: 20),
-          _sectionLabel('Privacy & Safety'),
-          _groupCard([
-            _switchTile(
-              icon: Icons.done_all_rounded,
-              label: 'Read Receipts',
-              color: AppTheme.accentCyan,
-              value: _readReceipts,
-              onChanged: (v) => setState(() => _readReceipts = v),
-            ),
-            _switchTile(
-              icon: Icons.circle_rounded,
-              label: 'Show Online Status',
-              color: AppTheme.emeraldGreen,
-              value: _onlineStatus,
-              onChanged: (v) => setState(() => _onlineStatus = v),
-            ),
-            _switchTile(
-              icon: Icons.visibility_off_rounded,
-              label: 'Incognito Mode',
-              color: AppTheme.primaryPurple,
-              value: _incognitoMode,
-              onChanged: (v) => setState(() => _incognitoMode = v),
-            ),
-            _actionTile(icon: Icons.block_rounded, label: 'Blocked Accounts', color: AppTheme.textMuted, onTap: () {}),
-            _actionTile(icon: Icons.shield_rounded, label: 'Safety Center', color: AppTheme.accentGold, onTap: () {}),
-          ]),
-
-          const SizedBox(height: 20),
-          _sectionLabel('Account'),
-          _groupCard([
-            _actionTile(icon: Icons.verified_user_rounded, label: 'Verify Your Profile', color: AppTheme.accentCyan, onTap: () {}),
-            _actionTile(icon: Icons.lock_rounded, label: 'Change Password', color: AppTheme.primaryPurple, onTap: () {}),
-            _actionTile(icon: Icons.link_rounded, label: 'Linked Accounts', color: AppTheme.emeraldGreen, onTap: () {}),
-            _actionTile(icon: Icons.language_rounded, label: 'Language', value: 'English', color: AppTheme.accentGold, onTap: () {}),
-          ]),
-
-          const SizedBox(height: 20),
-          _sectionLabel('Support'),
-          _groupCard([
-            _actionTile(icon: Icons.help_rounded, label: 'Help Center', color: AppTheme.accentCyan, onTap: () {}),
-            _actionTile(icon: Icons.description_rounded, label: 'Community Guidelines', color: AppTheme.primaryPurple, onTap: () {}),
-            _actionTile(icon: Icons.privacy_tip_rounded, label: 'Privacy Policy', color: AppTheme.textMuted, onTap: () {}),
-            _actionTile(icon: Icons.info_rounded, label: 'About GlowDate', value: 'v2.4.0', color: AppTheme.textMuted, onTap: () {}),
-          ]),
-
-          const SizedBox(height: 28),
-          _AnimatedDangerButton(
-            label: 'Log Out',
-            icon: Icons.logout_rounded,
-            onPressed: () => _confirmLogout(context),
-          ),
-          const SizedBox(height: 14),
-          Center(
-            child: TextButton(
-              onPressed: () => _confirmDelete(context),
-              child: const Text(
-                'Delete Account',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 12.5, decoration: TextDecoration.underline),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -294,7 +303,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete your account?', style: TextStyle(color: Colors.white)),
         content: const Text(
-          'This permanently removes your profile, matches, and messages. This can\u2019t be undone.',
+          'This permanently removes your profile, matches, and messages. This can’t be undone.',
           style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
