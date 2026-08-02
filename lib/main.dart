@@ -6,6 +6,7 @@ import 'screens/onboarding_wizard_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
 import 'screens/basic_to_advanced_screen.dart';
+import 'widgets/animated_glow_button.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -157,41 +158,12 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                   const SizedBox(height: 28),
 
                   // Login Button
-                  Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: AppTheme.primaryGradient,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryRose.withOpacity(0.4),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/home');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                      child: const Text(
-                        'SIGN IN',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                  AnimatedGlowButton(
+                    label: 'SIGN IN',
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    },
+                    gradient: AppTheme.primaryGradient,
                   ),
 
                   const SizedBox(height: 20),
@@ -260,29 +232,12 @@ class SignupScreenAuth extends StatelessWidget {
               const SizedBox(height: 16),
               _buildInputTile(Icons.lock_rounded, 'Password', isObscure: true),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/onboarding');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryRose,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: const Text(
-                    'GET STARTED',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+              AnimatedGlowButton(
+                label: 'GET STARTED',
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/onboarding');
+                },
+                backgroundColor: AppTheme.primaryRose,
               ),
             ],
           ),

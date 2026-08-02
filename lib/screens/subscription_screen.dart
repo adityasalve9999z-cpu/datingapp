@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/animated_glow_button.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -143,34 +144,24 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             const SizedBox(height: 32),
 
             // Primary Purchase Button
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('VIP Subscription Activated! Enjoy your perks.'),
-                      backgroundColor: AppTheme.surfaceDark,
-                    ),
-                  );
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentGold,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+            AnimatedGlowButton(
+              label: 'CONTINUE & UNLOCK',
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('VIP Subscription Activated! Enjoy your perks.'),
+                    backgroundColor: AppTheme.surfaceDark,
                   ),
-                ),
-                child: const Text(
-                  'CONTINUE & UNLOCK',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1,
-                  ),
-                ),
+                );
+                Navigator.pop(context);
+              },
+              backgroundColor: AppTheme.accentGold,
+              foregroundColor: Colors.black,
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1,
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 12),
