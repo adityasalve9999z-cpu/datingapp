@@ -5,6 +5,7 @@ import 'home.dart';
 import 'screens/onboarding_wizard_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
+import 'screens/basic_to_advanced_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,7 @@ class GlowDateApp extends StatelessWidget {
         '/onboarding': (context) => const OnboardingWizardScreen(),
         '/edit-profile': (context) => const EditProfileScreen(),
         '/subscription': (context) => const SubscriptionScreen(),
+        '/basic-to-advanced': (context) => const BasicToAdvancedScreen(),
       },
     );
   }

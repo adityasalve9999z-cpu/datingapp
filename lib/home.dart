@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'screens/basic_to_advanced_screen.dart';
 
 /// Wraps a widget with a mouse-hover reaction: a slight scale-up plus a
 /// softened/lifted shadow, using MouseRegion + AnimatedContainer exactly like
@@ -119,6 +120,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
             _HoverLift(child: _buildProfileCard()),
             const SizedBox(height: 20),
             _HoverLift(scale: 1.015, glowColor: AppTheme.primaryPurple, child: _buildPremiumCard()),
+            const SizedBox(height: 12),
+            _buildGrowthCard(),
             const SizedBox(height: 24),
 
             _sectionLabel('Discovery'),
