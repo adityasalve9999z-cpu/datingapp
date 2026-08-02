@@ -11,6 +11,22 @@ void main() {
   runApp(const GlowDateApp());
 }
 
+class AppScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return Scrollbar(
+      thumbVisibility: true,
+      thickness: 8,
+      radius: const Radius.circular(8),
+      child: child,
+    );
+  }
+}
+
 class GlowDateApp extends StatelessWidget {
   const GlowDateApp({super.key});
 
@@ -22,6 +38,7 @@ class GlowDateApp extends StatelessWidget {
       theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
+      scrollBehavior: AppScrollBehavior(),
       home: const SplashScreen(),
       routes: {
         '/home': (context) => const HomeScreen(),
