@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'screens/basic_to_advanced_screen.dart';
 
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SettingsScreen();
+  }
+}
+
 /// Wraps a widget with a mouse-hover reaction: a slight scale-up plus a
 /// softened/lifted shadow, using MouseRegion + AnimatedContainer exactly like
 /// the pattern for `onEnter`/`onExit` hover detection. Only fires with an
