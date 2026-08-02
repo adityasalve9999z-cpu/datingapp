@@ -51,6 +51,15 @@ class GlowDateApp extends StatelessWidget {
         '/subscription': (context) => const SubscriptionScreen(),
         '/basic-to-advanced': (context) => const BasicToAdvancedScreen(),
       },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/profile') {
+          return MaterialPageRoute(builder: (_) => const EditProfileScreen());
+        }
+        if (settings.name == '/learn') {
+          return MaterialPageRoute(builder: (_) => const BasicToAdvancedScreen());
+        }
+        return null;
+      },
     );
   }
 }

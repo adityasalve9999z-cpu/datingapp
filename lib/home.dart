@@ -335,113 +335,119 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
   // ── Building blocks ────────────────────────────────────────────────────────
 
   Widget _buildProfileCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(3),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: AppTheme.primaryGradient,
-            ),
-            child: Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/edit-profile'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.surfaceCard, width: 2),
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                gradient: AppTheme.primaryGradient,
+              ),
+              child: Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppTheme.surfaceCard, width: 2),
+                  image: const DecorationImage(
+                    image: NetworkImage(
+                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                    ),
+                    fit: BoxFit.cover,
                   ),
-                  fit: BoxFit.cover,
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Text('Maya, 27', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    SizedBox(width: 6),
-                    Icon(Icons.verified_rounded, color: AppTheme.accentCyan, size: 16),
-                  ],
-                ),
-                const SizedBox(height: 3),
-                const Text('Edit your profile & preferences', style: TextStyle(color: AppTheme.textMuted, fontSize: 12.5)),
-              ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: const [
+                      Text('Maya, 27', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      SizedBox(width: 6),
+                      Icon(Icons.verified_rounded, color: AppTheme.accentCyan, size: 16),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  const Text('Edit your profile & preferences', style: TextStyle(color: AppTheme.textMuted, fontSize: 12.5)),
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 20),
             ),
-            child: const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 20),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPremiumCard() {
-    return AnimatedBuilder(
-      animation: _premiumGlow,
-      builder: (context, child) {
-        return Container(
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/subscription'),
+      child: AnimatedBuilder(
+        animation: _premiumGlow,
+        builder: (context, child) {
+          return Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryRose.withOpacity(0.18 + _premiumGlow.value * 0.22),
+                  blurRadius: 20 + _premiumGlow.value * 10,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: child,
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
+            gradient: AppTheme.primaryGradient,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryRose.withOpacity(0.18 + _premiumGlow.value * 0.22),
-                blurRadius: 20 + _premiumGlow.value * 10,
-                offset: const Offset(0, 8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 24),
               ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Upgrade to GlowDate+', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 3),
+                    Text('Unlimited likes, see who likes you & more', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 20),
             ],
           ),
-          child: child,
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.18),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 24),
-            ),
-            const SizedBox(width: 14),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Upgrade to GlowDate+', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 3),
-                  Text('Unlimited likes, see who likes you & more', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 20),
-          ],
         ),
       ),
     );
@@ -449,12 +455,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
 
   Widget _buildGrowthCard() {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const BasicToAdvancedScreen()),
-        );
-      },
+      onTap: () => Navigator.pushNamed(context, '/basic-to-advanced'),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
