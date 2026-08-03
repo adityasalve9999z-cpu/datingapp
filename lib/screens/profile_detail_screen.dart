@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
@@ -20,10 +21,28 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   final PageController _pageController = PageController();
   int _currentPhotoIndex = 0;
   bool _isPlayingAudio = false;
+  late ProfileModel _profile;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _profile = widget.profile;
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isLoading = true);
+    final profile = await AppApiService.fetchProfileById(_profile.id);
+    if (!mounted) return;
+    setState(() {
+      _profile = profile;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final profile = widget.profile;
+    final profile = _profile;
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
@@ -220,6 +239,17 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                           ),
                         ],
                       ),
+
+                      const SizedBox(height: 24),
+
+                      if (_isLoading)
+                        const Center(child: CircularProgressIndicator(color: AppTheme.primaryRose))
+                      else
+                        TextButton.icon(
+                          onPressed: _loadProfile,
+                          icon: const Icon(Icons.refresh_rounded, color: AppTheme.primaryRose),
+                          label: const Text('Refresh profile', style: TextStyle(color: AppTheme.primaryRose)),
+                        ),
 
                       const SizedBox(height: 24),
 

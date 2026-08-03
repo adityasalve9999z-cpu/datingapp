@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class BasicToAdvancedScreen extends StatefulWidget {
@@ -9,26 +10,32 @@ class BasicToAdvancedScreen extends StatefulWidget {
 }
 
 class _BasicToAdvancedScreenState extends State<BasicToAdvancedScreen> {
-  final List<_SkillStep> _steps = const [
-    _SkillStep(
-      title: 'Start with the basics',
-      subtitle: 'Create a clear profile, add your best photos, and set your vibe.',
-      icon: Icons.rocket_launch_rounded,
-      color: AppTheme.primaryRose,
-    ),
-    _SkillStep(
-      title: 'Learn what works',
-      subtitle: 'Review your matches, responses, and interactions to improve your approach.',
-      icon: Icons.insights_rounded,
-      color: AppTheme.accentCyan,
-    ),
-    _SkillStep(
-      title: 'Level up your game',
-      subtitle: 'Use stronger prompts, better timing, and smarter habits to stand out.',
-      icon: Icons.auto_awesome_rounded,
-      color: AppTheme.accentGold,
-    ),
-  ];
+  List<_SkillStep> _steps = const [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTips();
+  }
+
+  Future<void> _loadTips() async {
+    final tips = await AppApiService.fetchLearningTips();
+    if (!mounted) return;
+    setState(() {
+      _steps = tips.map((tip) {
+        final icon = tip['icon'] as String?;
+        final color = tip['color'] as String?;
+        return _SkillStep(
+          title: tip['title']?.toString() ?? 'Level up',
+          subtitle: tip['subtitle']?.toString() ?? 'Keep it authentic.',
+          icon: _iconForName(icon),
+          color: _colorForName(color),
+        );
+      }).toList();
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +80,10 @@ class _BasicToAdvancedScreenState extends State<BasicToAdvancedScreen> {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 12),
-            ..._steps.map((step) => _buildStepCard(step)).toList(),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator(color: AppTheme.primaryRose))
+            else
+              ..._steps.map((step) => _buildStepCard(step)).toList(),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
@@ -133,6 +143,30 @@ class _BasicToAdvancedScreenState extends State<BasicToAdvancedScreen> {
         ],
       ),
     );
+  }
+}
+
+IconData _iconForName(String? name) {
+  switch (name) {
+    case 'rocket_launch_rounded':
+      return Icons.rocket_launch_rounded;
+    case 'insights_rounded':
+      return Icons.insights_rounded;
+    case 'auto_awesome_rounded':
+    default:
+      return Icons.auto_awesome_rounded;
+  }
+}
+
+Color _colorForName(String? name) {
+  switch (name) {
+    case 'accentCyan':
+      return AppTheme.accentCyan;
+    case 'accentGold':
+      return AppTheme.accentGold;
+    case 'primaryRose':
+    default:
+      return AppTheme.primaryRose;
   }
 }
 

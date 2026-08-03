@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import 'services/api_service.dart';
+import 'theme/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -71,6 +72,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStateMixin {
   // Scroll Controller for Scrollbar
   final ScrollController _scrollController = ScrollController();
+  Map<String, dynamic> _dashboardData = {};
 
   // Toggles
   bool _showMeOnDiscovery = true;
@@ -98,6 +100,15 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
       vsync: this,
     )..repeat(reverse: true);
     _premiumGlow = CurvedAnimation(parent: _premiumGlowController, curve: Curves.easeInOut);
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    final data = await AppApiService.fetchDashboardData();
+    if (!mounted) return;
+    setState(() {
+      _dashboardData = data;
+    });
   }
 
   @override
@@ -334,6 +345,10 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
   // ── Building blocks ────────────────────────────────────────────────────────
 
   Widget _buildProfileCard() {
+    final name = _dashboardData['name']?.toString() ?? 'Maya';
+    final age = _dashboardData['age']?.toString() ?? '27';
+    final photo = _dashboardData['photo']?.toString();
+    final occupation = _dashboardData['occupation']?.toString() ?? 'GlowDate member';
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/edit-profile'),
       child: Container(
@@ -357,10 +372,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: AppTheme.surfaceCard, width: 2),
-                  image: const DecorationImage(
-                    image: NetworkImage(
-                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-                    ),
+                  image: DecorationImage(
+                    image: NetworkImage(photo ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -372,14 +385,14 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
-                      Text('Maya, 27', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                      SizedBox(width: 6),
-                      Icon(Icons.verified_rounded, color: AppTheme.accentCyan, size: 16),
+                    children: [
+                      Text('$name, $age', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.verified_rounded, color: AppTheme.accentCyan, size: 16),
                     ],
                   ),
                   const SizedBox(height: 3),
-                  const Text('Edit your profile & preferences', style: TextStyle(color: AppTheme.textMuted, fontSize: 12.5)),
+                  Text(occupation, style: const TextStyle(color: AppTheme.textMuted, fontSize: 12.5)),
                 ],
               ),
             ),

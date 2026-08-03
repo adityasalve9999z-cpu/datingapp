@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'services/api_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
@@ -15,10 +16,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   RangeValues _ageRange = const RangeValues(21, 32);
   bool _pushNotifications = true;
   bool _darkMode = true;
+  Map<String, dynamic> _profileData = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final data = await AppApiService.fetchUserProfile();
+    if (!mounted) return;
+    setState(() {
+      _profileData = data;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    const userAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80';
+    final userAvatar = _profileData['photo']?.toString() ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80';
+    final name = _profileData['name']?.toString() ?? 'Maya';
+    final age = _profileData['age']?.toString() ?? '25';
+    final occupation = _profileData['occupation']?.toString() ?? 'UX Designer @ TechStudio';
+    final location = _profileData['location']?.toString() ?? 'San Francisco';
+    final completion = _profileData['profileCompletion'] ?? 85;
+    final completionValue = (completion as num).toDouble();
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
@@ -58,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: AppTheme.darkBackground, width: 3),
-                          image: const DecorationImage(
+                          image: DecorationImage(
                             image: NetworkImage(userAvatar),
                             fit: BoxFit.cover,
                           ),
@@ -85,23 +107,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 14),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Text(
-                        'Maya, 25',
-                        style: TextStyle(
+                        '$name, $age',
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
                         ),
                       ),
-                      SizedBox(width: 6),
-                      Icon(Icons.verified_rounded, color: AppTheme.accentCyan, size: 22),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.verified_rounded, color: AppTheme.accentCyan, size: 22),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'UX Designer @ TechStudio • San Francisco',
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                  Text(
+                    '$occupation • $location',
+                    style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                   ),
                 ],
               ),
@@ -116,20 +138,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Stack(
                     alignment: Alignment.center,
-                    children: const [
+                    children: [
                       SizedBox(
                         width: 54,
                         height: 54,
                         child: CircularProgressIndicator(
-                          value: 0.85,
+                          value: (completionValue / 100).clamp(0.0, 1.0),
                           strokeWidth: 6,
-                          valueColor: AlwaysStoppedAnimation(AppTheme.primaryRose),
+                          valueColor: const AlwaysStoppedAnimation(AppTheme.primaryRose),
                           backgroundColor: Colors.white10,
                         ),
                       ),
                       Text(
-                        '85%',
-                        style: TextStyle(
+                        '$completionValue%',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
                           fontWeight: FontWeight.bold,

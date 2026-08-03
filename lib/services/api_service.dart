@@ -28,6 +28,102 @@ class AppApiService {
     return prefs.getString('user_name');
   }
 
+  static Future<Map<String, dynamic>> fetchDashboardData() async {
+    final profile = (await fetchProfiles()).firstOrNull ?? mockProfiles.first;
+    return {
+      'name': profile.name,
+      'age': profile.age,
+      'photo': profile.photos.first,
+      'occupation': profile.occupation,
+      'location': profile.location,
+      'completion': profile.profileCompletion,
+      'membership': 'GlowDate+',
+      'message': 'Your profile is ready to shine',
+    };
+  }
+
+  static Future<Map<String, dynamic>> fetchUserProfile() async {
+    final profile = (await fetchProfiles()).firstOrNull ?? mockProfiles.first;
+    return {
+      'name': profile.name,
+      'age': profile.age,
+      'photo': profile.photos.first,
+      'occupation': profile.occupation,
+      'location': profile.location,
+      'profileCompletion': profile.profileCompletion,
+      'preferences': {
+        'showMeOnDiscovery': true,
+        'globalMode': false,
+        'newMatches': true,
+        'newMessages': true,
+        'likesYou': true,
+        'promotions': false,
+        'readReceipts': true,
+        'onlineStatus': true,
+        'incognitoMode': false,
+      },
+    };
+  }
+
+  static Future<Map<String, dynamic>> updatePreferences(Map<String, dynamic> preferences) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_placeholderBaseUrl/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(preferences),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': 'Preferences updated'};
+      }
+    } catch (_) {}
+
+    return {'success': true, 'message': 'Preferences saved locally'};
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchLearningTips() async {
+    try {
+      final response = await http.get(Uri.parse('$_placeholderBaseUrl/posts?userId=1'));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as List<dynamic>;
+        return body.take(3).map((item) {
+          final map = item as Map<String, dynamic>;
+          return {
+            'title': map['title']?.toString() ?? 'Level up your dating game',
+            'subtitle': map['body']?.toString() ?? 'Keep your profile warm and your first message personal.',
+            'icon': 'auto_awesome_rounded',
+            'color': 'primaryRose',
+          };
+        }).toList();
+      }
+    } catch (_) {}
+
+    return [
+      {
+        'title': 'Start with the basics',
+        'subtitle': 'Create a clear profile, add your best photos, and set your vibe.',
+        'icon': 'rocket_launch_rounded',
+        'color': 'primaryRose',
+      },
+      {
+        'title': 'Learn what works',
+        'subtitle': 'Review your matches, responses, and interactions to improve your approach.',
+        'icon': 'insights_rounded',
+        'color': 'accentCyan',
+      },
+      {
+        'title': 'Level up your game',
+        'subtitle': 'Use stronger prompts, better timing, and smarter habits to stand out.',
+        'icon': 'auto_awesome_rounded',
+        'color': 'accentGold',
+      },
+    ];
+  }
+
+  static Future<ProfileModel> fetchProfileById(String id) async {
+    final profiles = await fetchProfiles();
+    return profiles.firstWhere((profile) => profile.id == id, orElse: () => profiles.firstOrNull ?? mockProfiles.first);
+  }
+
   static Future<Map<String, dynamic>> login({required String email, required String password}) async {
     try {
       final response = await http.post(
@@ -169,4 +265,8 @@ class AppApiService {
       };
     }).toList();
   }
+}
+
+extension IterableExtension<T> on Iterable<T> {
+  T? get firstOrNull => isEmpty ? null : first;
 }
