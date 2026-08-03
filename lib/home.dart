@@ -1,13 +1,183 @@
 import 'package:flutter/material.dart';
+import 'models/profile_model.dart';
+import 'profilescreen.dart';
+import 'screens/chat_list_screen.dart';
+import 'screens/chat_room_screen.dart';
+import 'screens/likes_screen.dart';
 import 'services/api_service.dart';
 import 'theme/app_theme.dart';
+import 'widgets/match_dialog.dart';
+import 'widgets/modern_bottom_nav.dart';
+import 'widgets/tinder_swipe_deck.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+  List<ProfileModel> _discoverProfiles = [];
+  bool _isLoadingDiscover = true;
+  ProfileModel? _matchedProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDiscoverProfiles();
+  }
+
+  Future<void> _loadDiscoverProfiles() async {
+    final profiles = await AppApiService.fetchProfiles();
+    if (!mounted) return;
+    setState(() {
+      _discoverProfiles = profiles;
+      _isLoadingDiscover = false;
+    });
+  }
+
+  void _handleMatch(ProfileModel profile) {
+    if (!mounted || profile.compatibilityScore < 90) return;
+    setState(() => _matchedProfile = profile);
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.55),
+      builder: (_) => MatchDialog(
+        matchedProfile: profile,
+        onSendChat: () {
+          if (_matchedProfile != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => ChatRoomScreen(profile: _matchedProfile!)),
+            );
+          }
+        },
+        onKeepSwiping: () {},
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const SettingsScreen();
+    final tabs = <Widget>[
+      DiscoverTab(
+        profiles: _discoverProfiles,
+        isLoading: _isLoadingDiscover,
+        onMatch: _handleMatch,
+      ),
+      const LikesScreen(),
+      const ChatListScreen(),
+      const ProfileScreen(),
+    ];
+
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: AppTheme.darkBackground,
+      body: IndexedStack(index: _currentIndex, children: tabs),
+      bottomNavigationBar: ModernBottomNav(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        unreadChatCount: 3,
+        newMatchCount: _discoverProfiles.length.clamp(1, 9),
+      ),
+    );
+  }
+}
+
+class DiscoverTab extends StatelessWidget {
+  final List<ProfileModel> profiles;
+  final bool isLoading;
+  final ValueChanged<ProfileModel>? onMatch;
+
+  const DiscoverTab({
+    super.key,
+    required this.profiles,
+    required this.isLoading,
+    this.onMatch,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment.topCenter,
+          radius: 1.2,
+          colors: [Color(0x2BFF2A6D), AppTheme.darkBackground],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Discover',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Fresh picks and instant sparks',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: const Icon(Icons.tune_rounded, color: AppTheme.accentGold),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppTheme.primaryRose),
+                    )
+                  : TinderSwipeDeck(
+                      profiles: profiles,
+                      onSwipe: (profile, direction) {
+                        if (direction == SwipeDirection.right) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('You liked ${profile.name.split(' ').first}. Keep going!'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      onMatch: onMatch,
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
