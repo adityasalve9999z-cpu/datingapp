@@ -65,6 +65,74 @@ class ProfileModel {
     this.instagramHandle,
     this.profileCompletion = 85,
   });
+
+  factory ProfileModel.fromJson(Map<String, dynamic> json) {
+    final firstName = json['firstName']?.toString() ?? json['name']?.toString() ?? 'User';
+    final lastName = json['lastName']?.toString() ?? '';
+    final fullName = [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
+    final photos = <String>[];
+    final image = json['image']?.toString();
+    if (image != null && image.isNotEmpty) {
+      photos.add(image);
+    }
+    if (json['images'] is List) {
+      for (final item in json['images'] as List) {
+        final url = item?.toString();
+        if (url != null && url.isNotEmpty) {
+          photos.add(url);
+        }
+      }
+    }
+    if (photos.isEmpty) {
+      photos.add('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80');
+    }
+
+    final company = json['company'];
+    final occupation = company is Map<String, dynamic>
+        ? company['name']?.toString() ?? 'Creative Professional'
+        : 'Creative Professional';
+
+    return ProfileModel(
+      id: json['id']?.toString() ?? json['userId']?.toString() ?? fullName.replaceAll(' ', '-').toLowerCase(),
+      name: fullName.isNotEmpty ? fullName : 'Demo User',
+      age: json['age'] is int
+          ? json['age'] as int
+          : int.tryParse(json['age']?.toString() ?? '25') ?? 25,
+      occupation: occupation,
+      bio: json['bio']?.toString() ?? 'Looking for a meaningful connection and good conversation.',
+      photos: photos,
+      compatibilityScore: int.tryParse(json['compatibilityScore']?.toString() ?? '') ?? 90,
+      distance: json['distance']?.toString() ?? 'Nearby',
+      isVerified: json['isVerified'] is bool ? json['isVerified'] as bool : true,
+      interests: (json['interests'] is List)
+          ? (json['interests'] as List).map((e) => e.toString()).toList()
+          : ['Design', 'Coffee', 'Travel'],
+      location: json['location']?.toString() ?? 'San Francisco, CA',
+      audioPromptTitle: json['audioPromptTitle']?.toString(),
+      audioPromptDuration: json['audioPromptDuration']?.toString(),
+      promptQuestion: json['promptQuestion']?.toString(),
+      promptAnswer: json['promptAnswer']?.toString(),
+      height: json['height']?.toString() ?? "5'7\"",
+      zodiac: json['zodiac']?.toString() ?? 'Leo ♌',
+      relationshipGoal: json['relationshipGoal']?.toString() ?? 'Long-term connection',
+      education: json['education']?.toString() ?? 'University Graduate',
+      degree: json['degree']?.toString() ?? "Bachelor's Degree",
+      languages: (json['languages'] is List)
+          ? (json['languages'] as List).map((e) => e.toString()).toList()
+          : const ['English'],
+      mbti: json['mbti']?.toString() ?? 'INFP',
+      drinking: json['drinking']?.toString() ?? 'Socially',
+      smoking: json['smoking']?.toString() ?? 'Never',
+      exercise: json['exercise']?.toString() ?? 'Sometimes',
+      pets: json['pets']?.toString() ?? 'No pets',
+      mutualFriends: int.tryParse(json['mutualFriends']?.toString() ?? '') ?? 0,
+      lookingFor: (json['lookingFor'] is List)
+          ? (json['lookingFor'] as List).map((e) => e.toString()).toList()
+          : const ['Genuine connection'],
+      instagramHandle: json['instagramHandle']?.toString(),
+      profileCompletion: int.tryParse(json['profileCompletion']?.toString() ?? '') ?? 85,
+    );
+  }
 }
 
 final List<ProfileModel> mockProfiles = [

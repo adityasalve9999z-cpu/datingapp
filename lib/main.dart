@@ -7,6 +7,7 @@ import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
 import 'screens/basic_to_advanced_screen.dart';
 import 'widgets/animated_glow_button.dart';
+import 'services/api_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +75,23 @@ class LoginScreenAuth extends StatefulWidget {
 class _LoginScreenAuthState extends State<LoginScreenAuth> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isSubmitting = false;
+
+  Future<void> _handleLogin() async {
+    setState(() => _isSubmitting = true);
+    final result = await AppApiService.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['message'] as String)),
+    );
+    if (result['success'] == true) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -168,10 +186,8 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
 
                   // Login Button
                   AnimatedGlowButton(
-                    label: 'SIGN IN',
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/home');
-                    },
+                    label: _isSubmitting ? 'SIGNING IN...' : 'SIGN IN',
+                    onPressed: _isSubmitting ? null : _handleLogin,
                     gradient: AppTheme.primaryGradient,
                   ),
 
@@ -205,8 +221,35 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
   }
 }
 
-class SignupScreenAuth extends StatelessWidget {
+class SignupScreenAuth extends StatefulWidget {
   const SignupScreenAuth({super.key});
+
+  @override
+  State<SignupScreenAuth> createState() => _SignupScreenAuthState();
+}
+
+class _SignupScreenAuthState extends State<SignupScreenAuth> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isSubmitting = false;
+
+  Future<void> _handleSignup() async {
+    setState(() => _isSubmitting = true);
+    final result = await AppApiService.signup(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['message'] as String)),
+    );
+    if (result['success'] == true) {
+      Navigator.pushReplacementNamed(context, '/onboarding');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,17 +278,15 @@ class SignupScreenAuth extends StatelessWidget {
                 style: TextStyle(color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 32),
-              _buildInputTile(Icons.person_rounded, 'Full Name'),
+              _buildInputTile(Icons.person_rounded, 'Full Name', controller: _nameController),
               const SizedBox(height: 16),
-              _buildInputTile(Icons.email_rounded, 'Email Address'),
+              _buildInputTile(Icons.email_rounded, 'Email Address', controller: _emailController),
               const SizedBox(height: 16),
-              _buildInputTile(Icons.lock_rounded, 'Password', isObscure: true),
+              _buildInputTile(Icons.lock_rounded, 'Password', isObscure: true, controller: _passwordController),
               const SizedBox(height: 32),
               AnimatedGlowButton(
-                label: 'GET STARTED',
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/onboarding');
-                },
+                label: _isSubmitting ? 'CREATING ACCOUNT...' : 'GET STARTED',
+                onPressed: _isSubmitting ? null : _handleSignup,
                 backgroundColor: AppTheme.primaryRose,
               ),
             ],
@@ -255,7 +296,7 @@ class SignupScreenAuth extends StatelessWidget {
     );
   }
 
-  Widget _buildInputTile(IconData icon, String hint, {bool isObscure = false}) {
+  Widget _buildInputTile(IconData icon, String hint, {bool isObscure = false, TextEditingController? controller}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       decoration: BoxDecoration(
@@ -264,6 +305,7 @@ class SignupScreenAuth extends StatelessWidget {
         border: Border.all(color: Colors.white12),
       ),
       child: TextField(
+        controller: controller,
         obscureText: isObscure,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(

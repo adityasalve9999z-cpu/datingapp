@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -16,6 +17,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     text: 'Freshly roasted espresso and spontaneous road trips up the coastline.',
   );
 
+  Future<void> _saveProfile() async {
+    final result = await AppApiService.saveProfile({
+      'bio': _bioController.text.trim(),
+      'promptAnswer': _promptController.text.trim(),
+    });
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['message'] as String)),
+    );
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,15 +37,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: const Text('Edit Profile'),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Profile saved successfully!'),
-                  backgroundColor: AppTheme.surfaceDark,
-                ),
-              );
-            },
+            onPressed: _saveProfile,
             child: const Text('Save', style: TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold, fontSize: 16)),
           ),
         ],

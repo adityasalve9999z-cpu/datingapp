@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class OnboardingWizardScreen extends StatefulWidget {
@@ -60,13 +61,30 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
     "5'10\"", "5'11\"", "6'0\"", "6'1\"", "6'2\"", "6'3+\""
   ];
 
-  void _nextStep() {
+  Future<void> _nextStep() async {
     if (_currentStep < _totalSteps - 1) {
       setState(() {
         _direction = 1;
         _currentStep++;
       });
     } else {
+      final result = await AppApiService.submitOnboarding({
+        'name': _nameController.text.trim(),
+        'bio': _bioController.text.trim(),
+        'education': _educationController.text.trim(),
+        'goals': _selectedGoal,
+        'interests': _selectedInterests,
+        'drinking': _drinking,
+        'smoking': _smoking,
+        'exercise': _exercise,
+        'pets': _pets,
+        'height': _selectedHeight,
+        'mbti': _selectedMbti,
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] as String)),
+      );
       Navigator.pushReplacementNamed(context, '/home');
     }
   }

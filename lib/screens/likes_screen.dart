@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'profile_detail_screen.dart';
 
@@ -15,11 +16,23 @@ class _LikesScreenState extends State<LikesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isUnlocked = false;
+  List<ProfileModel> _profiles = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadProfiles();
+  }
+
+  Future<void> _loadProfiles() async {
+    final profiles = await AppApiService.fetchProfiles();
+    if (!mounted) return;
+    setState(() {
+      _profiles = profiles;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -61,7 +74,11 @@ class _LikesScreenState extends State<LikesScreen>
   }
 
   Widget _buildLikesGrid({bool isTopPicks = false}) {
-    final profiles = isTopPicks ? mockProfiles.reversed.toList() : mockProfiles;
+    final profiles = isTopPicks ? _profiles.reversed.toList() : _profiles;
+
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: AppTheme.primaryRose));
+    }
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),

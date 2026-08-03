@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_glow_button.dart';
 
@@ -146,10 +147,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             // Primary Purchase Button
             AnimatedGlowButton(
               label: 'CONTINUE & UNLOCK',
-              onPressed: () {
+              onPressed: () async {
+                final tier = _selectedTier == 0 ? '1_week' : _selectedTier == 2 ? '3_months' : '1_month';
+                final result = await AppApiService.purchaseSubscription(tier);
+                if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('VIP Subscription Activated! Enjoy your perks.'),
+                  SnackBar(
+                    content: Text(result['message'] as String),
                     backgroundColor: AppTheme.surfaceDark,
                   ),
                 );

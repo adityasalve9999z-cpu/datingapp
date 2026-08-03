@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
+import '../services/api_service.dart';
 import 'chat_room_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -37,37 +38,26 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  List<Map<String, dynamic>> _conversations = [];
+  List<ProfileModel> _profiles = [];
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _conversations = [
-    {
-      'profile': mockProfiles[0],
-      'lastMessage': 'I\'d love to visit that espresso bar on 4th street! ☕',
-      'time': '10:42 AM',
-      'unread': 2,
-      'isOnline': true,
-    },
-    {
-      'profile': mockProfiles[1],
-      'lastMessage': 'Check out this film photo I took yesterday 🎞️',
-      'time': 'Yesterday',
-      'unread': 0,
-      'isOnline': true,
-    },
-    {
-      'profile': mockProfiles[2],
-      'lastMessage': 'Have you heard the new vinyl release by L\'Impératrice?',
-      'time': 'Mon',
-      'unread': 1,
-      'isOnline': false,
-    },
-    {
-      'profile': mockProfiles[3],
-      'lastMessage': 'That beat snippet sounded incredible!',
-      'time': 'Sun',
-      'unread': 0,
-      'isOnline': false,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadConversations();
+  }
+
+  Future<void> _loadConversations() async {
+    final profiles = await AppApiService.fetchProfiles();
+    final matches = await AppApiService.fetchMatches();
+    if (!mounted) return;
+    setState(() {
+      _profiles = profiles;
+      _conversations = matches;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,13 +159,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     ),
                     SizedBox(
                       height: 106,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: mockProfiles.length,
-                        itemBuilder: (context, index) {
-                          final profile = mockProfiles[index];
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator(color: LumeColors.gold))
+                          : ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: _profiles.length,
+                              itemBuilder: (context, index) {
+                                final profile = _profiles[index];
                           return GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -252,6 +244,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
+                    if (_isLoading) {
+                      return const SizedBox.shrink();
+                    }
                     final conv = filteredConversations[index];
                     final profile = conv['profile'] as ProfileModel;
                     final bool unread = (conv['unread'] as int) > 0;
