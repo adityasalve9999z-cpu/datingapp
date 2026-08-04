@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_glow_button.dart';
+import '../widgets/shimmer_loading.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -13,6 +14,7 @@ class SubscriptionScreen extends StatefulWidget {
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   int _selectedTier = 1; // 0: 1 Week, 1: 1 Month, 2: 3 Months
   bool _isPlatinum = true;
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         title: const Text('GlowDate VIP'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: GlowLoadingOverlay(
+        isLoading: _isProcessing,
+        message: 'Upgrading your membership...',
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         physics: const BouncingScrollPhysics(),
         child: Column(
@@ -147,18 +152,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             // Primary Purchase Button
             AnimatedGlowButton(
               label: 'CONTINUE & UNLOCK',
-              onPressed: () async {
-                final tier = _selectedTier == 0 ? '1_week' : _selectedTier == 2 ? '3_months' : '1_month';
-                final result = await AppApiService.purchaseSubscription(tier);
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(result['message'] as String),
-                    backgroundColor: AppTheme.surfaceDark,
-                  ),
-                );
-                Navigator.pop(context);
-              },
+              onPressed: _isProcessing
+                  ? null
+                  : () async {
+                      setState(() => _isProcessing = true);
+                      final tier = _selectedTier == 0 ? '1_week' : _selectedTier == 2 ? '3_months' : '1_month';
+                      final result = await AppApiService.purchaseSubscription(tier);
+                      if (!mounted) return;
+                      setState(() => _isProcessing = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(result['message'] as String),
+                          backgroundColor: AppTheme.surfaceDark,
+                        ),
+                      );
+                      Navigator.pop(context);
+                    },
               backgroundColor: AppTheme.accentGold,
               foregroundColor: Colors.black,
               textStyle: const TextStyle(
@@ -176,6 +185,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 

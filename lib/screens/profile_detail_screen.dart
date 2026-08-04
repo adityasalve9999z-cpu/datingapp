@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shimmer_loading.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
   final ProfileModel profile;
@@ -42,6 +43,15 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppTheme.darkBackground,
+        appBar: AppBar(
+          title: Text(_profile.name),
+        ),
+        body: const ProfileScreenSkeleton(),
+      );
+    }
     final profile = _profile;
 
     return Scaffold(

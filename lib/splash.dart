@@ -184,6 +184,28 @@ class _SplashScreenState extends State<SplashScreen>
                           letterSpacing: 0.5,
                         ),
                       ),
+                      const SizedBox(height: 40),
+                      // Animated Glow Loading Line
+                      SizedBox(
+                        width: 140,
+                        height: 4,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: const LinearProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryRose),
+                            backgroundColor: Color(0x33FF2A6D),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Loading your experience...',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textMuted,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
                     ],
                   ),
                 ),

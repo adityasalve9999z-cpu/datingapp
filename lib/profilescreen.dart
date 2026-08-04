@@ -3,6 +3,7 @@ import 'services/api_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
+import 'widgets/shimmer_loading.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _pushNotifications = true;
   bool _darkMode = true;
   Map<String, dynamic> _profileData = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -29,11 +31,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     setState(() {
       _profileData = data;
+      _isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppTheme.darkBackground,
+        appBar: AppBar(
+          title: const Text('My Profile'),
+        ),
+        body: const ProfileScreenSkeleton(),
+      );
+    }
     final userAvatar = _profileData['photo']?.toString() ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80';
     final name = _profileData['name']?.toString() ?? 'Maya';
     final age = _profileData['age']?.toString() ?? '25';

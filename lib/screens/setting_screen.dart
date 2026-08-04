@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shimmer_loading.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,6 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
   bool _readReceipts = true;
   bool _onlineStatus = true;
   bool _incognitoMode = false;
+  bool _isLoading = true;
 
   RangeValues _ageRange = const RangeValues(21, 34);
   double _maxDistance = 30;
@@ -37,6 +39,9 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
       vsync: this,
     )..repeat(reverse: true);
     _premiumGlow = CurvedAnimation(parent: _premiumGlowController, curve: Curves.easeInOut);
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _isLoading = false);
+    });
   }
 
   @override
@@ -53,7 +58,9 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         title: const Text('Settings'),
         centerTitle: false,
       ),
-      body: ListView(
+      body: _isLoading
+          ? const FormScreenSkeleton()
+          : ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
         physics: const BouncingScrollPhysics(),
         children: [

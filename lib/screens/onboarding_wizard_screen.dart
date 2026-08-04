@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shimmer_loading.dart';
 
 class OnboardingWizardScreen extends StatefulWidget {
   const OnboardingWizardScreen({super.key});
@@ -12,6 +13,7 @@ class OnboardingWizardScreen extends StatefulWidget {
 class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   int _currentStep = 0;
   final int _totalSteps = 6;
+  bool _isCompleting = false;
 
   // +1 when moving forward, -1 when moving back — drives the direction of
   // the slide transition between steps so "next" and "back" feel distinct.
@@ -68,6 +70,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         _currentStep++;
       });
     } else {
+      setState(() => _isCompleting = true);
       final result = await AppApiService.submitOnboarding({
         'name': _nameController.text.trim(),
         'bio': _bioController.text.trim(),
@@ -82,6 +85,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         'mbti': _selectedMbti,
       });
       if (!mounted) return;
+      setState(() => _isCompleting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message'] as String)),
       );
@@ -118,7 +122,10 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         ),
         centerTitle: true,
       ),
-      body: Column(
+      body: GlowLoadingOverlay(
+        isLoading: _isCompleting,
+        message: 'Saving your preferences...',
+        child: Column(
         children: [
           // Step Progress Bar — active segment gets a soft glow so the
           // current position reads clearly, not just a color change.
@@ -191,6 +198,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 

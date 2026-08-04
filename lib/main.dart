@@ -7,6 +7,7 @@ import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
 import 'screens/basic_to_advanced_screen.dart';
 import 'widgets/animated_glow_button.dart';
+import 'widgets/shimmer_loading.dart';
 import 'services/api_service.dart';
 
 void main() {
@@ -97,16 +98,19 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            colors: [
-              Color(0x2BFF2A6D),
-              AppTheme.darkBackground,
-            ],
-            radius: 1.2,
+      body: GlowLoadingOverlay(
+        isLoading: _isSubmitting,
+        message: 'Authenticating...',
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              colors: [
+                Color(0x2BFF2A6D),
+                AppTheme.darkBackground,
+              ],
+              radius: 1.2,
+            ),
           ),
-        ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -217,6 +221,7 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
           ),
         ),
       ),
+    ),
     );
   }
 }
@@ -258,7 +263,10 @@ class _SignupScreenAuthState extends State<SignupScreenAuth> {
       appBar: AppBar(
         title: const Text('Create Account'),
       ),
-      body: SafeArea(
+      body: GlowLoadingOverlay(
+        isLoading: _isSubmitting,
+        message: 'Creating account...',
+        child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(28),
           child: Column(
@@ -293,6 +301,7 @@ class _SignupScreenAuthState extends State<SignupScreenAuth> {
           ),
         ),
       ),
+    ),
     );
   }
 

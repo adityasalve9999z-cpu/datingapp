@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shimmer_loading.dart';
 import 'profile_detail_screen.dart';
 
 class ChatRoomScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final ScrollController _scrollController = ScrollController();
 
   late List<Map<String, dynamic>> _messages;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -38,6 +40,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         'time': '10:42 AM',
       },
     ];
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _isLoading = false);
+    });
   }
 
   void _sendMessage(String text) {
@@ -130,7 +135,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: _isLoading
+          ? const ChatRoomSkeleton()
+          : Column(
         children: [
           // Chat Messages Scroll Area
           Expanded(

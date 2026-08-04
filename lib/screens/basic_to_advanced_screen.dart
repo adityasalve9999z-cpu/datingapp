@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shimmer_loading.dart';
 
 class BasicToAdvancedScreen extends StatefulWidget {
   const BasicToAdvancedScreen({super.key});
@@ -81,7 +82,10 @@ class _BasicToAdvancedScreenState extends State<BasicToAdvancedScreen> {
             ),
             const SizedBox(height: 12),
             if (_isLoading)
-              const Center(child: CircularProgressIndicator(color: AppTheme.primaryRose))
+              const SizedBox(
+                height: 300,
+                child: FormScreenSkeleton(),
+              )
             else
               ..._steps.map((step) => _buildStepCard(step)).toList(),
             const SizedBox(height: 20),

@@ -9,6 +9,7 @@ import 'theme/app_theme.dart';
 import 'widgets/match_dialog.dart';
 import 'widgets/modern_bottom_nav.dart';
 import 'widgets/tinder_swipe_deck.dart';
+import 'widgets/shimmer_loading.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -152,27 +153,28 @@ class DiscoverTab extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: AppTheme.primaryRose),
-                    )
-                  : TinderSwipeDeck(
-                      profiles: profiles,
-                      onSwipe: (profile, direction) {
-                        if (direction == SwipeDirection.right) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('You liked ${profile.name.split(' ').first}. Keep going!'),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      onMatch: onMatch,
-                    ),
+              child: AnimatedCrossFade(
+                firstChild: const DiscoverCardSkeleton(),
+                secondChild: TinderSwipeDeck(
+                  profiles: profiles,
+                  onSwipe: (profile, direction) {
+                    if (direction == SwipeDirection.right) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('You liked ${profile.name.split(' ').first}. Keep going!'),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  onMatch: onMatch,
+                ),
+                crossFadeState: isLoading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                duration: const Duration(milliseconds: 350),
+              ),
             ),
           ],
         ),

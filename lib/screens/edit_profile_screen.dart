@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shimmer_loading.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -16,13 +17,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _promptController = TextEditingController(
     text: 'Freshly roasted espresso and spontaneous road trips up the coastline.',
   );
+  bool _isSaving = false;
 
   Future<void> _saveProfile() async {
+    setState(() => _isSaving = true);
     final result = await AppApiService.saveProfile({
       'bio': _bioController.text.trim(),
       'promptAnswer': _promptController.text.trim(),
     });
     if (!mounted) return;
+    setState(() => _isSaving = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(result['message'] as String)),
     );
@@ -37,12 +41,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: const Text('Edit Profile'),
         actions: [
           TextButton(
-            onPressed: _saveProfile,
+            onPressed: _isSaving ? null : _saveProfile,
             child: const Text('Save', style: TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold, fontSize: 16)),
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: GlowLoadingOverlay(
+        isLoading: _isSaving,
+        message: 'Updating your profile...',
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         physics: const BouncingScrollPhysics(),
         child: Column(
@@ -228,6 +235,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

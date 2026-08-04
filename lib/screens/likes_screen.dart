@@ -4,6 +4,7 @@ import '../models/profile_model.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'profile_detail_screen.dart';
+import '../widgets/shimmer_loading.dart';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
@@ -77,7 +78,7 @@ class _LikesScreenState extends State<LikesScreen>
     final profiles = isTopPicks ? _profiles.reversed.toList() : _profiles;
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.primaryRose));
+      return const LikesGridSkeleton();
     }
 
     return CustomScrollView(

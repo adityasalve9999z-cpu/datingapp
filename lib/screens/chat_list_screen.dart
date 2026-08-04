@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../services/api_service.dart';
+import '../widgets/shimmer_loading.dart';
 import 'chat_room_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -77,7 +78,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
         ),
         child: SafeArea(
-          child: CustomScrollView(
+          child: _isLoading
+              ? const ChatListSkeleton()
+              : CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
               // Header
