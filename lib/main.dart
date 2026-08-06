@@ -58,7 +58,8 @@ class GlowDateApp extends StatelessWidget {
           return MaterialPageRoute(builder: (_) => const EditProfileScreen());
         }
         if (settings.name == '/learn') {
-          return MaterialPageRoute(builder: (_) => const BasicToAdvancedScreen());
+          return MaterialPageRoute(
+              builder: (_) => const BasicToAdvancedScreen());
         }
         return null;
       },
@@ -111,117 +112,124 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
               radius: 1.2,
             ),
           ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: AppTheme.sunsetGradient,
-                    ),
-                    child: const Icon(Icons.favorite_rounded, size: 50, color: Colors.white),
-                  ),
-                  const SizedBox(height: 24),
-                  ShaderMask(
-                    shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
-                    child: const Text(
-                      'Welcome Back',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: AppTheme.sunsetGradient,
                       ),
+                      child: const Icon(Icons.favorite_rounded,
+                          size: 50, color: Colors.white),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Sign in to discover your next spark',
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-                  ),
-                  const SizedBox(height: 36),
-
-                  // Input Box Email
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceCard,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: TextField(
-                      controller: _emailController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.email_rounded, color: AppTheme.primaryRose),
-                        hintText: 'Email address',
-                        hintStyle: TextStyle(color: AppTheme.textMuted),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Input Box Password
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceCard,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.lock_rounded, color: AppTheme.primaryRose),
-                        hintText: 'Password',
-                        hintStyle: TextStyle(color: AppTheme.textMuted),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Login Button
-                  AnimatedGlowButton(
-                    label: _isSubmitting ? 'SIGNING IN...' : 'SIGN IN',
-                    onPressed: _isSubmitting ? null : _handleLogin,
-                    gradient: AppTheme.primaryGradient,
-                  ),
-
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Don't have an account? ",
-                        style: TextStyle(color: AppTheme.textSecondary),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, '/signup'),
-                        child: const Text(
-                          'Create One',
-                          style: TextStyle(
-                            color: AppTheme.primaryRose,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    const SizedBox(height: 24),
+                    ShaderMask(
+                      shaderCallback: (bounds) =>
+                          AppTheme.primaryGradient.createShader(bounds),
+                      child: const Text(
+                        'Welcome Back',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Sign in to discover your next spark',
+                      style: TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 14),
+                    ),
+                    const SizedBox(height: 36),
+
+                    // Input Box Email
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: TextField(
+                        controller: _emailController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.email_rounded,
+                              color: AppTheme.primaryRose),
+                          hintText: 'Email address',
+                          hintStyle: TextStyle(color: AppTheme.textMuted),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Input Box Password
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.lock_rounded,
+                              color: AppTheme.primaryRose),
+                          hintText: 'Password',
+                          hintStyle: TextStyle(color: AppTheme.textMuted),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Login Button
+                    AnimatedGlowButton(
+                      label: _isSubmitting ? 'SIGNING IN...' : 'SIGN IN',
+                      onPressed: _isSubmitting ? null : _handleLogin,
+                      gradient: AppTheme.primaryGradient,
+                    ),
+
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Don't have an account? ",
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(context, '/signup'),
+                          child: const Text(
+                            'Create One',
+                            style: TextStyle(
+                              color: AppTheme.primaryRose,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }
@@ -267,45 +275,49 @@ class _SignupScreenAuthState extends State<SignupScreenAuth> {
         isLoading: _isSubmitting,
         message: 'Creating account...',
         child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              const Text(
-                'Join GlowDate Today',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                const Text(
+                  'Join GlowDate Today',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Connect with extraordinary people nearby',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 32),
-              _buildInputTile(Icons.person_rounded, 'Full Name', controller: _nameController),
-              const SizedBox(height: 16),
-              _buildInputTile(Icons.email_rounded, 'Email Address', controller: _emailController),
-              const SizedBox(height: 16),
-              _buildInputTile(Icons.lock_rounded, 'Password', isObscure: true, controller: _passwordController),
-              const SizedBox(height: 32),
-              AnimatedGlowButton(
-                label: _isSubmitting ? 'CREATING ACCOUNT...' : 'GET STARTED',
-                onPressed: _isSubmitting ? null : _handleSignup,
-                backgroundColor: AppTheme.primaryRose,
-              ),
-            ],
+                const SizedBox(height: 8),
+                const Text(
+                  'Connect with extraordinary people nearby',
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 32),
+                _buildInputTile(Icons.person_rounded, 'Full Name',
+                    controller: _nameController),
+                const SizedBox(height: 16),
+                _buildInputTile(Icons.email_rounded, 'Email Address',
+                    controller: _emailController),
+                const SizedBox(height: 16),
+                _buildInputTile(Icons.lock_rounded, 'Password',
+                    isObscure: true, controller: _passwordController),
+                const SizedBox(height: 32),
+                AnimatedGlowButton(
+                  label: _isSubmitting ? 'CREATING ACCOUNT...' : 'GET STARTED',
+                  onPressed: _isSubmitting ? null : _handleSignup,
+                  backgroundColor: AppTheme.primaryRose,
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 
-  Widget _buildInputTile(IconData icon, String hint, {bool isObscure = false, TextEditingController? controller}) {
+  Widget _buildInputTile(IconData icon, String hint,
+      {bool isObscure = false, TextEditingController? controller}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       decoration: BoxDecoration(
