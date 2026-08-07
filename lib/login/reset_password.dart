@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -110,8 +111,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
     setState(() => _isSubmitting = true);
 
-    // Simulated request — swap for your real "set new password" API call.
-    await Future.delayed(const Duration(milliseconds: 1100));
+    await AppApiService.resetPassword(
+      email: widget.email ?? 'user@glowdate.app',
+      newPassword: _passwordController.text,
+    );
 
     if (!mounted) return;
     setState(() {
