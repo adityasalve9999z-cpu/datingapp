@@ -15,6 +15,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
+  final _passwordFocus = FocusNode();
+  final _confirmFocus = FocusNode();
 
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
@@ -29,6 +31,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   late final Animation<double> _entranceScale;
   late final Animation<double> _entranceFade;
 
+  // Shake played on the form when the user tries to submit an invalid
+  // password (too short / mismatched confirm) — a horizontal wiggle rather
+  // than just a red border, so an invalid submit is unmistakable.
+  late final AnimationController _shakeController;
+  late final Animation<double> _shakeOffset;
+
   @override
   void initState() {
     super.initState();
@@ -41,13 +49,33 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     );
     _entranceFade =
         CurvedAnimation(parent: _entranceController, curve: Curves.easeIn);
+
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _shakeOffset = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: -8.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 8.0, end: -5.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -5.0, end: 0.0), weight: 1),
+    ]).animate(
+        CurvedAnimation(parent: _shakeController, curve: Curves.easeOut));
+
+    // Focus-glow fields: only need setState on change so the field border
+    // can react, no separate animation controller required.
+    _passwordFocus.addListener(() => setState(() {}));
+    _confirmFocus.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _entranceController.dispose();
+    _shakeController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
+    _passwordFocus.dispose();
+    _confirmFocus.dispose();
     super.dispose();
   }
 
@@ -73,7 +101,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      // NOTE: this is meant to play the shake animation on an invalid
+      // submit attempt.
+      _shakeController.reset();
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     // Simulated request — swap for your real "set new password" API call.
@@ -105,10 +139,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                 if (!_resetComplete)
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_rounded,
-                          color: Colors.white),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back_rounded,
+                            color: Colors.white),
+                      ),
                     ),
                   ),
                 Expanded(
@@ -137,137 +174,147 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
       physics: const BouncingScrollPhysics(),
       child: Form(
         key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            FadeTransition(
-              opacity: _entranceFade,
-              child: ScaleTransition(
-                scale: _entranceScale,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: AppTheme.sunsetGradient,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryRose.withOpacity(0.4),
-                          blurRadius: 28,
-                          spreadRadius: 3,
-                        ),
-                      ],
+        child: AnimatedBuilder(
+          animation: _shakeOffset,
+          builder: (context, child) => Transform.translate(
+            offset: Offset(_shakeOffset.value, 0),
+            child: child,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              FadeTransition(
+                opacity: _entranceFade,
+                child: ScaleTransition(
+                  scale: _entranceScale,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: AppTheme.sunsetGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryRose.withOpacity(0.4),
+                            blurRadius: 28,
+                            spreadRadius: 3,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.password_rounded,
+                          size: 48, color: Colors.white),
                     ),
-                    child: const Icon(Icons.password_rounded,
-                        size: 48, color: Colors.white),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
-            const Text(
-              'Set a new password',
-              style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              widget.email != null
-                  ? 'Create a new password for ${widget.email}'
-                  : 'Choose a strong password you haven\u2019t used before.',
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 14, height: 1.5),
-            ),
-            const SizedBox(height: 32),
-            const Text('New Password',
+              const SizedBox(height: 32),
+              const Text(
+                'Set a new password',
                 style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14)),
-            const SizedBox(height: 10),
-            _buildPasswordField(
-              controller: _passwordController,
-              hint: 'At least 8 characters',
-              obscure: _obscurePassword,
-              onToggleObscure: () =>
-                  setState(() => _obscurePassword = !_obscurePassword),
-              onChanged: _evaluateStrength,
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Enter a new password';
-                if (v.length < 8) return 'At least 8 characters';
-                return null;
-              },
-            ),
-            if (_passwordController.text.isNotEmpty) ...[
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: _passwordStrength,
-                        minHeight: 4,
-                        backgroundColor: Colors.white12,
-                        valueColor: AlwaysStoppedAnimation(_strengthColor),
+              Text(
+                widget.email != null
+                    ? 'Create a new password for ${widget.email}'
+                    : 'Choose a strong password you haven\u2019t used before.',
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 32),
+              const Text('New Password',
+                  style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              const SizedBox(height: 10),
+              _buildPasswordField(
+                controller: _passwordController,
+                focusNode: _passwordFocus,
+                hint: 'At least 8 characters',
+                obscure: _obscurePassword,
+                onToggleObscure: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
+                onChanged: _evaluateStrength,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Enter a new password';
+                  if (v.length < 8) return 'At least 8 characters';
+                  return null;
+                },
+              ),
+              if (_passwordController.text.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: _passwordStrength,
+                          minHeight: 4,
+                          backgroundColor: Colors.white12,
+                          valueColor: AlwaysStoppedAnimation(_strengthColor),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    _strengthLabel,
-                    style: TextStyle(
-                        fontSize: 11,
-                        color: _strengthColor,
-                        fontWeight: FontWeight.w600),
+                    const SizedBox(width: 10),
+                    Text(
+                      _strengthLabel,
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: _strengthColor,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 20),
+              const Text('Confirm Password',
+                  style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              const SizedBox(height: 10),
+              _buildPasswordField(
+                controller: _confirmController,
+                focusNode: _confirmFocus,
+                hint: 'Re-enter your password',
+                obscure: _obscureConfirm,
+                onToggleObscure: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
+                validator: (v) {
+                  if (v != _passwordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: const [
+                  Icon(Icons.info_outline_rounded,
+                      size: 14, color: AppTheme.textMuted),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Use 8+ characters with a mix of letters, numbers & symbols.',
+                      style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    ),
                   ),
                 ],
               ),
+              const SizedBox(height: 32),
+              _AnimatedGradientButton(
+                label: 'Reset Password',
+                loading: _isSubmitting,
+                onPressed: _isSubmitting ? null : _submit,
+              ),
+              const SizedBox(height: 24),
             ],
-            const SizedBox(height: 20),
-            const Text('Confirm Password',
-                style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14)),
-            const SizedBox(height: 10),
-            _buildPasswordField(
-              controller: _confirmController,
-              hint: 'Re-enter your password',
-              obscure: _obscureConfirm,
-              onToggleObscure: () =>
-                  setState(() => _obscureConfirm = !_obscureConfirm),
-              validator: (v) {
-                if (v != _passwordController.text)
-                  return 'Passwords do not match';
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: const [
-                Icon(Icons.info_outline_rounded,
-                    size: 14, color: AppTheme.textMuted),
-                SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Use 8+ characters with a mix of letters, numbers & symbols.',
-                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            _AnimatedGradientButton(
-              label: 'Reset Password',
-              loading: _isSubmitting,
-              onPressed: _isSubmitting ? null : _submit,
-            ),
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
     );
@@ -275,20 +322,36 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
   Widget _buildPasswordField({
     required TextEditingController controller,
+    required FocusNode focusNode,
     required String hint,
     required bool obscure,
     required VoidCallback onToggleObscure,
     required String? Function(String?) validator,
     ValueChanged<String>? onChanged,
   }) {
-    return Container(
+    final hasFocus = focusNode.hasFocus;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(
+          color: hasFocus ? AppTheme.primaryRose : Colors.white12,
+          width: hasFocus ? 1.6 : 1,
+        ),
+        boxShadow: hasFocus
+            ? [
+                BoxShadow(
+                  color: AppTheme.primaryRose.withOpacity(0.22),
+                  blurRadius: 14,
+                ),
+              ]
+            : [],
       ),
       child: TextFormField(
         controller: controller,
+        focusNode: focusNode,
         obscureText: obscure,
         onChanged: onChanged,
         validator: validator,
@@ -297,23 +360,28 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
         decoration: InputDecoration(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          icon: const Padding(
-            padding: EdgeInsets.only(left: 4),
-            child:
-                Icon(Icons.lock_outline_rounded, color: AppTheme.primaryRose),
+          icon: Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Icon(
+              Icons.lock_outline_rounded,
+              color: hasFocus ? AppTheme.primaryRose : AppTheme.textSecondary,
+            ),
           ),
           hintText: hint,
           hintStyle: const TextStyle(color: AppTheme.textMuted),
           border: InputBorder.none,
-          suffixIcon: IconButton(
-            icon: Icon(
-              obscure
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              color: AppTheme.textSecondary,
-              size: 20,
+          suffixIcon: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: IconButton(
+              icon: Icon(
+                obscure
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: AppTheme.textSecondary,
+                size: 20,
+              ),
+              onPressed: onToggleObscure,
             ),
-            onPressed: onToggleObscure,
           ),
         ),
       ),
