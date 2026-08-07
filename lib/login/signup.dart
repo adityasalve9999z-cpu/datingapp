@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 void main() => runApp(const LumeApp());
 
@@ -58,6 +59,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool _obscurePassword = true;
   bool _agreedToTerms = false;
+  bool _isSubmitting = false;
   double _passwordStrength = 0;
 
   @override
@@ -89,7 +91,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return 'Strong';
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,9 +102,17 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
+    setState(() => _isSubmitting = true);
+    final result = await AppApiService.signup(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Welcome to Lume — let\'s find your person'),
+        content: Text(result['message'] as String? ?? 'Welcome to Lume — let\'s find your person'),
         backgroundColor: LumeColors.surface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
