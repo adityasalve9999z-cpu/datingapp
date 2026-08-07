@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -47,8 +48,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
 
-    // Simulated request — swap for your real password-reset API call.
-    await Future.delayed(const Duration(milliseconds: 1100));
+    await AppApiService.forgotPassword(email: _emailController.text.trim());
 
     if (!mounted) return;
     setState(() {

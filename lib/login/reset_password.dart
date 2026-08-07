@@ -402,9 +402,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.emeraldGreen.withOpacity(0.15),
+                  color: AppTheme.emeraldGreen.withValues(alpha: 0.15),
                   border: Border.all(
-                      color: AppTheme.emeraldGreen.withOpacity(0.4),
+                      color: AppTheme.emeraldGreen.withValues(alpha: 0.4),
                       width: 1.5),
                 ),
                 child: const Icon(Icons.check_circle_rounded,

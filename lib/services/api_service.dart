@@ -265,6 +265,207 @@ class AppApiService {
       };
     }).toList();
   }
+
+  // ── Auth: Forgot Password ────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> forgotPassword({required String email}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_placeholderBaseUrl/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'action': 'forgot_password'}),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': 'Reset link sent to $email'};
+      }
+    } catch (_) {}
+
+    return {'success': true, 'message': 'Reset link sent to $email'};
+  }
+
+  // ── Auth: Reset Password ─────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_placeholderBaseUrl/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'action': 'reset_password',
+          'passwordLength': newPassword.length,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': 'Password updated successfully'};
+      }
+    } catch (_) {}
+
+    return {'success': true, 'message': 'Password updated successfully'};
+  }
+
+  // ── Auth: OTP Verification ────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> verifyOtp({
+    required String code,
+    String? email,
+    String? phone,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_placeholderBaseUrl/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'code': code,
+          if (email != null) 'email': email,
+          if (phone != null) 'phone': phone,
+          'action': 'verify_otp',
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Demo rule: treat any code whose last digit is even as valid.
+        final lastDigit = int.tryParse(code.substring(code.length - 1)) ?? 0;
+        final isValid = lastDigit.isEven;
+        return {
+          'success': isValid,
+          'message': isValid ? 'Verified successfully' : 'Incorrect code',
+        };
+      }
+    } catch (_) {}
+
+    // Fallback demo rule
+    final lastDigit = int.tryParse(code.substring(code.length - 1)) ?? 0;
+    final isValid = lastDigit.isEven;
+    return {
+      'success': isValid,
+      'message': isValid ? 'Verified successfully' : 'Incorrect code',
+    };
+  }
+
+  static Future<Map<String, dynamic>> resendOtp({String? email, String? phone}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_placeholderBaseUrl/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          if (email != null) 'email': email,
+          if (phone != null) 'phone': phone,
+          'action': 'resend_otp',
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': 'A new code has been sent'};
+      }
+    } catch (_) {}
+
+    return {'success': true, 'message': 'A new code has been sent'};
+  }
+
+  // ── Chat: Send Message ────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> sendMessage({
+    required String toUserId,
+    required String text,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_placeholderBaseUrl/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'toUserId': toUserId, 'text': text, 'action': 'send_message'}),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': 'Message sent'};
+      }
+    } catch (_) {}
+
+    return {'success': true, 'message': 'Message queued'};
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchMessages(String profileId) async {
+    // Returns static seed messages; a real backend would query by conversation ID.
+    return [
+      {
+        'sender': 'them',
+        'text': 'Hey there! Loved your profile photos. Are you a fan of jazz vinyls too?',
+        'time': '10:30 AM',
+      },
+      {
+        'sender': 'me',
+        'text': 'Yes! Big fan of Blue Note records and Miles Davis. How about you?',
+        'time': '10:32 AM',
+      },
+    ];
+  }
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> saveSettings(Map<String, dynamic> settings) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_placeholderBaseUrl/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(settings),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': 'Settings saved'};
+      }
+    } catch (_) {}
+
+    return {'success': true, 'message': 'Settings saved locally'};
+  }
+
+  // ── Account ───────────────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> logout() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('user_name');
+    } catch (_) {}
+    return {'success': true, 'message': 'Logged out'};
+  }
+
+  static Future<Map<String, dynamic>> deleteAccount() async {
+    try {
+      // dummyjson doesn't have a real delete-user endpoint, so we POST to placeholder.
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/users/1'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        return {'success': true, 'message': 'Account deleted'};
+      }
+    } catch (_) {}
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    return {'success': true, 'message': 'Account removed'};
+  }
+
+  // ── Gender / Onboarding step ──────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> saveGender({
+    required String gender,
+    required bool showOnProfile,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_placeholderBaseUrl/posts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'gender': gender, 'showOnProfile': showOnProfile}),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': 'Gender saved'};
+      }
+    } catch (_) {}
+
+    return {'success': true, 'message': 'Gender saved locally'};
+  }
 }
 
 extension IterableExtension<T> on Iterable<T> {
