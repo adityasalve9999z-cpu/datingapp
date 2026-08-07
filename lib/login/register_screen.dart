@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -89,16 +90,17 @@ class _RegistrationScreenState extends State<RegistrationScreen>
     }
 
     setState(() => _isSubmitting = true);
-    // Simulated request — swap for your real account-creation API call,
-    // then typically navigate to OtpVerificationScreen or onboarding.
-    await Future.delayed(const Duration(milliseconds: 1100));
+    final result = await AppApiService.signup(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text(
-            'Welcome to GlowDate \u2014 let\u2019s find your person'),
+        content: Text(result['message'] as String? ?? 'Welcome to GlowDate \u2014 let\u2019s find your person'),
         backgroundColor: AppTheme.surfaceDark,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
