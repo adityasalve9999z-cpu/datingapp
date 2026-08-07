@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -118,14 +119,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     if (_enteredCode.length != _otpLength || _isVerifying) return;
     setState(() => _isVerifying = true);
 
-    // Simulated request — swap for your real OTP verification API call.
-    await Future.delayed(const Duration(milliseconds: 1000));
+    final result = await AppApiService.verifyOtp(
+      code: _enteredCode,
+      email: widget.email,
+      phone: widget.phone,
+    );
     if (!mounted) return;
 
-    // Demo rule: any code ending in an odd digit "fails", just so the error
-    // state is easy to trigger while testing. Replace with your real check.
-    final isCorrect =
-        int.tryParse(_enteredCode.substring(_otpLength - 1))?.isEven ?? true;
+    final isCorrect = result['success'] as bool? ?? false;
 
     if (isCorrect) {
       setState(() {
@@ -153,6 +154,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     setState(() => _hasError = false);
     _focusNodes[0].requestFocus();
     _startResendTimer();
+    AppApiService.resendOtp(email: widget.email, phone: widget.phone);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('A new code has been sent'),
