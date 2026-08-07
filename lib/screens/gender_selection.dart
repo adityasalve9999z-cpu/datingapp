@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 // ── AppTheme ─────────────────────────────────────────────────────────────────
@@ -85,11 +84,26 @@ class GenderSelectionScreen extends StatefulWidget {
   State<GenderSelectionScreen> createState() => _GenderSelectionScreenState();
 }
 
-class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
+class _GenderSelectionScreenState extends State<GenderSelectionScreen>
+    with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
 
   String? _selectedGenderId;
   bool _showOnProfile = true;
+
+  static const int _currentStep = 3;
+  static const int _totalSteps = 6;
+
+  // Staggered entrance for header + cards — each item fades/slides in with
+  // an increasing delay so the list feels like it's arriving in sequence,
+  // not popping in all at once.
+  late final AnimationController _entranceController;
+
+  // Nudge shake on the Continue button when tapped while disabled, so
+  // "nothing happened" reads as a deliberate "not yet" rather than a
+  // silently broken button.
+  late final AnimationController _shakeController;
+  late final Animation<double> _shakeOffset;
 
   final List<_GenderOption> _options = const [
     _GenderOption(
@@ -123,9 +137,57 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _entranceController = AnimationController(
+      duration: const Duration(milliseconds: 900),
+      vsync: this,
+    )..forward();
+
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _shakeOffset = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: -8.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 8.0, end: -5.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -5.0, end: 0.0), weight: 1),
+    ]).animate(
+        CurvedAnimation(parent: _shakeController, curve: Curves.easeOut));
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
+    _entranceController.dispose();
+    _shakeController.dispose();
     super.dispose();
+  }
+
+  /// Returns a 0..1 delayed interval for the [index]-th staggered item, so
+  /// each item's fade/slide starts a little after the previous one.
+  Animation<double> _staggerFor(int index,
+      {int count = 6, double spread = 0.5}) {
+    final start = (index / count) * spread;
+    final end = (start + (1 - spread)).clamp(0.0, 1.0);
+    return CurvedAnimation(
+      parent: _entranceController,
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+    );
+  }
+
+  void _handleDisabledTap() {
+    _shakeController.forward(from: 0);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Select an option to continue'),
+        backgroundColor: AppTheme.surfaceDark,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(milliseconds: 1400),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+    );
   }
 
   @override
@@ -145,13 +207,17 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20, top: 16),
-            child: Text(
-              'Step 3 of 6',
-              style: TextStyle(
-                color: AppTheme.textMuted,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+            child: FadeTransition(
+              opacity: CurvedAnimation(
+                  parent: _entranceController, curve: const Interval(0, 0.4)),
+              child: const Text(
+                'Step $_currentStep of $_totalSteps',
+                style: TextStyle(
+                  color: AppTheme.textMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),
@@ -160,6 +226,46 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // Step Progress Bar — glowing active segment, matches the visual
+            // language used on the rest of the onboarding flow.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+              child: Row(
+                children: List.generate(_totalSteps, (idx) {
+                  final isActive = idx < _currentStep;
+                  final isCurrent = idx == _currentStep - 1;
+                  return Expanded(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: isActive ? 1 : 0),
+                      duration: Duration(milliseconds: 400 + idx * 80),
+                      curve: Curves.easeOut,
+                      builder: (context, value, _) {
+                        return Container(
+                          height: 4,
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          decoration: BoxDecoration(
+                            gradient:
+                                value > 0 ? AppTheme.primaryGradient : null,
+                            color: value > 0 ? null : Colors.white12,
+                            borderRadius: BorderRadius.circular(2),
+                            boxShadow: isCurrent
+                                ? [
+                                    BoxShadow(
+                                      color: AppTheme.primaryRose
+                                          .withOpacity(0.6 * value),
+                                      blurRadius: 6,
+                                      spreadRadius: 0.5,
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }),
+              ),
+            ),
             Expanded(
               child: Scrollbar(
                 controller: _scrollController,
@@ -172,39 +278,72 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   physics: const BouncingScrollPhysics(),
                   children: [
-                    const Text(
-                      'How do you identify?',
-                      style: TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
+                    FadeTransition(
+                      opacity: _staggerFor(0, count: _options.length + 2),
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.15),
+                          end: Offset.zero,
+                        ).animate(_staggerFor(0, count: _options.length + 2)),
+                        child: const Text(
+                          'How do you identify?',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Choose the option that best describes you. You can update this anytime in settings.',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 14,
-                        height: 1.4,
+                    FadeTransition(
+                      opacity: _staggerFor(1, count: _options.length + 2),
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.15),
+                          end: Offset.zero,
+                        ).animate(_staggerFor(1, count: _options.length + 2)),
+                        child: const Text(
+                          'Choose the option that best describes you. You can update this anytime in settings.',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 32),
 
-                    // Gender Option Cards
-                    ..._options.map((opt) {
-                      final bool isSelected = _selectedGenderId == opt.id;
+                    // Gender Option Cards — staggered entrance, each starting
+                    // a little later than the one before it.
+                    ..._options.asMap().entries.map((entry) {
+                      final i = entry.key;
+                      final opt = entry.value;
+                      final isSelected = _selectedGenderId == opt.id;
+                      final stagger =
+                          _staggerFor(i + 2, count: _options.length + 2);
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 14),
-                        child: _GenderCardTile(
-                          option: opt,
-                          isSelected: isSelected,
-                          onTap: () {
-                            setState(() {
-                              _selectedGenderId = opt.id;
-                            });
-                          },
+                        child: FadeTransition(
+                          opacity: stagger,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.2),
+                              end: Offset.zero,
+                            ).animate(stagger),
+                            child: _GenderCardTile(
+                              option: opt,
+                              isSelected: isSelected,
+                              onTap: () {
+                                setState(() {
+                                  _selectedGenderId = opt.id;
+                                });
+                              },
+                            ),
+                          ),
                         ),
                       );
                     }),
@@ -212,39 +351,43 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                     const SizedBox(height: 12),
 
                     // Privacy Switch Toggle
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceCard,
-                        borderRadius: BorderRadius.circular(16),
-                        border:
-                            Border.all(color: Colors.white.withOpacity(0.08)),
-                      ),
-                      child: SwitchListTile(
-                        value: _showOnProfile,
-                        activeColor: AppTheme.primaryRose,
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text(
-                          'Show gender on my profile',
-                          style: TextStyle(
-                            color: AppTheme.textPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    FadeTransition(
+                      opacity: _staggerFor(_options.length + 1,
+                          count: _options.length + 2),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceCard,
+                          borderRadius: BorderRadius.circular(16),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.08)),
                         ),
-                        subtitle: const Text(
-                          'Visible to potential matches',
-                          style: TextStyle(
-                            color: AppTheme.textMuted,
-                            fontSize: 12,
+                        child: SwitchListTile(
+                          value: _showOnProfile,
+                          activeColor: AppTheme.primaryRose,
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text(
+                            'Show gender on my profile',
+                            style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
+                          subtitle: const Text(
+                            'Visible to potential matches',
+                            style: TextStyle(
+                              color: AppTheme.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                          onChanged: (val) {
+                            setState(() {
+                              _showOnProfile = val;
+                            });
+                          },
                         ),
-                        onChanged: (val) {
-                          setState(() {
-                            _showOnProfile = val;
-                          });
-                        },
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -256,13 +399,21 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
             // Bottom CTA Section
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
-              child: _ContinueButton(
-                enabled: canContinue,
-                onPressed: () {
-                  if (canContinue) {
-                    // Navigate to next onboarding step
-                  }
-                },
+              child: AnimatedBuilder(
+                animation: _shakeOffset,
+                builder: (context, child) => Transform.translate(
+                  offset: Offset(_shakeOffset.value, 0),
+                  child: child,
+                ),
+                child: _ContinueButton(
+                  enabled: canContinue,
+                  onPressed: () {
+                    if (canContinue) {
+                      // Navigate to next onboarding step
+                    }
+                  },
+                  onDisabledTap: _handleDisabledTap,
+                ),
               ),
             ),
           ],
@@ -293,114 +444,137 @@ class _GenderCardTileState extends State<_GenderCardTile> {
 
   @override
   Widget build(BuildContext context) {
-    final Color currentColor =
-        widget.isSelected ? widget.option.accentColor : AppTheme.surfaceCard;
-
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: widget.isSelected
-                ? widget.option.accentColor.withOpacity(0.12)
-                : (_isHovered ? AppTheme.surfaceDark : AppTheme.surfaceCard),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
+        child: AnimatedScale(
+          // Selection gets a slightly bouncier feel than hover, so the two
+          // states read as different in weight, not just in color.
+          scale: widget.isSelected ? 1.02 : (_isHovered ? 1.01 : 1.0),
+          duration: const Duration(milliseconds: 220),
+          curve: widget.isSelected ? Curves.elasticOut : Curves.easeOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
               color: widget.isSelected
-                  ? widget.option.accentColor
-                  : (_isHovered ? Colors.white24 : Colors.white12),
-              width: widget.isSelected ? 2.0 : 1.0,
+                  ? widget.option.accentColor.withOpacity(0.12)
+                  : (_isHovered ? AppTheme.surfaceDark : AppTheme.surfaceCard),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: widget.isSelected
+                    ? widget.option.accentColor
+                    : (_isHovered ? Colors.white24 : Colors.white12),
+                width: widget.isSelected ? 2.0 : 1.0,
+              ),
+              boxShadow: widget.isSelected
+                  ? [
+                      BoxShadow(
+                        color: widget.option.accentColor.withOpacity(0.25),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                  : [],
             ),
-            boxShadow: widget.isSelected
-                ? [
-                    BoxShadow(
-                      color: widget.option.accentColor.withOpacity(0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
+            child: Row(
+              children: [
+                // Icon Container — pops with an elasticOut bounce on select
+                // instead of just cross-fading color.
+                AnimatedScale(
+                  scale: widget.isSelected ? 1.12 : 1.0,
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.elasticOut,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: widget.isSelected
+                          ? widget.option.accentColor
+                          : widget.option.accentColor.withOpacity(0.15),
+                      shape: BoxShape.circle,
                     ),
-                  ]
-                : [],
-          ),
-          child: Row(
-            children: [
-              // Icon Container
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: widget.isSelected
-                      ? widget.option.accentColor
-                      : widget.option.accentColor.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  widget.option.icon,
-                  color: widget.isSelected
-                      ? Colors.white
-                      : widget.option.accentColor,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 16),
-
-              // Title and Subtitle
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.option.title,
-                      style: TextStyle(
-                        color: widget.isSelected
-                            ? Colors.white
-                            : AppTheme.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Icon(
+                      widget.option.icon,
+                      color: widget.isSelected
+                          ? Colors.white
+                          : widget.option.accentColor,
+                      size: 22,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.option.subtitle,
-                      style: TextStyle(
-                        color: widget.isSelected
-                            ? Colors.white.withOpacity(0.8)
-                            : AppTheme.textMuted,
-                        fontSize: 12.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Check indicator
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: widget.isSelected
-                      ? widget.option.accentColor
-                      : Colors.transparent,
-                  border: Border.all(
-                    color: widget.isSelected
-                        ? widget.option.accentColor
-                        : AppTheme.textMuted,
-                    width: 2,
                   ),
                 ),
-                child: widget.isSelected
-                    ? const Icon(Icons.check_rounded,
-                        color: Colors.white, size: 16)
-                    : null,
-              ),
-            ],
+                const SizedBox(width: 16),
+
+                // Title and Subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.option.title,
+                        style: TextStyle(
+                          color: widget.isSelected
+                              ? Colors.white
+                              : AppTheme.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.option.subtitle,
+                        style: TextStyle(
+                          color: widget.isSelected
+                              ? Colors.white.withOpacity(0.8)
+                              : AppTheme.textMuted,
+                          fontSize: 12.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Check indicator — scale + rotate swap instead of an
+                // instant appear, so the confirmation reads as a deliberate
+                // "yes" rather than a snap.
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  transitionBuilder: (child, animation) => ScaleTransition(
+                    scale: animation,
+                    child: RotationTransition(
+                      turns: Tween<double>(begin: 0.75, end: 1.0)
+                          .animate(animation),
+                      child: child,
+                    ),
+                  ),
+                  child: Container(
+                    key: ValueKey(widget.isSelected),
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: widget.isSelected
+                          ? widget.option.accentColor
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: widget.isSelected
+                            ? widget.option.accentColor
+                            : AppTheme.textMuted,
+                        width: 2,
+                      ),
+                    ),
+                    child: widget.isSelected
+                        ? const Icon(Icons.check_rounded,
+                            color: Colors.white, size: 16)
+                        : null,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -408,14 +582,15 @@ class _GenderCardTileState extends State<_GenderCardTile> {
   }
 }
 
-// ── Continue Button Widget ───────────────────────────────────────────────────
 class _ContinueButton extends StatefulWidget {
   final bool enabled;
   final VoidCallback onPressed;
+  final VoidCallback? onDisabledTap;
 
   const _ContinueButton({
     required this.enabled,
     required this.onPressed,
+    this.onDisabledTap,
   });
 
   @override
@@ -440,7 +615,9 @@ class _ContinueButtonState extends State<_ContinueButton> {
             widget.enabled ? (_) => setState(() => _isPressed = false) : null,
         onTapCancel:
             widget.enabled ? () => setState(() => _isPressed = false) : null,
-        onTap: widget.enabled ? widget.onPressed : null,
+        // Disabled taps still register — they trigger the shake + hint
+        // instead of doing nothing, so the button never feels broken.
+        onTap: widget.enabled ? widget.onPressed : widget.onDisabledTap,
         child: AnimatedScale(
           scale:
               _isPressed ? 0.98 : (_isHovered && widget.enabled ? 1.01 : 1.0),
