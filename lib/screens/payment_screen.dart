@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class GenderSelectionScreen extends StatefulWidget {
@@ -65,6 +66,11 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen>
       );
       return;
     }
+    // Fire-and-forget: persist gender to API in background
+    AppApiService.saveGender(
+      gender: _selected!,
+      showOnProfile: _showOnProfile,
+    );
     Navigator.pop(
         context, {'gender': _selected, 'showOnProfile': _showOnProfile});
   }
