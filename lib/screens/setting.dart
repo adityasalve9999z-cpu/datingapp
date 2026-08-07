@@ -1,3 +1,4 @@
+import 'package:datingapp/login/otp_varification.dart';
 import 'package:datingapp/login/reset_password.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
@@ -86,6 +87,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   late final AnimationController _premiumGlowController;
   late final Animation<double> _premiumGlow;
 
+  GestureTapCallback? get _openPremiumPlans => null;
+
   @override
   void initState() {
     super.initState();
@@ -102,13 +105,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     _premiumGlowController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _openPremiumPlans() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const PremiumPlansScreen()),
-    );
   }
 
   void _openChangePassword() {
