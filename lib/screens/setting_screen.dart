@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
 
@@ -39,8 +40,41 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
       vsync: this,
     )..repeat(reverse: true);
     _premiumGlow = CurvedAnimation(parent: _premiumGlowController, curve: Curves.easeInOut);
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) setState(() => _isLoading = false);
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final data = await AppApiService.fetchUserProfile();
+    final prefs = data['preferences'] as Map<String, dynamic>? ?? {};
+    if (!mounted) return;
+    setState(() {
+      _showMeOnDiscovery = prefs['showMeOnDiscovery'] as bool? ?? true;
+      _globalMode        = prefs['globalMode']        as bool? ?? false;
+      _newMatches        = prefs['newMatches']        as bool? ?? true;
+      _newMessages       = prefs['newMessages']       as bool? ?? true;
+      _likesYou          = prefs['likesYou']          as bool? ?? true;
+      _promotions        = prefs['promotions']        as bool? ?? false;
+      _readReceipts      = prefs['readReceipts']      as bool? ?? true;
+      _onlineStatus      = prefs['onlineStatus']      as bool? ?? true;
+      _incognitoMode     = prefs['incognitoMode']     as bool? ?? false;
+      _isLoading = false;
+    });
+  }
+
+  void _saveSettings() {
+    AppApiService.saveSettings({
+      'showMeOnDiscovery': _showMeOnDiscovery,
+      'globalMode': _globalMode,
+      'ageRangeStart': _ageRange.start.toInt(),
+      'ageRangeEnd': _ageRange.end.toInt(),
+      'maxDistance': _maxDistance.toInt(),
+      'newMatches': _newMatches,
+      'newMessages': _newMessages,
+      'likesYou': _likesYou,
+      'promotions': _promotions,
+      'readReceipts': _readReceipts,
+      'onlineStatus': _onlineStatus,
+      'incognitoMode': _incognitoMode,
     });
   }
 
@@ -76,14 +110,14 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
               label: 'Show me on Discovery',
               color: AppTheme.primaryRose,
               value: _showMeOnDiscovery,
-              onChanged: (v) => setState(() => _showMeOnDiscovery = v),
+              onChanged: (v) { setState(() => _showMeOnDiscovery = v); _saveSettings(); },
             ),
             _switchTile(
               icon: Icons.public_rounded,
               label: 'Global Mode',
               color: AppTheme.accentCyan,
               value: _globalMode,
-              onChanged: (v) => setState(() => _globalMode = v),
+              onChanged: (v) { setState(() => _globalMode = v); _saveSettings(); },
             ),
             _rangeTile(
               icon: Icons.cake_rounded,
@@ -98,6 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 activeColor: AppTheme.primaryRose,
                 inactiveColor: Colors.white12,
                 onChanged: (v) => setState(() => _ageRange = v),
+                onChangeEnd: (_) => _saveSettings(),
               ),
             ),
             _rangeTile(
@@ -113,6 +148,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 activeColor: AppTheme.accentGold,
                 inactiveColor: Colors.white12,
                 onChanged: (v) => setState(() => _maxDistance = v),
+                onChangeEnd: (_) => _saveSettings(),
               ),
             ),
           ]),
@@ -125,28 +161,28 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
               label: 'New Matches',
               color: AppTheme.primaryRose,
               value: _newMatches,
-              onChanged: (v) => setState(() => _newMatches = v),
+              onChanged: (v) { setState(() => _newMatches = v); _saveSettings(); },
             ),
             _switchTile(
               icon: Icons.chat_bubble_rounded,
               label: 'New Messages',
               color: AppTheme.accentCyan,
               value: _newMessages,
-              onChanged: (v) => setState(() => _newMessages = v),
+              onChanged: (v) { setState(() => _newMessages = v); _saveSettings(); },
             ),
             _switchTile(
               icon: Icons.emoji_emotions_rounded,
               label: 'Likes You',
               color: AppTheme.emeraldGreen,
               value: _likesYou,
-              onChanged: (v) => setState(() => _likesYou = v),
+              onChanged: (v) { setState(() => _likesYou = v); _saveSettings(); },
             ),
             _switchTile(
               icon: Icons.local_offer_rounded,
               label: 'Promotions & Tips',
               color: AppTheme.primaryPurple,
               value: _promotions,
-              onChanged: (v) => setState(() => _promotions = v),
+              onChanged: (v) { setState(() => _promotions = v); _saveSettings(); },
             ),
           ]),
 
@@ -158,21 +194,21 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
               label: 'Read Receipts',
               color: AppTheme.accentCyan,
               value: _readReceipts,
-              onChanged: (v) => setState(() => _readReceipts = v),
+              onChanged: (v) { setState(() => _readReceipts = v); _saveSettings(); },
             ),
             _switchTile(
               icon: Icons.circle_rounded,
               label: 'Show Online Status',
               color: AppTheme.emeraldGreen,
               value: _onlineStatus,
-              onChanged: (v) => setState(() => _onlineStatus = v),
+              onChanged: (v) { setState(() => _onlineStatus = v); _saveSettings(); },
             ),
             _switchTile(
               icon: Icons.visibility_off_rounded,
               label: 'Incognito Mode',
               color: AppTheme.primaryPurple,
               value: _incognitoMode,
-              onChanged: (v) => setState(() => _incognitoMode = v),
+              onChanged: (v) { setState(() => _incognitoMode = v); _saveSettings(); },
             ),
             _actionTile(icon: Icons.block_rounded, label: 'Blocked Accounts', color: AppTheme.textMuted, onTap: () {}),
             _actionTile(icon: Icons.shield_rounded, label: 'Safety Center', color: AppTheme.accentGold, onTap: () {}),
@@ -234,7 +270,12 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
             child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              Navigator.pop(context);
+              await AppApiService.logout();
+              if (!mounted) return;
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
             child: const Text('Log Out', style: TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold)),
           ),
         ],
@@ -250,7 +291,7 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete your account?', style: TextStyle(color: Colors.white)),
         content: const Text(
-          'This permanently removes your profile, matches, and messages. This can\u2019t be undone.',
+          'This permanently removes your profile, matches, and messages. This can’t be undone.',
           style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
@@ -259,7 +300,12 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
             child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              Navigator.pop(context);
+              await AppApiService.deleteAccount();
+              if (!mounted) return;
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
             child: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
         ],
