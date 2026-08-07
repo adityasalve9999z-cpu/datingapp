@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
 import 'profile_detail_screen.dart';
@@ -23,38 +24,39 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void initState() {
     super.initState();
-    _messages = [
-      {
-        'sender': 'them',
-        'text': 'Hey there! Loved your profile photos. Are you a fan of jazz vinyls too?',
-        'time': '10:30 AM',
-      },
-      {
-        'sender': 'me',
-        'text': 'Yes! Big fan of Blue Note records and Miles Davis. How about you?',
-        'time': '10:32 AM',
-      },
+    _messages = [];
+    _loadMessages();
+  }
+
+  Future<void> _loadMessages() async {
+    final fetched = await AppApiService.fetchMessages(widget.profile.id);
+    final extra = [
       {
         'sender': 'them',
         'text': widget.profile.promptAnswer ?? 'I’d love to visit that espresso bar on 4th street! ☕',
         'time': '10:42 AM',
       },
     ];
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) setState(() => _isLoading = false);
+    if (!mounted) return;
+    setState(() {
+      _messages = [...fetched, ...extra];
+      _isLoading = false;
     });
   }
 
   void _sendMessage(String text) {
     if (text.trim().isEmpty) return;
+    final msg = {
+      'sender': 'me',
+      'text': text.trim(),
+      'time': 'Just now',
+    };
     setState(() {
-      _messages.add({
-        'sender': 'me',
-        'text': text.trim(),
-        'time': 'Just now',
-      });
+      _messages.add(msg);
       _msgController.clear();
     });
+    // Fire-and-forget: send to API in background
+    AppApiService.sendMessage(toUserId: widget.profile.id, text: text.trim());
     Future.delayed(const Duration(milliseconds: 100), () {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
