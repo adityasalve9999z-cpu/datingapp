@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class DiscoverTab extends StatelessWidget {
+class DiscoverTab extends StatefulWidget {
   final List<ProfileModel> profiles;
   final bool isLoading;
   final ValueChanged<ProfileModel>? onMatch;
@@ -100,7 +100,41 @@ class DiscoverTab extends StatelessWidget {
   });
 
   @override
+  State<DiscoverTab> createState() => _DiscoverTabState();
+}
+
+class _DiscoverTabState extends State<DiscoverTab> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+  String _query = '';
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocus.addListener(() {
+      setState(() => _isFocused = _searchFocus.hasFocus);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  List<ProfileModel> get _filteredProfiles {
+    if (_query.trim().isEmpty) return widget.profiles;
+    final lower = _query.toLowerCase();
+    return widget.profiles
+        .where((p) => p.name.toLowerCase().contains(lower))
+        .toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final filtered = _filteredProfiles;
     return Container(
       decoration: const BoxDecoration(
         gradient: RadialGradient(
@@ -112,6 +146,7 @@ class DiscoverTab extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
+            // ── Header ──────────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Row(
@@ -152,27 +187,112 @@ class DiscoverTab extends StatelessWidget {
                 ],
               ),
             ),
+
+            // ── Search Bar ──────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _isFocused
+                        ? AppTheme.primaryRose.withOpacity(0.55)
+                        : Colors.white12,
+                    width: _isFocused ? 1.5 : 1,
+                  ),
+                  boxShadow: _isFocused
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.primaryRose.withOpacity(0.18),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
+                      : [],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  focusNode: _searchFocus,
+                  style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: InputDecoration(
+                    hintText: 'Search by name…',
+                    hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: AppTheme.primaryRose,
+                      size: 22,
+                    ),
+                    suffixIcon: _query.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _searchController.clear();
+                              setState(() => _query = '');
+                            },
+                            child: const Icon(
+                              Icons.close_rounded,
+                              color: AppTheme.textMuted,
+                              size: 20,
+                            ),
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Swipe Deck / Skeleton ────────────────────────────────────────
             Expanded(
               child: AnimatedCrossFade(
                 firstChild: const DiscoverCardSkeleton(),
-                secondChild: TinderSwipeDeck(
-                  profiles: profiles,
-                  onSwipe: (profile, direction) {
-                    if (direction == SwipeDirection.right) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('You liked ${profile.name.split(' ').first}. Keep going!'),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                secondChild: filtered.isEmpty && !widget.isLoading
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.search_off_rounded,
+                              size: 56,
+                              color: AppTheme.textMuted.withOpacity(0.5),
+                            ),
+                            const SizedBox(height: 14),
+                            const Text(
+                              'No profiles match your search',
+                              style: TextStyle(
+                                color: AppTheme.textMuted,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    }
-                  },
-                  onMatch: onMatch,
-                ),
-                crossFadeState: isLoading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                      )
+                    : TinderSwipeDeck(
+                        profiles: filtered,
+                        onSwipe: (profile, direction) {
+                          if (direction == SwipeDirection.right) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'You liked ${profile.name.split(' ').first}. Keep going!'),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        onMatch: widget.onMatch,
+                      ),
+                crossFadeState: widget.isLoading
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
                 duration: const Duration(milliseconds: 350),
               ),
             ),
