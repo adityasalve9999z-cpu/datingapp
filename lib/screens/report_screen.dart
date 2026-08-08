@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'report_user_screen.dart';
-import 'safety_center_screen.dart';
 
 class SafetyScreen extends StatelessWidget {
   const SafetyScreen({super.key});
