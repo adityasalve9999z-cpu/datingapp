@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'report_screen.dart';
 import 'safety_center_screen.dart';
 
 class SafetyScreen extends StatelessWidget {
@@ -25,7 +26,7 @@ class SafetyScreen extends StatelessWidget {
             subtitle: 'Flag inappropriate behavior or content',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ReportUserScreen()),
+              MaterialPageRoute(builder: (_) => const reportscreen()),
             ),
           ),
           const SizedBox(height: 12),
@@ -37,7 +38,7 @@ class SafetyScreen extends StatelessWidget {
             subtitle: 'Tips, resources & community guidelines',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const SafetyCenterScreen()),
+              MaterialPageRoute(builder: (_) => const SafetyScreen()),
             ),
           ),
           const SizedBox(height: 12),
