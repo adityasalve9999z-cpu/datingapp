@@ -3,8 +3,6 @@ import 'package:datingapp/login/reset_password.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'premium_plans_screen.dart';
-import 'reset_password_screen.dart';
-import 'otp_verification_screen.dart';
 
 /// Wraps a widget with a mouse-hover reaction: a slight scale-up plus a
 /// softened/lifted shadow, using MouseRegion + AnimatedContainer. Only fires
