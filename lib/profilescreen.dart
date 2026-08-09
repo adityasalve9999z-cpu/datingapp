@@ -1,3 +1,4 @@
+import 'package:datingapp/screens/edit_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'services/api_service.dart';
 import 'theme/app_theme.dart';
