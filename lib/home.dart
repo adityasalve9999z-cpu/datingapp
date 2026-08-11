@@ -10,6 +10,7 @@ import 'widgets/match_dialog.dart';
 import 'widgets/modern_bottom_nav.dart';
 import 'widgets/tinder_swipe_deck.dart';
 import 'widgets/shimmer_loading.dart';
+import 'widgets/ai_agent_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -77,6 +78,18 @@ class _HomeScreenState extends State<HomeScreen> {
       extendBody: true,
       backgroundColor: AppTheme.darkBackground,
       body: IndexedStack(index: _currentIndex, children: tabs),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => AiAgentSheet.show(context),
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: AppTheme.primaryGradient,
+          ),
+          child: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
+        ),
+      ),
       bottomNavigationBar: ModernBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
