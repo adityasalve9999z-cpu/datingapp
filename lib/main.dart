@@ -15,6 +15,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'providers/auth_provider.dart';
 import 'router.dart';
 
@@ -99,7 +100,7 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
       SnackBar(content: Text(result['message'] as String)),
     );
     if (result['success'] == true) {
-      Navigator.pushReplacementNamed(context, '/home');
+      context.go('/home');
     }
   }
 
@@ -220,7 +221,7 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                           style: TextStyle(color: AppTheme.textSecondary),
                         ),
                         GestureDetector(
-                          onTap: () => Navigator.pushNamed(context, '/signup'),
+                          onTap: () => context.go('/signup'),
                           child: const Text(
                             'Create One',
                             style: TextStyle(
@@ -269,7 +270,7 @@ class _SignupScreenAuthState extends State<SignupScreenAuth> {
       SnackBar(content: Text(result['message'] as String)),
     );
     if (result['success'] == true) {
-      Navigator.pushReplacementNamed(context, '/onboarding');
+      context.go('/onboarding');
     }
   }
 
