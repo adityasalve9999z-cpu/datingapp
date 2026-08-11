@@ -11,8 +11,17 @@ import 'widgets/animated_glow_button.dart';
 import 'widgets/shimmer_loading.dart';
 import 'services/api_service.dart';
 
-void main() {
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/supabase_config.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabasePublishableKey,
+  );
+
   runApp(const GlowDateApp());
 }
 
