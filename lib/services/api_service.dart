@@ -214,13 +214,13 @@ class AppApiService {
   static Future<List<ProfileModel>> fetchProfiles() async {
     try {
       final currentUserId = _supabase.auth.currentUser?.id;
-      var query = _supabase.from('profiles').select().limit(10);
+      var query = _supabase.from('profiles').select();
 
       if (currentUserId != null) {
         query = query.neq('id', currentUserId);
       }
 
-      final data = await query;
+      final data = await query.limit(10);
       final users = data as List<dynamic>? ?? [];
 
       if (users.isNotEmpty) {
