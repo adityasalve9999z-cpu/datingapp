@@ -14,6 +14,9 @@ import 'services/api_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -22,7 +25,14 @@ void main() async {
     anonKey: SupabaseConfig.supabasePublishableKey,
   );
 
-  runApp(const GlowDateApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const GlowDateApp(),
+    ),
+  );
 }
 
 class AppScrollBehavior extends MaterialScrollBehavior {
@@ -91,9 +101,10 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
 
   Future<void> _handleLogin() async {
     setState(() => _isSubmitting = true);
-    final result = await AppApiService.login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final result = await authProvider.login(
+      _emailController.text.trim(),
+      _passwordController.text,
     );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
@@ -259,10 +270,11 @@ class _SignupScreenAuthState extends State<SignupScreenAuth> {
 
   Future<void> _handleSignup() async {
     setState(() => _isSubmitting = true);
-    final result = await AppApiService.signup(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final result = await authProvider.signup(
+      _nameController.text.trim(),
+      _emailController.text.trim(),
+      _passwordController.text,
     );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
