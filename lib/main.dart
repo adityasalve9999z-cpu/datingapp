@@ -16,6 +16,7 @@ import 'config/supabase_config.dart';
 
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,33 +57,19 @@ class GlowDateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    // Get the AuthProvider from the context
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Create the router
+    final appRouter = createRouter(authProvider);
+
+    return MaterialApp.router(
       title: 'GlowDate',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
       scrollBehavior: AppScrollBehavior(),
-      home: const SplashScreen(),
-      routes: {
-        '/home': (context) => const HomeScreen(),
-        '/login': (context) => const LoginScreenAuth(),
-        '/signup': (context) => const SignupScreenAuth(),
-        '/onboarding': (context) => const OnboardingWizardScreen(),
-        '/edit-profile': (context) => const EditProfileScreen(),
-        '/subscription': (context) => const SubscriptionScreen(),
-        '/basic-to-advanced': (context) => const BasicToAdvancedScreen(),
-      },
-      onGenerateRoute: (settings) {
-        if (settings.name == '/profile') {
-          return MaterialPageRoute(builder: (_) => const EditProfileScreen());
-        }
-        if (settings.name == '/learn') {
-          return MaterialPageRoute(
-              builder: (_) => const BasicToAdvancedScreen());
-        }
-        return null;
-      },
+      routerConfig: appRouter,
     );
   }
 }
