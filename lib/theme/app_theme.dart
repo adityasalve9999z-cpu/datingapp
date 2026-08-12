@@ -2,38 +2,39 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Brand Color Palette
-  static const Color darkBackground = Color(0xFF0D0C13);
-  static const Color surfaceDark = Color(0xFF181622);
-  static const Color surfaceCard = Color(0xFF221F30);
-  static const Color surfaceGlass = Color(0x33262335);
-  
-  static const Color primaryRose = Color(0xFFFF2A6D);
-  static const Color primaryCoral = Color(0xFFFF6464);
-  static const Color primaryPurple = Color(0xFF8B5CF6);
-  static const Color accentCyan = Color(0xFF05D5E4);
-  static const Color accentGold = Color(0xFFFFB800);
-  static const Color emeraldGreen = Color(0xFF10B981);
-  
-  static const Color textPrimary = Color(0xFFF9FAFB);
-  static const Color textSecondary = Color(0xFF9CA3AF);
-  static const Color textMuted = Color(0xFF6B7280);
+  // Brand Color Palette — "Lume" Deep Midnight Plum & Champagne Gold
+  static const Color darkBackground = Color(0xFF160D1C); // Near-black plum
+  static const Color surfaceDark = Color(0xFF221328); // Card/field surface
+  static const Color surfaceCard = Color(0xFF2A1830); // Lighter plum card
+  static const Color surfaceGlass = Color(0x333A2740); // Glassmorphic overlay
+
+  static const Color primaryRose = Color(0xFFE8A7A0); // Soft blush secondary
+  static const Color primaryCoral =
+      Color(0xFFE07A6B); // Warm error/coral highlight
+  static const Color primaryPurple = Color(0xFF4A2E55); // Deep accent purple
+  static const Color accentCyan = Color(0xFF72A6A6); // Muted soft teal/cyan
+  static const Color accentGold = Color(0xFFD4A857); // Champagne gold accent
+  static const Color emeraldGreen = Color(0xFF81B29A); // Muted sage green
+
+  static const Color textPrimary = Color(0xFFF3EEE9);
+  static const Color textSecondary = Color(0xFFA79AAE);
+  static const Color textMuted = Color(0xFF6E6274);
 
   // Gradient Presets
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFFFF2A6D), Color(0xFFFF6464)],
+    colors: [Color(0xFFD4A857), Color(0xFFC79340)],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
 
   static const LinearGradient sunsetGradient = LinearGradient(
-    colors: [Color(0xFFFF2A6D), Color(0xFF8B5CF6)],
+    colors: [Color(0xFFD4A857), Color(0xFFE8A7A0)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient goldGradient = LinearGradient(
-    colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+    colors: [Color(0xFFD4A857), Color(0xFF8A7245)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -41,8 +42,8 @@ class AppTheme {
   static const LinearGradient cardOverlayGradient = LinearGradient(
     colors: [
       Colors.transparent,
-      Color(0x66000000),
-      Color(0xF10B0914),
+      Color(0x66160D1C),
+      Color(0xF1160D1C),
     ],
     stops: [0.0, 0.5, 1.0],
     begin: Alignment.topCenter,
@@ -51,8 +52,8 @@ class AppTheme {
 
   static const LinearGradient glassGradient = LinearGradient(
     colors: [
-      Color(0x3BFFFFFF),
-      Color(0x0FFFFFFF),
+      Color(0x2BFFFFFF),
+      Color(0x05FFFFFF),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -65,19 +66,20 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: darkBackground,
       colorScheme: const ColorScheme.dark(
-        primary: primaryRose,
-        secondary: primaryPurple,
+        primary: accentGold,
+        secondary: primaryRose,
         surface: surfaceDark,
-        onPrimary: Colors.white,
+        onPrimary: darkBackground,
         onSurface: textPrimary,
       ),
       fontFamily: 'Roboto',
       cardTheme: CardThemeData(
         color: surfaceCard,
         elevation: 8,
-        shadowColor: Colors.black.withOpacity(0.4),
+        shadowColor: Colors.black.withOpacity(0.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: Color(0xFF3A2740), width: 1),
         ),
       ),
       appBarTheme: const AppBarTheme(
@@ -94,19 +96,20 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: surfaceCard,
-        selectedColor: primaryRose.withOpacity(0.2),
-        labelStyle: const TextStyle(color: textPrimary, fontSize: 13, fontWeight: FontWeight.w500),
+        selectedColor: accentGold.withOpacity(0.2),
+        labelStyle: const TextStyle(
+            color: textPrimary, fontSize: 13, fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0x33FFFFFF)),
+          side: const BorderSide(color: Color(0xFF3A2740)),
         ),
       ),
       sliderTheme: SliderThemeData(
-        activeTrackColor: primaryRose,
+        activeTrackColor: accentGold,
         inactiveTrackColor: Colors.white10,
         thumbColor: Colors.white,
-        overlayColor: primaryRose.withOpacity(0.2),
+        overlayColor: accentGold.withOpacity(0.2),
         trackHeight: 4,
       ),
     );
@@ -119,7 +122,7 @@ class AppTheme {
     EdgeInsetsGeometry? padding,
     EdgeInsetsGeometry? margin,
     double blur = 15.0,
-    Color border = const Color(0x2BFFFFFF),
+    Color border = const Color(0xFF3A2740),
   }) {
     return Container(
       margin: margin,
@@ -133,6 +136,7 @@ class AppTheme {
               gradient: glassGradient,
               borderRadius: borderRadius ?? BorderRadius.circular(24),
               border: Border.all(color: border, width: 1.2),
+              color: surfaceDark.withOpacity(0.6),
             ),
             child: child,
           ),
@@ -147,11 +151,11 @@ class AppTheme {
     const diplomats = ['INFJ', 'INFP', 'ENFJ', 'ENFP'];
     const sentinels = ['ISTJ', 'ISFJ', 'ESTJ', 'ESFJ'];
     const explorers = ['ISTP', 'ISFP', 'ESTP', 'ESFP'];
-    if (analysts.contains(mbti)) return const Color(0xFF8B5CF6);   // purple
-    if (diplomats.contains(mbti)) return const Color(0xFF10B981);   // emerald
-    if (sentinels.contains(mbti)) return const Color(0xFF3B82F6);   // blue
-    if (explorers.contains(mbti)) return const Color(0xFFFFB800);   // gold
-    return primaryRose;
+    if (analysts.contains(mbti)) return const Color(0xFF9D84B7); // plum purple
+    if (diplomats.contains(mbti)) return emeraldGreen; // sage emerald
+    if (sentinels.contains(mbti)) return accentCyan; // soft cyan
+    if (explorers.contains(mbti)) return accentGold; // champagne gold
+    return accentGold;
   }
 
   /// Returns an icon for a given lifestyle field value
@@ -159,9 +163,12 @@ class AppTheme {
     switch (category) {
       case 'drinking':
         switch (value.toLowerCase()) {
-          case 'never': return Icons.no_drinks_rounded;
-          case 'socially': return Icons.wine_bar_rounded;
-          default: return Icons.local_bar_rounded;
+          case 'never':
+            return Icons.no_drinks_rounded;
+          case 'socially':
+            return Icons.wine_bar_rounded;
+          default:
+            return Icons.local_bar_rounded;
         }
       case 'smoking':
         return value.toLowerCase() == 'never'
@@ -169,10 +176,14 @@ class AppTheme {
             : Icons.smoking_rooms_rounded;
       case 'exercise':
         switch (value.toLowerCase()) {
-          case 'daily': return Icons.directions_run_rounded;
-          case 'often': return Icons.fitness_center_rounded;
-          case 'sometimes': return Icons.directions_walk_rounded;
-          default: return Icons.weekend_rounded;
+          case 'daily':
+            return Icons.directions_run_rounded;
+          case 'often':
+            return Icons.fitness_center_rounded;
+          case 'sometimes':
+            return Icons.directions_walk_rounded;
+          default:
+            return Icons.weekend_rounded;
         }
       case 'pets':
         if (value.contains('Dog')) return Icons.pets_rounded;
