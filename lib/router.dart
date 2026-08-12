@@ -1,3 +1,4 @@
+import 'package:datingapp/main.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,8 @@ GoRouter createRouter(AuthProvider authProvider) {
     redirect: (BuildContext context, GoRouterState state) {
       // While checking auth state, we could show a splash screen, but let's assume it resolves quickly.
       final bool loggedIn = authProvider.isAuthenticated;
-      final bool loggingIn = state.uri.toString() == '/login' || state.uri.toString() == '/signup';
+      final bool loggingIn =
+          state.uri.toString() == '/login' || state.uri.toString() == '/signup';
 
       if (!loggedIn && !loggingIn) return '/login';
       if (loggedIn && loggingIn) return '/home';
