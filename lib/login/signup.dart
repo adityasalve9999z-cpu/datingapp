@@ -51,7 +51,7 @@ class SignupScreen extends StatefulWidget {
   State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -62,8 +62,54 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isSubmitting = false;
   double _passwordStrength = 0;
 
+  // Animation Controllers
+  late final AnimationController _entryController;
+  late final AnimationController _pulseController;
+
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
+  late final Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Page entry setup
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _entryController,
+      curve: const Interval(0.0, 0.65, curve: Curves.easeOut),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _entryController,
+      curve: const Interval(0.0, 0.65, curve: Curves.easeOutCubic),
+    ));
+
+    // Subtle ambient pulsing animation for the signature motif spark
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.15).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _entryController.forward();
+  }
+
   @override
   void dispose() {
+    _entryController.dispose();
+    _pulseController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -98,11 +144,16 @@ class _SignupScreenState extends State<SignupScreen> {
         const SnackBar(
           content: Text('Please agree to the Terms to continue'),
           backgroundColor: LumeColors.surface,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
     setState(() => _isSubmitting = true);
+    
+    // Simulating network latency effect for smoother transition feedback
+    await Future.delayed(const Duration(milliseconds: 1200));
+    
     final result = await AppApiService.signup(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
@@ -132,142 +183,155 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(28, 12, 28, 24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  _buildSignatureMotif(),
-                  const SizedBox(height: 28),
-                  const Text(
-                    'Create your space',
-                    style: TextStyle(
-                      color: LumeColors.textPrimary,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'A few details, and you\'re one step from\nreal conversations that go somewhere.',
-                    style: TextStyle(
-                      color: LumeColors.textSecondary,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  _buildLabel('Your name'),
-                  _buildField(
-                    controller: _nameController,
-                    hint: 'How should matches see you?',
-                    icon: Icons.person_outline_rounded,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
-                  ),
-                  const SizedBox(height: 18),
-
-                  _buildLabel('Email'),
-                  _buildField(
-                    controller: _emailController,
-                    hint: 'you@example.com',
-                    icon: Icons.alternate_email_rounded,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Enter your email';
-                      if (!v.contains('@') || !v.contains('.')) return 'Enter a valid email';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 18),
-
-                  _buildLabel('Password'),
-                  _buildField(
-                    controller: _passwordController,
-                    hint: 'At least 8 characters',
-                    icon: Icons.lock_outline_rounded,
-                    obscureText: _obscurePassword,
-                    onChanged: _evaluateStrength,
-                    suffix: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: LumeColors.textSecondary,
-                        size: 20,
-                      ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Create a password';
-                      if (v.length < 8) return 'At least 8 characters';
-                      return null;
-                    },
-                  ),
-
-                  if (_passwordController.text.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: _passwordStrength,
-                              minHeight: 4,
-                              backgroundColor: LumeColors.surfaceBorder,
-                              valueColor: AlwaysStoppedAnimation(_strengthColor),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          _strengthLabel,
-                          style: TextStyle(fontSize: 11, color: _strengthColor, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ],
-
-                  const SizedBox(height: 22),
-                  _buildTermsRow(),
-
-                  const SizedBox(height: 28),
-                  _buildPrimaryButton(),
-
-                  const SizedBox(height: 24),
-                  _buildDivider(),
-                  const SizedBox(height: 20),
-
-                  Row(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(28, 12, 28, 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _buildSocialButton(Icons.g_mobiledata_rounded, 'Google')),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildSocialButton(Icons.apple_rounded, 'Apple')),
-                    ],
-                  ),
+                      const SizedBox(height: 12),
+                      _buildSignatureMotif(),
+                      const SizedBox(height: 28),
+                      const Text(
+                        'Create your space',
+                        style: TextStyle(
+                          color: LumeColors.textPrimary,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'A few details, and you\'re one step from\nreal conversations that go somewhere.',
+                        style: TextStyle(
+                          color: LumeColors.textSecondary,
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
-                  const SizedBox(height: 32),
-                  Center(
-                    child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(fontSize: 13.5, color: LumeColors.textSecondary),
-                        children: [
-                          const TextSpan(text: 'Already have an account?  '),
-                          TextSpan(
-                            text: 'Log in',
-                            style: const TextStyle(color: LumeColors.gold, fontWeight: FontWeight.w700),
-                            recognizer: null,
+                      _buildLabel('Your name'),
+                      _buildField(
+                        controller: _nameController,
+                        hint: 'How should matches see you?',
+                        icon: Icons.person_outline_rounded,
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                      ),
+                      const SizedBox(height: 18),
+
+                      _buildLabel('Email'),
+                      _buildField(
+                        controller: _emailController,
+                        hint: 'you@example.com',
+                        icon: Icons.alternate_email_rounded,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Enter your email';
+                          if (!v.contains('@') || !v.contains('.')) return 'Enter a valid email';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 18),
+
+                      _buildLabel('Password'),
+                      _buildField(
+                        controller: _passwordController,
+                        hint: 'At least 8 characters',
+                        icon: Icons.lock_outline_rounded,
+                        obscureText: _obscurePassword,
+                        onChanged: _evaluateStrength,
+                        suffix: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                            color: LumeColors.textSecondary,
+                            size: 20,
                           ),
+                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        ),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Create a password';
+                          if (v.length < 8) return 'At least 8 characters';
+                          return null;
+                        },
+                      ),
+
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: _passwordController.text.isNotEmpty
+                            ? Column(
+                                children: [
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(4),
+                                          child: LinearProgressIndicator(
+                                            value: _passwordStrength,
+                                            minHeight: 4,
+                                            backgroundColor: LumeColors.surfaceBorder,
+                                            valueColor: AlwaysStoppedAnimation(_strengthColor),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        _strengthLabel,
+                                        style: TextStyle(fontSize: 11, color: _strengthColor, fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+
+                      const SizedBox(height: 22),
+                      _buildTermsRow(),
+
+                      const SizedBox(height: 28),
+                      _buildPrimaryButton(),
+
+                      const SizedBox(height: 24),
+                      _buildDivider(),
+                      const SizedBox(height: 20),
+
+                      Row(
+                        children: [
+                          Expanded(child: _buildSocialButton(Icons.g_mobiledata_rounded, 'Google')),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildSocialButton(Icons.apple_rounded, 'Apple')),
                         ],
                       ),
-                    ),
+
+                      const SizedBox(height: 32),
+                      Center(
+                        child: RichText(
+                          text: TextSpan(
+                            style: const TextStyle(fontSize: 13.5, color: LumeColors.textSecondary),
+                            children: [
+                              const TextSpan(text: 'Already have an account?  '),
+                              TextSpan(
+                                text: 'Log in',
+                                style: const TextStyle(color: LumeColors.gold, fontWeight: FontWeight.w700),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                ],
+                ),
               ),
             ),
           ),
@@ -276,9 +340,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// Signature element: an overlapping trio of avatar rings converging on a
-  /// small warm spark — a quiet visual metaphor for "your circle is about to
-  /// widen," instead of a generic logo mark.
+  /// Animated Signature element with ambient pulsing glow
   Widget _buildSignatureMotif() {
     return SizedBox(
       height: 84,
@@ -300,17 +362,20 @@ class _SignupScreenState extends State<SignupScreen> {
           Positioned(
             left: 96,
             top: 22,
-            child: Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                color: LumeColors.gold,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: LumeColors.gold.withOpacity(0.55), blurRadius: 14, spreadRadius: 1),
-                ],
+            child: ScaleTransition(
+              scale: _pulseAnimation,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: LumeColors.gold,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: LumeColors.gold.withOpacity(0.55), blurRadius: 14, spreadRadius: 1),
+                  ],
+                ),
+                child: const Icon(Icons.auto_awesome_rounded, size: 13, color: LumeColors.bg),
               ),
-              child: const Icon(Icons.auto_awesome_rounded, size: 13, color: LumeColors.bg),
             ),
           ),
         ],
@@ -400,7 +465,9 @@ class _SignupScreenState extends State<SignupScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
             margin: const EdgeInsets.only(top: 1),
             width: 20,
             height: 20,
@@ -451,17 +518,26 @@ class _SignupScreenState extends State<SignupScreen> {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
-            onTap: _submit,
-            child: const Center(
-              child: Text(
-                'Create Account',
-                style: TextStyle(
-                  color: LumeColors.bg,
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.2,
-                ),
-              ),
+            onTap: _isSubmitting ? null : _submit,
+            child: Center(
+              child: _isSubmitting
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(LumeColors.bg),
+                      ),
+                    )
+                  : const Text(
+                      'Create Account',
+                      style: TextStyle(
+                        color: LumeColors.bg,
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
             ),
           ),
         ),
