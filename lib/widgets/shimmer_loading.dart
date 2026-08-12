@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -17,7 +18,8 @@ class GlowShimmer extends StatefulWidget {
   State<GlowShimmer> createState() => _GlowShimmerState();
 }
 
-class _GlowShimmerState extends State<GlowShimmer> with SingleTickerProviderStateMixin {
+class _GlowShimmerState extends State<GlowShimmer>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
@@ -57,7 +59,8 @@ class _GlowShimmerState extends State<GlowShimmer> with SingleTickerProviderStat
                 Color(0xFF221F30),
               ],
               stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-              transform: _SlidingGradientTransform(slidePercent: _controller.value),
+              transform:
+                  _SlidingGradientTransform(slidePercent: _controller.value),
             ).createShader(Rect.fromLTWH(dx, 0, bounds.width, bounds.height));
           },
           child: widget.child,
@@ -73,7 +76,8 @@ class _SlidingGradientTransform extends GradientTransform {
 
   @override
   Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
-    return Matrix4.translationValues(bounds.width * (slidePercent * 2 - 1), 0, 0);
+    return Matrix4.translationValues(
+        bounds.width * (slidePercent * 2 - 1), 0, 0);
   }
 }
 
@@ -228,9 +232,11 @@ class LikesGridSkeleton extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        const SkeletonBox(width: 100, height: 16, borderRadius: 6),
+                        const SkeletonBox(
+                            width: 100, height: 16, borderRadius: 6),
                         const SizedBox(height: 6),
-                        const SkeletonBox(width: 60, height: 12, borderRadius: 4),
+                        const SkeletonBox(
+                            width: 60, height: 12, borderRadius: 4),
                       ],
                     ),
                   ),
@@ -368,22 +374,26 @@ class ChatRoomSkeleton extends StatelessWidget {
           children: [
             Align(
               alignment: Alignment.centerLeft,
-              child: const SkeletonBox(width: 240, height: 50, borderRadius: 20),
+              child:
+                  const SkeletonBox(width: 240, height: 50, borderRadius: 20),
             ),
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: const SkeletonBox(width: 200, height: 44, borderRadius: 20),
+              child:
+                  const SkeletonBox(width: 200, height: 44, borderRadius: 20),
             ),
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerLeft,
-              child: const SkeletonBox(width: 260, height: 60, borderRadius: 20),
+              child:
+                  const SkeletonBox(width: 260, height: 60, borderRadius: 20),
             ),
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: const SkeletonBox(width: 180, height: 44, borderRadius: 20),
+              child:
+                  const SkeletonBox(width: 180, height: 44, borderRadius: 20),
             ),
             const Spacer(),
             const SkeletonBox(height: 56, borderRadius: 28),
@@ -455,11 +465,13 @@ class GlowLoadingOverlay extends StatelessWidget {
                 color: Colors.black.withOpacity(0.55),
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 28, vertical: 24),
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceDark,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: AppTheme.primaryRose.withOpacity(0.4)),
+                      border: Border.all(
+                          color: AppTheme.primaryRose.withOpacity(0.4)),
                       boxShadow: [
                         BoxShadow(
                           color: AppTheme.primaryRose.withOpacity(0.25),
@@ -479,11 +491,14 @@ class GlowLoadingOverlay extends StatelessWidget {
                               height: 52,
                               child: CircularProgressIndicator(
                                 strokeWidth: 3,
-                                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryRose),
-                                backgroundColor: AppTheme.primaryRose.withOpacity(0.15),
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                    AppTheme.primaryRose),
+                                backgroundColor:
+                                    AppTheme.primaryRose.withOpacity(0.15),
                               ),
                             ),
-                            const Icon(Icons.favorite_rounded, size: 22, color: AppTheme.primaryRose),
+                            const Icon(Icons.favorite_rounded,
+                                size: 22, color: AppTheme.primaryRose),
                           ],
                         ),
                         const SizedBox(height: 18),
