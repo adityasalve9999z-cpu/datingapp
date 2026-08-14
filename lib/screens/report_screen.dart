@@ -571,29 +571,6 @@ class _ReportScreenState extends State<ReportScreen>
 }
 
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.darkBackground,
-      appBar: AppBar(title: const Text('Safety'), centerTitle: false),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-        physics: const BouncingScrollPhysics(),
-        children: [
-          _buildIntroCard(),
-          const SizedBox(height: 24),
-          _sectionLabel('Quick Actions'),
-          _actionTile(
-            context,
-            icon: Icons.flag_rounded,
-            color: AppTheme.primaryCoral,
-            title: 'Report a User',
-            subtitle: 'Flag inappropriate behavior or content',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => newMethod()),
-            ),
-          ),
           const SizedBox(height: 12),
           _actionTile(
             context,
