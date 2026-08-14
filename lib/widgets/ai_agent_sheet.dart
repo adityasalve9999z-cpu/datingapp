@@ -36,7 +36,8 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
     super.initState();
     // Welcome message
     _messages.add(ChatMessage(
-      text: "Hi there! ✨ I'm your GlowDate AI wingman. Need an icebreaker or profile advice?",
+      text:
+          "Hi there! ✨ I'm your Lume AI wingman. Need an icebreaker, bio polish, or profile advice?",
       isMe: false,
     ));
   }
@@ -51,7 +52,7 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent + 200, // extra padding
+        _scrollController.position.maxScrollExtent + 200,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
@@ -66,35 +67,33 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
       _messages.add(ChatMessage(text: text, isMe: true));
       _isTyping = true;
     });
-    
+
     _controller.clear();
-    
-    // Allow UI to update and scroll to bottom
     Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
 
-    // Call the mock AI service
+    // Call AI service
     final response = await AiService.sendMessage(text);
-    
+
     if (!mounted) return;
 
     setState(() {
       _isTyping = false;
       _messages.add(ChatMessage(text: response, isMe: false));
     });
-    
+
     Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Determine keyboard height so we can push the content up when keyboard is open
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.75 + keyboardHeight,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.darkBackground,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border.all(color: const Color(0xFF3A2740), width: 1.2),
       ),
       child: Column(
         children: [
@@ -102,17 +101,24 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.white12)),
+              border: Border(bottom: BorderSide(color: Color(0xFF3A2740))),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: AppTheme.primaryGradient,
+                    gradient: AppTheme.goldGradient,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.accentGold.withOpacity(0.3),
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 24),
+                  child: const Icon(Icons.auto_awesome_rounded,
+                      color: AppTheme.darkBackground, size: 22),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -127,8 +133,9 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      SizedBox(height: 2),
                       Text(
-                        'Always here to help ✨',
+                        'Your intelligent dating advisor ✨',
                         style: TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 12,
@@ -138,13 +145,14 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: AppTheme.textSecondary),
+                  icon: const Icon(Icons.close_rounded,
+                      color: AppTheme.textSecondary),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          
+
           // ── Message List ───────────────────────────────────────────────────
           Expanded(
             child: ListView.builder(
@@ -155,36 +163,38 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
                 if (index == _messages.length && _isTyping) {
                   return const _TypingIndicator();
                 }
-                
+
                 final msg = _messages[index];
                 return _MessageBubble(message: msg);
               },
             ),
           ),
-          
+
           // ── Input Area ─────────────────────────────────────────────────────
           Container(
             padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + keyboardHeight),
-            decoration: const BoxDecoration(
-              color: AppTheme.surfaceCard,
-              border: Border(top: BorderSide(color: Colors.white12)),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceDark,
+              border: const Border(top: BorderSide(color: Color(0xFF3A2740))),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.darkBackground,
+                      color: AppTheme.surfaceCard,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white12),
+                      border: Border.all(color: const Color(0xFF3A2740)),
                     ),
                     child: TextField(
                       controller: _controller,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      style: const TextStyle(
+                          color: AppTheme.textPrimary, fontSize: 15),
                       decoration: const InputDecoration(
-                        hintText: 'Ask for advice...',
+                        hintText: 'Ask for advice or openers...',
                         hintStyle: TextStyle(color: AppTheme.textMuted),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                         border: InputBorder.none,
                       ),
                       onSubmitted: (_) => _handleSend(),
@@ -193,12 +203,20 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: AppTheme.primaryGradient,
+                    gradient: AppTheme.goldGradient,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.accentGold.withOpacity(0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.send_rounded,
+                        color: AppTheme.darkBackground, size: 20),
                     onPressed: _handleSend,
                   ),
                 ),
@@ -223,21 +241,39 @@ class _MessageBubble extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
+          maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: message.isMe ? AppTheme.primaryRose : AppTheme.surfaceCard,
+          color: message.isMe ? null : AppTheme.surfaceCard,
+          gradient: message.isMe ? AppTheme.goldGradient : null,
+          border:
+              message.isMe ? null : Border.all(color: const Color(0xFF3A2740)),
           borderRadius: BorderRadius.circular(20).copyWith(
-            bottomRight: message.isMe ? const Radius.circular(4) : const Radius.circular(20),
-            bottomLeft: !message.isMe ? const Radius.circular(4) : const Radius.circular(20),
+            bottomRight: message.isMe
+                ? const Radius.circular(4)
+                : const Radius.circular(20),
+            bottomLeft: !message.isMe
+                ? const Radius.circular(4)
+                : const Radius.circular(20),
           ),
+          boxShadow: message.isMe
+              ? [
+                  BoxShadow(
+                    color: AppTheme.accentGold.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  )
+                ]
+              : null,
         ),
         child: Text(
           message.text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 15,
+          style: TextStyle(
+            color:
+                message.isMe ? AppTheme.darkBackground : AppTheme.textPrimary,
+            fontSize: 14.5,
+            fontWeight: message.isMe ? FontWeight.w600 : FontWeight.normal,
             height: 1.4,
           ),
         ),
@@ -255,9 +291,10 @@ class _TypingIndicator extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppTheme.surfaceCard,
+          border: Border.all(color: const Color(0xFF3A2740)),
           borderRadius: BorderRadius.circular(20).copyWith(
             bottomLeft: const Radius.circular(4),
           ),
@@ -265,11 +302,11 @@ class _TypingIndicator extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            Icon(Icons.circle, size: 8, color: AppTheme.textMuted),
-            SizedBox(width: 4),
-            Icon(Icons.circle, size: 8, color: AppTheme.textMuted),
-            SizedBox(width: 4),
-            Icon(Icons.circle, size: 8, color: AppTheme.textMuted),
+            Icon(Icons.circle, size: 7, color: AppTheme.accentGold),
+            SizedBox(width: 5),
+            Icon(Icons.circle, size: 7, color: AppTheme.accentGold),
+            SizedBox(width: 5),
+            Icon(Icons.circle, size: 7, color: AppTheme.accentGold),
           ],
         ),
       ),
