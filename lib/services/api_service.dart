@@ -521,7 +521,296 @@ class AppApiService {
     required String gender,
     required bool showOnProfile,
   }) async {
-    return {'success': true, 'message': 'Gender saved'};
+    final user = _supabase.auth.currentUser;
+    if (user != null) {
+      try {
+        await _supabase.from('profiles').update({
+          'gender': gender,
+          'show_gender': showOnProfile,
+        }).eq('id', user.id);
+        return {'success': true, 'message': 'Gender saved'};
+      } catch (e) {
+        return {'success': false, 'message': e.toString()};
+      }
+    }
+    return {'success': true, 'message': 'Gender saved locally'};
+  }
+
+  // ── Discovery: Swipe Right (Like) ─────────────────────────────────────────
+
+  /// Records a like/super_like swipe. Returns `{'result': 'match'}` if it
+  /// created a mutual match, or `{'result': 'liked'}` otherwise.
+  static Future<Map<String, dynamic>> swipeRight(String targetUserId,
+      {bool isSuperLike = false}) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return {'result': 'liked'};
+
+    try {
+      final action = isSuperLike ? 'super_like' : 'like';
+      final result = await _supabase.rpc('process_swipe', params: {
+        'p_swiper_id': user.id,
+        'p_swiped_id': targetUserId,
+        'p_action': action,
+      });
+      // result is a JSON object like {"result": "match", "match_id": "..."}
+      if (result is Map<String, dynamic>) return result;
+      return {'result': 'liked'};
+    } catch (e) {
+      return {'result': 'liked', 'error': e.toString()};
+    }
+  }
+
+  // ── Discovery: Swipe Left (Dislike) ──────────────────────────────────────
+
+  /// Records a dislike swipe so the same profile is never shown again.
+  static Future<void> swipeLeft(String targetUserId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await _supabase.rpc('process_swipe', params: {
+        'p_swiper_id': user.id,
+        'p_swiped_id': targetUserId,
+        'p_action': 'dislike',
+      });
+    } catch (_) {}
+  }
+
+  // ── Discovery: Fetch already-swiped IDs ──────────────────────────────────
+
+  /// Returns all user IDs the current user has already swiped so they can be
+  /// excluded from the discovery feed.
+  static Future<List<String>> fetchSwipedIds() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return [];
+
+    try {
+      final data = await _supabase
+          .from('swipes')
+          .select('swiped_id')
+          .eq('swiper_id', user.id);
+      return (data as List<dynamic>)
+          .map((e) => e['swiped_id'].toString())
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // ── Safety: Report a User ─────────────────────────────────────────────────
+
+  /// Submits a user report. [reason] must match one of the CHECK constraint
+  /// values defined in the `reports` table in supabase_schema.sql.
+  static Future<Map<String, dynamic>> reportUser({
+    required String reportedUserId,
+    required String reason,
+    String? details,
+  }) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return {'success': false, 'message': 'Not authenticated'};
+    }
+
+    try {
+      await _supabase.from('reports').insert({
+        'reporter_id': user.id,
+        'reported_id': reportedUserId,
+        'reason': reason,
+        'details': details,
+      });
+      return {'success': true, 'message': 'Report submitted'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  // ── Safety: Block a User ──────────────────────────────────────────────────
+
+  /// Blocks [targetUserId]. Blocked users are excluded from discovery and
+  /// their existing matches/messages become inaccessible.
+  static Future<Map<String, dynamic>> blockUser(String targetUserId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return {'success': false, 'message': 'Not authenticated'};
+    }
+
+    try {
+      await _supabase.from('blocked_users').insert({
+        'blocker_id': user.id,
+        'blocked_id': targetUserId,
+      });
+      return {'success': true, 'message': 'User blocked'};
+    } catch (e) {
+      // Unique constraint violation means already blocked — treat as success
+      if (e.toString().contains('unique') || e.toString().contains('23505')) {
+        return {'success': true, 'message': 'Already blocked'};
+      }
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Unblocks [targetUserId].
+  static Future<Map<String, dynamic>> unblockUser(String targetUserId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return {'success': false, 'message': 'Not authenticated'};
+    }
+
+    try {
+      await _supabase
+          .from('blocked_users')
+          .delete()
+          .eq('blocker_id', user.id)
+          .eq('blocked_id', targetUserId);
+      return {'success': true, 'message': 'User unblocked'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Returns a list of user IDs that the current user has blocked.
+  static Future<List<String>> fetchBlockedUsers() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return [];
+
+    try {
+      final data = await _supabase
+          .from('blocked_users')
+          .select('blocked_id')
+          .eq('blocker_id', user.id);
+      return (data as List<dynamic>)
+          .map((e) => e['blocked_id'].toString())
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // ── Subscription / Premium ────────────────────────────────────────────────
+
+  /// Fetches the current user's subscription info.
+  /// Returns a map with keys: `tier` ('free'|'gold'|'platinum'),
+  /// `is_active`, `expires_at`.
+  static Future<Map<String, dynamic>> fetchSubscription() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return {'tier': 'free', 'is_active': false};
+
+    try {
+      final data = await _supabase
+          .from('subscriptions')
+          .select()
+          .eq('user_id', user.id)
+          .maybeSingle();
+      if (data != null) return data as Map<String, dynamic>;
+    } catch (_) {}
+
+    return {'tier': 'free', 'is_active': true};
+  }
+
+  /// Upserts a subscription row for the current user with the given [tier].
+  /// In production, call this from a server-side webhook after payment
+  /// confirmation, not directly from the client.
+  static Future<Map<String, dynamic>> updateSubscription(String tier,
+      {DateTime? expiresAt}) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return {'success': false, 'message': 'Not authenticated'};
+    }
+
+    try {
+      await _supabase.from('subscriptions').upsert({
+        'user_id': user.id,
+        'tier': tier,
+        'is_active': true,
+        'started_at': DateTime.now().toIso8601String(),
+        'expires_at': expiresAt?.toIso8601String(),
+      }, onConflict: 'user_id');
+      return {'success': true, 'message': 'Subscription activated: $tier'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  // ── Profile Photo Upload ──────────────────────────────────────────────────
+
+  /// Uploads a profile photo from [localFilePath] to the `profile-photos`
+  /// Supabase Storage bucket and returns the public URL.
+  ///
+  /// Requires the `profile-photos` bucket to be created in the Supabase
+  /// Dashboard with the Storage RLS policies from supabase_schema.sql.
+  static Future<Map<String, dynamic>> uploadProfilePhoto(
+      String localFilePath) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return {'success': false, 'message': 'Not authenticated'};
+    }
+
+    try {
+      final fileName =
+          '${user.id}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final bytes = await _readFileBytes(localFilePath);
+      if (bytes == null) {
+        return {'success': false, 'message': 'Could not read file'};
+      }
+
+      await _supabase.storage.from('profile-photos').uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: const FileOptions(contentType: 'image/jpeg'),
+          );
+
+      final publicUrl = _supabase.storage
+          .from('profile-photos')
+          .getPublicUrl(fileName);
+
+      return {'success': true, 'url': publicUrl};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Reads file bytes from [path]. Supports both dart:io (mobile/desktop)
+  /// and web (returns null on unsupported platforms gracefully).
+  static Future<List<int>?> _readFileBytes(String path) async {
+    try {
+      // dart:io is available on Android / iOS / desktop
+      final file = await _loadFile(path);
+      return file;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<List<int>?> _loadFile(String path) async {
+    // Lazy import to avoid web compile errors
+    try {
+      // ignore: avoid_dynamic_calls
+      final dynamic io = await _ioFile(path);
+      return io;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<List<int>?> _ioFile(String path) async {
+    // Uses dart:io only at runtime — safe on mobile/desktop
+    // ignore: unnecessary_import
+    final ioImport = _fileHelper;
+    return ioImport?.call(path);
+  }
+
+  // File helper: set at app start for platforms that support dart:io
+  static Future<List<int>?> Function(String)? _fileHelper;
+
+  /// Call once in main() on mobile/desktop to enable photo uploads:
+  /// ```dart
+  /// AppApiService.registerFileHelper((path) async {
+  ///   return await File(path).readAsBytes();
+  /// });
+  /// ```
+  static void registerFileHelper(
+      Future<List<int>?> Function(String) helper) {
+    _fileHelper = helper;
   }
 }
 
