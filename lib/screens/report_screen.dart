@@ -571,9 +571,6 @@ class _ReportScreenState extends State<ReportScreen>
 }
 
 
-class SafetyScreen extends StatelessWidget {
-  const SafetyScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
