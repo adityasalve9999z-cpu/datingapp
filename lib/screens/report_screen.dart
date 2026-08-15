@@ -255,8 +255,7 @@ class _ReportScreenState extends State<ReportScreen>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     )..forward();
-    _fadeAnim =
-        CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+    _fadeAnim = CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
   }
 
   @override
@@ -298,7 +297,8 @@ class _ReportScreenState extends State<ReportScreen>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result['message'] as String? ?? 'Failed to submit report'),
+          content:
+              Text(result['message'] as String? ?? 'Failed to submit report'),
           backgroundColor: AppTheme.primaryCoral,
           behavior: SnackBarBehavior.floating,
         ),
@@ -322,7 +322,8 @@ class _ReportScreenState extends State<ReportScreen>
                 shape: BoxShape.circle,
                 gradient: AppTheme.sunsetGradient,
               ),
-              child: const Icon(Icons.check_rounded, color: Colors.white, size: 32),
+              child: const Icon(Icons.check_rounded,
+                  color: Colors.white, size: 32),
             ),
             const SizedBox(height: 18),
             const Text(
@@ -337,7 +338,8 @@ class _ReportScreenState extends State<ReportScreen>
               'Thank you for helping keep GlowDate safe. '
               'We\'ll review your report about ${widget.profile.name.split(' ').first} shortly.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
+              style: const TextStyle(
+                  color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 22),
             SizedBox(
@@ -354,7 +356,8 @@ class _ReportScreenState extends State<ReportScreen>
                       borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Done',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -393,8 +396,7 @@ class _ReportScreenState extends State<ReportScreen>
                 children: [
                   CircleAvatar(
                     radius: 26,
-                    backgroundImage:
-                        NetworkImage(widget.profile.photos.first),
+                    backgroundImage: NetworkImage(widget.profile.photos.first),
                   ),
                   const SizedBox(width: 14),
                   Column(
@@ -430,8 +432,8 @@ class _ReportScreenState extends State<ReportScreen>
             const SizedBox(height: 6),
             const Text(
               'Select the reason that best describes the problem. Your report is anonymous.',
-              style:
-                  TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
+              style: TextStyle(
+                  color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
             ),
             const SizedBox(height: 16),
 
@@ -463,7 +465,8 @@ class _ReportScreenState extends State<ReportScreen>
                   hintText: 'Describe what happened...',
                   hintStyle: TextStyle(color: AppTheme.textMuted),
                   border: InputBorder.none,
-                  counterStyle: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                  counterStyle:
+                      TextStyle(color: AppTheme.textMuted, fontSize: 11),
                 ),
               ),
             ),
@@ -544,11 +547,9 @@ class _ReportScreenState extends State<ReportScreen>
               child: Text(
                 reason,
                 style: TextStyle(
-                  color:
-                      isSelected ? Colors.white : AppTheme.textSecondary,
+                  color: isSelected ? Colors.white : AppTheme.textSecondary,
                   fontSize: 14.5,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
             ),
@@ -568,194 +569,4 @@ class _ReportScreenState extends State<ReportScreen>
       ),
     );
   }
-}
-
-
-          const SizedBox(height: 12),
-          _actionTile(
-            context,
-            icon: Icons.block_rounded,
-            color: AppTheme.textMuted,
-            title: 'Blocked Accounts',
-            subtitle: 'Manage users you\u2019ve blocked',
-            onTap: () {},
-          ),
-          const SizedBox(height: 12),
-          _actionTile(
-            context,
-            icon: Icons.emergency_share_rounded,
-            color: AppTheme.emeraldGreen,
-            title: 'Share Live Location',
-            subtitle: 'Let a friend track your date in real time',
-            onTap: () {},
-          ),
-          const SizedBox(height: 28),
-          _sectionLabel('Safety Tips'),
-          _buildTip(Icons.videocam_rounded, 'Video chat before meeting',
-              'Confirm they\u2019re who they say they are.'),
-          _buildTip(Icons.location_on_rounded, 'Meet in public',
-              'Choose a busy, public place for first dates.'),
-          _buildTip(Icons.people_rounded, 'Tell a friend',
-              'Share your plans and location with someone you trust.'),
-        ],
-      ),
-    );
-  }
-
-  dynamic newMethod() => const reportscreen();
-
-  Widget _buildIntroCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: AppTheme.sunsetGradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-              color: AppTheme.primaryRose.withOpacity(0.25),
-              blurRadius: 18,
-              offset: const Offset(0, 8)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.18),
-                borderRadius: BorderRadius.circular(14)),
-            child: const Icon(Icons.verified_user_rounded,
-                color: Colors.white, size: 26),
-          ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Your safety comes first',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                Text('Tools and resources to help you date with confidence.',
-                    style: TextStyle(color: Colors.white70, fontSize: 12.5)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10, left: 4),
-      child: Text(
-        text.toUpperCase(),
-        style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.textMuted,
-            letterSpacing: 0.8),
-      ),
-    );
-  }
-
-  Widget _actionTile(
-    BuildContext context, {
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: Material(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          hoverColor: color.withOpacity(0.06),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white12)),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                      color: color.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 3),
-                      Text(subtitle,
-                          style: const TextStyle(
-                              color: AppTheme.textMuted, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right_rounded,
-                    color: AppTheme.textMuted, size: 20),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTip(IconData icon, String title, String description) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: AppTheme.accentCyan, size: 16),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
-                Text(description,
-                    style: const TextStyle(
-                        color: AppTheme.textMuted, fontSize: 12, height: 1.4)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class reportscreen {
-  const reportscreen();
 }
