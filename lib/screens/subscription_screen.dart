@@ -21,35 +21,85 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.055),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.10)),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.close_rounded, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         ),
-        title: const Text('GlowDate VIP'),
+        title: const Text(
+          'GlowDate VIP',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
         centerTitle: true,
       ),
       body: GlowLoadingOverlay(
         isLoading: _isProcessing,
         message: 'Upgrading your membership...',
+        child: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.95),
+            radius: 1.25,
+            colors: [
+              Color(0x38FF2A6D),
+              Color(0x121A1A2E),
+              AppTheme.darkBackground,
+            ],
+            stops: [0.0, 0.48, 1.0],
+          ),
+        ),
         child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(22, 12, 22, 34),
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
             // Floating Crown Badge
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: _isPlatinum ? AppTheme.sunsetGradient : AppTheme.goldGradient,
+                gradient: _isPlatinum
+                    ? const LinearGradient(
+                        colors: [
+                          Color(0xFFFF4F8B),
+                          Color(0xFFB62CFF),
+                          Color(0xFF6544FF),
+                        ],
+                      )
+                    : AppTheme.goldGradient,
                 boxShadow: [
                   BoxShadow(
                     color: (_isPlatinum ? AppTheme.primaryRose : AppTheme.accentGold).withOpacity(0.5),
-                    blurRadius: 30,
+                    blurRadius: 34,
+                    spreadRadius: 5,
                   ),
                 ],
               ),
-              child: const Icon(Icons.workspace_premium_rounded, size: 54, color: Colors.white),
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.18),
+                  border: Border.all(color: Colors.white.withOpacity(0.20)),
+                ),
+                child: const Icon(
+                  Icons.workspace_premium_rounded,
+                  size: 50,
+                  color: Colors.white,
+                ),
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -73,10 +123,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
             // Tier Switcher Pill
             Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(28),
+                color: Colors.white.withOpacity(0.055),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white.withOpacity(0.10)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.22),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -191,7 +249,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   Widget _buildFeatureRow(String title, bool isIncluded) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
           Container(
