@@ -32,12 +32,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDiscoverProfiles() async {
-    final profiles = await AppApiService.fetchProfiles();
-    if (!mounted) return;
-    setState(() {
+    try {
+      final profiles = await AppApiService.fetchProfiles();
+      if (!mounted) return;
+      setState(() {
+        _discoverProfiles = profiles;
+        _isLoadingDiscover = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoadingDiscover = false);
+    }
+    return;
+    // Existing implementation intentionally kept unreachable below.
+    // This method is replaced by the block above.
+    /*
       _discoverProfiles = profiles;
       _isLoadingDiscover = false;
     });
+    */
   }
 
   void _handleMatch(ProfileModel profile) {
@@ -52,7 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_matchedProfile != null) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => ChatRoomScreen(profile: _matchedProfile!)),
+              MaterialPageRoute(
+                  builder: (_) => ChatRoomScreen(profile: _matchedProfile!)),
             );
           }
         },
@@ -151,9 +165,14 @@ class _DiscoverTabState extends State<DiscoverTab> {
     return Container(
       decoration: const BoxDecoration(
         gradient: RadialGradient(
-          center: Alignment.topCenter,
-          radius: 1.2,
-          colors: [Color(0x2BFF2A6D), AppTheme.darkBackground],
+          center: Alignment(0.0, -1.15),
+          radius: 1.35,
+          colors: [
+            Color(0x42FF2A6D),
+            Color(0x161A1A2E),
+            AppTheme.darkBackground,
+          ],
+          stops: [0.0, 0.42, 1.0],
         ),
       ),
       child: SafeArea(
@@ -161,7 +180,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
           children: [
             // ── Header ──────────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(22, 18, 22, 10),
               child: Row(
                 children: [
                   Expanded(
@@ -195,7 +214,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.white12),
                     ),
-                    child: const Icon(Icons.tune_rounded, color: AppTheme.accentGold),
+                    child: const Icon(Icons.tune_rounded,
+                        color: AppTheme.accentGold),
                   ),
                 ],
               ),
@@ -212,9 +232,9 @@ class _DiscoverTabState extends State<DiscoverTab> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: _isFocused
-                        ? AppTheme.primaryRose.withOpacity(0.55)
-                        : Colors.white12,
-                    width: _isFocused ? 1.5 : 1,
+                        ? AppTheme.primaryRose.withOpacity(0.75)
+                        : Colors.white.withOpacity(0.09),
+                    width: _isFocused ? 1.4 : 1,
                   ),
                   boxShadow: _isFocused
                       ? [
@@ -229,11 +249,13 @@ class _DiscoverTabState extends State<DiscoverTab> {
                 child: TextField(
                   controller: _searchController,
                   focusNode: _searchFocus,
-                  style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                  style: const TextStyle(
+                      color: AppTheme.textPrimary, fontSize: 14),
                   onChanged: (v) => setState(() => _query = v),
                   decoration: InputDecoration(
                     hintText: 'Search by name…',
-                    hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
+                    hintStyle: const TextStyle(
+                        color: AppTheme.textMuted, fontSize: 14),
                     prefixIcon: const Icon(
                       Icons.search_rounded,
                       color: AppTheme.primaryRose,
@@ -253,8 +275,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
                           )
                         : null,
                     border: InputBorder.none,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
                   ),
                 ),
               ),
@@ -347,7 +369,9 @@ class _HoverLiftState extends State<_HoverLift> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
-        transform: _isHovered ? (Matrix4.identity()..scale(widget.scale)) : Matrix4.identity(),
+        transform: _isHovered
+            ? (Matrix4.identity()..scale(widget.scale))
+            : Matrix4.identity(),
         transformAlignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -374,7 +398,8 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStateMixin {
+class _SettingsScreenState extends State<SettingsScreen>
+    with TickerProviderStateMixin {
   // Scroll Controller for Scrollbar
   final ScrollController _scrollController = ScrollController();
   Map<String, dynamic> _dashboardData = {};
@@ -404,7 +429,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
       duration: const Duration(milliseconds: 2200),
       vsync: this,
     )..repeat(reverse: true);
-    _premiumGlow = CurvedAnimation(parent: _premiumGlowController, curve: Curves.easeInOut);
+    _premiumGlow = CurvedAnimation(
+        parent: _premiumGlowController, curve: Curves.easeInOut);
     _loadDashboardData();
   }
 
@@ -443,11 +469,13 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
           children: [
             _HoverLift(child: _buildProfileCard()),
             const SizedBox(height: 20),
-            _HoverLift(scale: 1.015, glowColor: AppTheme.primaryPurple, child: _buildPremiumCard()),
+            _HoverLift(
+                scale: 1.015,
+                glowColor: AppTheme.primaryPurple,
+                child: _buildPremiumCard()),
             const SizedBox(height: 12),
             _buildGrowthCard(),
             const SizedBox(height: 24),
-
             _sectionLabel('Discovery'),
             _groupCard([
               _switchTile(
@@ -467,7 +495,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
               _rangeTile(
                 icon: Icons.cake_rounded,
                 label: 'Age Range',
-                valueLabel: '${_ageRange.start.toInt()} – ${_ageRange.end.toInt()} yrs',
+                valueLabel:
+                    '${_ageRange.start.toInt()} – ${_ageRange.end.toInt()} yrs',
                 color: AppTheme.primaryPurple,
                 child: RangeSlider(
                   values: _ageRange,
@@ -495,7 +524,6 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 ),
               ),
             ]),
-
             const SizedBox(height: 20),
             _sectionLabel('Notifications'),
             _groupCard([
@@ -528,7 +556,6 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 onChanged: (v) => setState(() => _promotions = v),
               ),
             ]),
-
             const SizedBox(height: 20),
             _sectionLabel('Privacy & Safety'),
             _groupCard([
@@ -553,28 +580,67 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 value: _incognitoMode,
                 onChanged: (v) => setState(() => _incognitoMode = v),
               ),
-              _actionTile(icon: Icons.block_rounded, label: 'Blocked Accounts', color: AppTheme.textMuted, onTap: () {}),
-              _actionTile(icon: Icons.shield_rounded, label: 'Safety Center', color: AppTheme.accentGold, onTap: () {}),
+              _actionTile(
+                  icon: Icons.block_rounded,
+                  label: 'Blocked Accounts',
+                  color: AppTheme.textMuted,
+                  onTap: () {}),
+              _actionTile(
+                  icon: Icons.shield_rounded,
+                  label: 'Safety Center',
+                  color: AppTheme.accentGold,
+                  onTap: () {}),
             ]),
-
             const SizedBox(height: 20),
             _sectionLabel('Account'),
             _groupCard([
-              _actionTile(icon: Icons.verified_user_rounded, label: 'Verify Your Profile', color: AppTheme.accentCyan, onTap: () {}),
-              _actionTile(icon: Icons.lock_rounded, label: 'Change Password', color: AppTheme.primaryPurple, onTap: () {}),
-              _actionTile(icon: Icons.link_rounded, label: 'Linked Accounts', color: AppTheme.emeraldGreen, onTap: () {}),
-              _actionTile(icon: Icons.language_rounded, label: 'Language', value: 'English', color: AppTheme.accentGold, onTap: () {}),
+              _actionTile(
+                  icon: Icons.verified_user_rounded,
+                  label: 'Verify Your Profile',
+                  color: AppTheme.accentCyan,
+                  onTap: () {}),
+              _actionTile(
+                  icon: Icons.lock_rounded,
+                  label: 'Change Password',
+                  color: AppTheme.primaryPurple,
+                  onTap: () {}),
+              _actionTile(
+                  icon: Icons.link_rounded,
+                  label: 'Linked Accounts',
+                  color: AppTheme.emeraldGreen,
+                  onTap: () {}),
+              _actionTile(
+                  icon: Icons.language_rounded,
+                  label: 'Language',
+                  value: 'English',
+                  color: AppTheme.accentGold,
+                  onTap: () {}),
             ]),
-
             const SizedBox(height: 20),
             _sectionLabel('Support'),
             _groupCard([
-              _actionTile(icon: Icons.help_rounded, label: 'Help Center', color: AppTheme.accentCyan, onTap: () {}),
-              _actionTile(icon: Icons.description_rounded, label: 'Community Guidelines', color: AppTheme.primaryPurple, onTap: () {}),
-              _actionTile(icon: Icons.privacy_tip_rounded, label: 'Privacy Policy', color: AppTheme.textMuted, onTap: () {}),
-              _actionTile(icon: Icons.info_rounded, label: 'About GlowDate', value: 'v2.4.0', color: AppTheme.textMuted, onTap: () {}),
+              _actionTile(
+                  icon: Icons.help_rounded,
+                  label: 'Help Center',
+                  color: AppTheme.accentCyan,
+                  onTap: () {}),
+              _actionTile(
+                  icon: Icons.description_rounded,
+                  label: 'Community Guidelines',
+                  color: AppTheme.primaryPurple,
+                  onTap: () {}),
+              _actionTile(
+                  icon: Icons.privacy_tip_rounded,
+                  label: 'Privacy Policy',
+                  color: AppTheme.textMuted,
+                  onTap: () {}),
+              _actionTile(
+                  icon: Icons.info_rounded,
+                  label: 'About GlowDate',
+                  value: 'v2.4.0',
+                  color: AppTheme.textMuted,
+                  onTap: () {}),
             ]),
-
             const SizedBox(height: 28),
             _AnimatedDangerButton(
               label: 'Log Out',
@@ -587,7 +653,10 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 onPressed: () => _confirmDelete(context),
                 child: const Text(
                   'Delete Account',
-                  style: TextStyle(color: AppTheme.textMuted, fontSize: 12.5, decoration: TextDecoration.underline),
+                  style: TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 12.5,
+                      decoration: TextDecoration.underline),
                 ),
               ),
             ),
@@ -611,11 +680,14 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppTheme.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Log Out', style: TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold)),
+            child: const Text('Log Out',
+                style: TextStyle(
+                    color: AppTheme.primaryRose, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -628,7 +700,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
       builder: (_) => AlertDialog(
         backgroundColor: AppTheme.surfaceDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete your account?', style: TextStyle(color: Colors.white)),
+        title: const Text('Delete your account?',
+            style: TextStyle(color: Colors.white)),
         content: const Text(
           'This permanently removes your profile, matches, and messages. This can’t be undone.',
           style: TextStyle(color: AppTheme.textSecondary),
@@ -636,11 +709,14 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppTheme.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: const Text('Delete',
+                style: TextStyle(
+                    color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -653,7 +729,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
     final name = _dashboardData['name']?.toString() ?? 'Maya';
     final age = _dashboardData['age']?.toString() ?? '27';
     final photo = _dashboardData['photo']?.toString();
-    final occupation = _dashboardData['occupation']?.toString() ?? 'GlowDate member';
+    final occupation =
+        _dashboardData['occupation']?.toString() ?? 'GlowDate member';
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/edit-profile'),
       child: Container(
@@ -678,7 +755,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                   shape: BoxShape.circle,
                   border: Border.all(color: AppTheme.surfaceCard, width: 2),
                   image: DecorationImage(
-                    image: NetworkImage(photo ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'),
+                    image: NetworkImage(photo ??
+                        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -691,13 +769,20 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 children: [
                   Row(
                     children: [
-                      Text('$name, $age', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('$name, $age',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(width: 6),
-                      const Icon(Icons.verified_rounded, color: AppTheme.accentCyan, size: 16),
+                      const Icon(Icons.verified_rounded,
+                          color: AppTheme.accentCyan, size: 16),
                     ],
                   ),
                   const SizedBox(height: 3),
-                  Text(occupation, style: const TextStyle(color: AppTheme.textMuted, fontSize: 12.5)),
+                  Text(occupation,
+                      style: const TextStyle(
+                          color: AppTheme.textMuted, fontSize: 12.5)),
                 ],
               ),
             ),
@@ -707,7 +792,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 color: Colors.white.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 20),
+              child: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.textSecondary, size: 20),
             ),
           ],
         ),
@@ -726,7 +812,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.primaryRose.withOpacity(0.18 + _premiumGlow.value * 0.22),
+                  color: AppTheme.primaryRose
+                      .withOpacity(0.18 + _premiumGlow.value * 0.22),
                   blurRadius: 20 + _premiumGlow.value * 10,
                   offset: const Offset(0, 8),
                 ),
@@ -749,20 +836,27 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                   color: Colors.white.withOpacity(0.18),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 24),
+                child: const Icon(Icons.workspace_premium_rounded,
+                    color: Colors.white, size: 24),
               ),
               const SizedBox(width: 14),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Upgrade to GlowDate+', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                    Text('Upgrade to GlowDate+',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold)),
                     SizedBox(height: 3),
-                    Text('Unlimited likes, see who likes you & more', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    Text('Unlimited likes, see who likes you & more',
+                        style: TextStyle(color: Colors.white70, fontSize: 12)),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 20),
+              const Icon(Icons.chevron_right_rounded,
+                  color: Colors.white, size: 20),
             ],
           ),
         ),
@@ -788,20 +882,29 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 color: AppTheme.accentCyan.withOpacity(0.16),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.school_rounded, color: AppTheme.accentCyan, size: 22),
+              child: const Icon(Icons.school_rounded,
+                  color: AppTheme.accentCyan, size: 22),
             ),
             const SizedBox(width: 12),
             const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Basic to Advanced', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                  Text('Basic to Advanced',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold)),
                   SizedBox(height: 3),
-                  Text('A guided path to become better at dating and conversations.', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  Text(
+                      'A guided path to become better at dating and conversations.',
+                      style: TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 12)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 20),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppTheme.textSecondary, size: 20),
           ],
         ),
       ),
@@ -814,10 +917,10 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
       child: Text(
         text.toUpperCase(),
         style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
           color: AppTheme.textMuted,
-          letterSpacing: 0.8,
+          letterSpacing: 1.15,
         ),
       ),
     );
@@ -826,16 +929,24 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
   Widget _groupCard(List<Widget> tiles) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12),
+        color: Colors.white.withOpacity(0.045),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withOpacity(0.085)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.22),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
         children: List.generate(tiles.length, (i) {
           return Column(
             children: [
               tiles[i],
-              if (i != tiles.length - 1) const Divider(height: 1, indent: 56, color: Colors.white10),
+              if (i != tiles.length - 1)
+                const Divider(height: 1, indent: 56, color: Colors.white10),
             ],
           );
         }),
@@ -866,7 +977,8 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
           ),
           child: Icon(icon, color: color, size: 18),
         ),
-        title: Text(label, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14)),
+        title: Text(label,
+            style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14)),
         value: value,
         activeColor: color,
         onChanged: onChanged,
@@ -892,10 +1004,13 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
         ),
         child: Icon(icon, color: color, size: 18),
       ),
-      title: Text(label, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14)),
+      title: Text(label,
+          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14)),
       trailing: value != null
-          ? Text(value, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13))
-          : const Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted, size: 20),
+          ? Text(value,
+              style: const TextStyle(color: AppTheme.textMuted, fontSize: 13))
+          : const Icon(Icons.chevron_right_rounded,
+              color: AppTheme.textMuted, size: 20),
       onTap: onTap,
     );
   }
@@ -923,7 +1038,10 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 child: Icon(icon, color: color, size: 18),
               ),
               const SizedBox(width: 12),
-              Expanded(child: Text(label, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14))),
+              Expanded(
+                  child: Text(label,
+                      style: const TextStyle(
+                          color: AppTheme.textPrimary, fontSize: 14))),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
                 transitionBuilder: (child, animation) => FadeTransition(
@@ -932,14 +1050,18 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
                 ),
                 child: Container(
                   key: ValueKey(valueLabel),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     valueLabel,
-                    style: TextStyle(color: color, fontSize: 12.5, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: color,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -959,7 +1081,8 @@ class _AnimatedDangerButton extends StatefulWidget {
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
-  const _AnimatedDangerButton({required this.label, required this.icon, required this.onPressed});
+  const _AnimatedDangerButton(
+      {required this.label, required this.icon, required this.onPressed});
 
   @override
   State<_AnimatedDangerButton> createState() => _AnimatedDangerButtonState();
@@ -989,10 +1112,13 @@ class _AnimatedDangerButtonState extends State<_AnimatedDangerButton> {
             width: double.infinity,
             height: 54,
             decoration: BoxDecoration(
-              color: _isHovered ? AppTheme.primaryRose.withOpacity(0.08) : Colors.transparent,
+              color: _isHovered
+                  ? AppTheme.primaryRose.withOpacity(0.08)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppTheme.primaryRose.withOpacity(_pressed ? 0.4 : (_isHovered ? 1.0 : 0.7)),
+                color: AppTheme.primaryRose
+                    .withOpacity(_pressed ? 0.4 : (_isHovered ? 1.0 : 0.7)),
               ),
             ),
             child: Row(
@@ -1002,7 +1128,10 @@ class _AnimatedDangerButtonState extends State<_AnimatedDangerButton> {
                 const SizedBox(width: 8),
                 Text(
                   widget.label,
-                  style: const TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold, fontSize: 15),
+                  style: const TextStyle(
+                      color: AppTheme.primaryRose,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15),
                 ),
               ],
             ),

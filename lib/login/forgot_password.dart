@@ -180,8 +180,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Enter your email';
-                  if (!v.contains('@') || !v.contains('.'))
+                  if (!v.contains('@') || !v.contains('.')) {
                     return 'Enter a valid email';
+                  }
                   return null;
                 },
               ),
@@ -215,8 +216,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       key: const ValueKey('success'),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        child: AppTheme.glassContainer(
+        // FIX: AppTheme.glassContainer(...) is not defined on this project's
+        // AppTheme class — replaced with a self-contained styled Container
+        // (same fix applied to report_user_screen.dart earlier).
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceCard,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white12),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
