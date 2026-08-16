@@ -6,7 +6,6 @@ import 'home.dart';
 import 'screens/onboarding_wizard_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
-import 'screens/basic_to_advanced_screen.dart';
 import 'widgets/animated_glow_button.dart';
 import 'widgets/shimmer_loading.dart';
 import 'services/api_service.dart';
