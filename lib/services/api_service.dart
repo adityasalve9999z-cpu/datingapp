@@ -754,20 +754,20 @@ class AppApiService {
       }
 
       await _supabase.storage.from('profile-photos').uploadBinary(
-            fileName,
-            bytes,
+            fileName.bytes,
             fileOptions: const FileOptions(contentType: 'image/jpeg'),
           );
 
-      final publicUrl = _supabase.storage
-          .from('profile-photos')
-          .getPublicUrl(fileName);
+      final publicUrl =
+          _supabase.storage.from('profile-photos').getPublicUrl(fileName);
 
       return {'success': true, 'url': publicUrl};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
   }
+
+  static List<int> newMethod(List<int> bytes) => bytes;
 
   /// Reads file bytes from [path]. Supports both dart:io (mobile/desktop)
   /// and web (returns null on unsupported platforms gracefully).
@@ -808,8 +808,7 @@ class AppApiService {
   ///   return await File(path).readAsBytes();
   /// });
   /// ```
-  static void registerFileHelper(
-      Future<List<int>?> Function(String) helper) {
+  static void registerFileHelper(Future<List<int>?> Function(String) helper) {
     _fileHelper = helper;
   }
 }
