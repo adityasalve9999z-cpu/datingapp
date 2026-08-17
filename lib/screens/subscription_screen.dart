@@ -44,207 +44,211 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ),
         centerTitle: true,
       ),
-      body: GlowLoadingOverlay(
-        isLoading: _isProcessing,
-        message: 'Upgrading your membership...',
-        child: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, -0.95),
-            radius: 1.25,
-            colors: [
-              Color(0x38FF2A6D),
-              Color(0x121A1A2E),
-              AppTheme.darkBackground,
-            ],
-            stops: [0.0, 0.48, 1.0],
-          ),
-        ),
-        child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 12, 22, 34),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // Floating Crown Badge
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: _isPlatinum
-                    ? const LinearGradient(
-                        colors: [
-                          Color(0xFFFF4F8B),
-                          Color(0xFFB62CFF),
-                          Color(0xFF6544FF),
-                        ],
-                      )
-                    : AppTheme.goldGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: (_isPlatinum ? AppTheme.primaryRose : AppTheme.accentGold).withOpacity(0.5),
-                    blurRadius: 34,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.18),
-                  border: Border.all(color: Colors.white.withOpacity(0.20)),
-                ),
-                child: const Icon(
-                  Icons.workspace_premium_rounded,
-                  size: 50,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
+      body: newMethod(context);
+  }
 
-            // Subscription Title
-            Text(
-              _isPlatinum ? 'GLOWDATE PLATINUM' : 'GLOWDATE GOLD',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                color: _isPlatinum ? Colors.white : AppTheme.accentGold,
-                letterSpacing: 1,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Unlock 5x more matches with VIP privileges',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Tier Switcher Pill
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.055),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.white.withOpacity(0.10)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.22),
-                    blurRadius: 24,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _isPlatinum = false),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: !_isPlatinum ? AppTheme.accentGold : Colors.transparent,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Text(
-                          'Gold',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: !_isPlatinum ? Colors.black : AppTheme.textSecondary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _isPlatinum = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          gradient: _isPlatinum ? AppTheme.primaryGradient : null,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Text(
-                          'Platinum',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _isPlatinum ? Colors.white : AppTheme.textSecondary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 28),
-
-            // Features Breakdown List
-            _buildFeatureRow('See Who Likes You Instantly', true),
-            _buildFeatureRow('Unlimited Right Swipes & Likes', true),
-            _buildFeatureRow('5 Free Super Likes Per Day', true),
-            _buildFeatureRow('1 Monthly Profile Boost (10x Views)', true),
-            _buildFeatureRow('Rewind / Undo Last Swipe', true),
-            _buildFeatureRow('Passport Mode to Swipe Anywhere', _isPlatinum),
-
-            const SizedBox(height: 32),
-
-            // Duration & Price Options Grid
-            Row(
-              children: [
-                _buildPriceCard(0, '1 Week', '\$6.99', '/wk'),
-                const SizedBox(width: 10),
-                _buildPriceCard(1, '1 Month', '\$14.99', '/mo', isBestValue: true),
-                const SizedBox(width: 10),
-                _buildPriceCard(2, '3 Months', '\$29.99', '\$9.99/mo'),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // Primary Purchase Button
-            AnimatedGlowButton(
-              label: 'CONTINUE & UNLOCK',
-              onPressed: _isProcessing
-                  ? null
-                  : () async {
-                      setState(() => _isProcessing = true);
-                      final tier = _selectedTier == 0 ? '1_week' : _selectedTier == 2 ? '3_months' : '1_month';
-                      final result = await AppApiService.purchaseSubscription(tier);
-                      if (!mounted) return;
-                      setState(() => _isProcessing = false);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(result['message'] as String),
-                          backgroundColor: AppTheme.surfaceDark,
-                        ),
-                      );
-                      Navigator.pop(context);
-                    },
-              backgroundColor: AppTheme.accentGold,
-              foregroundColor: Colors.black,
-              textStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Recurring billing. Cancel anytime in settings.',
-              style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-            ),
+  GlowLoadingOverlay newMethod(BuildContext context) {
+    return GlowLoadingOverlay(
+      isLoading: _isProcessing,
+      message: 'Upgrading your membership...',
+      child: Container(
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment(0, -0.95),
+          radius: 1.25,
+          colors: [
+            Color(0x38FF2A6D),
+            Color(0x121A1A2E),
+            AppTheme.darkBackground,
           ],
+          stops: [0.0, 0.48, 1.0],
         ),
       ),
+      child: SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(22, 12, 22, 34),
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          // Floating Crown Badge
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: _isPlatinum
+                  ? const LinearGradient(
+                      colors: [
+                        Color(0xFFFF4F8B),
+                        Color(0xFFB62CFF),
+                        Color(0xFF6544FF),
+                      ],
+                    )
+                  : AppTheme.goldGradient,
+              boxShadow: [
+                BoxShadow(
+                  color: (_isPlatinum ? AppTheme.primaryRose : AppTheme.accentGold).withOpacity(0.5),
+                  blurRadius: 34,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black.withOpacity(0.18),
+                border: Border.all(color: Colors.white.withOpacity(0.20)),
+              ),
+              child: const Icon(
+                Icons.workspace_premium_rounded,
+                size: 50,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Subscription Title
+          Text(
+            _isPlatinum ? 'GLOWDATE PLATINUM' : 'GLOWDATE GOLD',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: _isPlatinum ? Colors.white : AppTheme.accentGold,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Unlock 5x more matches with VIP privileges',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Tier Switcher Pill
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.055),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white.withOpacity(0.10)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.22),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isPlatinum = false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: !_isPlatinum ? AppTheme.accentGold : Colors.transparent,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Text(
+                        'Gold',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: !_isPlatinum ? Colors.black : AppTheme.textSecondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isPlatinum = true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: _isPlatinum ? AppTheme.primaryGradient : null,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Text(
+                        'Platinum',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _isPlatinum ? Colors.white : AppTheme.textSecondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // Features Breakdown List
+          _buildFeatureRow('See Who Likes You Instantly', true),
+          _buildFeatureRow('Unlimited Right Swipes & Likes', true),
+          _buildFeatureRow('5 Free Super Likes Per Day', true),
+          _buildFeatureRow('1 Monthly Profile Boost (10x Views)', true),
+          _buildFeatureRow('Rewind / Undo Last Swipe', true),
+          _buildFeatureRow('Passport Mode to Swipe Anywhere', _isPlatinum),
+
+          const SizedBox(height: 32),
+
+          // Duration & Price Options Grid
+          Row(
+            children: [
+              _buildPriceCard(0, '1 Week', '\$6.99', '/wk'),
+              const SizedBox(width: 10),
+              _buildPriceCard(1, '1 Month', '\$14.99', '/mo', isBestValue: true),
+              const SizedBox(width: 10),
+              _buildPriceCard(2, '3 Months', '\$29.99', '\$9.99/mo'),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+
+          // Primary Purchase Button
+          AnimatedGlowButton(
+            label: 'CONTINUE & UNLOCK',
+            onPressed: _isProcessing
+                ? null
+                : () async {
+                    setState(() => _isProcessing = true);
+                    final tier = _selectedTier == 0 ? '1_week' : _selectedTier == 2 ? '3_months' : '1_month';
+                    final result = await AppApiService.purchaseSubscription(tier);
+                    if (!mounted) return;
+                    setState(() => _isProcessing = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result['message'] as String),
+                        backgroundColor: AppTheme.surfaceDark,
+                      ),
+                    );
+                    Navigator.pop(context);
+                  },
+            backgroundColor: AppTheme.accentGold,
+            foregroundColor: Colors.black,
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Recurring billing. Cancel anytime in settings.',
+            style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+          ),
+        ],
+      ),
     ),
-    );
+  ),
+  );
   }
 
   Widget _buildFeatureRow(String title, bool isIncluded) {
