@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
-import 'home.dart';
 
 /// Wraps the logo mark with a mouse-hover reaction (scale + brighter glow),
 /// same MouseRegion + AnimatedContainer pattern used across the app's other
@@ -100,16 +102,12 @@ class _SplashScreenState extends State<SplashScreen>
 
     Future.delayed(const Duration(milliseconds: 2200), () {
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 500),
-          pageBuilder: (_, __, ___) => const HomeScreen(),
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      );
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.isAuthenticated) {
+        context.go('/home');
+      } else {
+        context.go('/login');
+      }
     });
   }
 
