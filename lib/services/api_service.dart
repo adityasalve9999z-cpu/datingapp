@@ -459,6 +459,55 @@ class AppApiService {
     }).toList();
   }
 
+  // ── Swipes & Matches ──────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> recordSwipe({
+    required String targetUserId,
+    required String action,
+  }) async {
+    final user = _supabase.auth.currentUser;
+    if (user != null) {
+      try {
+        await _supabase.from('swipes').upsert({
+          'swiper_id': user.id,
+          'swiped_id': targetUserId,
+          'action': action,
+        });
+
+        if (action == 'like' || action == 'super_like') {
+          final otherSwipe = await _supabase
+              .from('swipes')
+              .select()
+              .eq('swiper_id', targetUserId)
+              .eq('swiped_id', user.id)
+              .inFilter('action', ['like', 'super_like'])
+              .maybeSingle();
+
+          if (otherSwipe != null) {
+            await _supabase.from('matches').upsert({
+              'user1_id': user.id,
+              'user2_id': targetUserId,
+              'status': 'matched',
+            });
+            return {'success': true, 'is_match': true};
+          }
+        }
+        return {'success': true, 'is_match': false};
+      } catch (e) {
+        return {'success': false, 'is_match': false, 'message': e.toString()};
+      }
+    }
+    return {'success': true, 'is_match': false};
+  }
+
+  static Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> payload) async {
+    return saveProfile(payload);
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchConversations() async {
+    return fetchMatches();
+  }
+
   // ── Auth: Forgot Password ────────────────────────────────────────────────
 
   static Future<Map<String, dynamic>> forgotPassword(

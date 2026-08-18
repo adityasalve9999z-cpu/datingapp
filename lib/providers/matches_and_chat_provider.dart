@@ -29,7 +29,7 @@ class MatchesAndChatProvider extends ChangeNotifier {
 
     try {
       final fetched = await AppApiService.fetchMatches();
-      _matches = fetched;
+      _matches = fetched.map((m) => m['profile'] as ProfileModel).toList();
       _isLoadingMatches = false;
       notifyListeners();
     } catch (_) {
