@@ -5,13 +5,20 @@ import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'splash.dart';
-import 'home.dart';
+import 'home.dart' hide SettingsScreen;
 import 'login/login.dart';
 import 'login/signup.dart';
 import 'screens/onboarding_wizard_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
 import 'screens/basic_to_advanced_screen.dart';
+import 'screens/discovery_filters_screen.dart';
+import 'screens/safety_center_screen.dart';
+import 'screens/ai_date_planner_screen.dart';
+import 'screens/setting_screen.dart';
+import 'screens/likes_screen.dart';
+import 'screens/chat_list_screen.dart';
+import 'screens/premium_plans_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -21,7 +28,6 @@ GoRouter createRouter(AuthProvider authProvider) {
     initialLocation: '/',
     refreshListenable: authProvider,
     redirect: (BuildContext context, GoRouterState state) {
-      // While checking auth state, we could show a splash screen, but let's assume it resolves quickly.
       final bool loggedIn = authProvider.isAuthenticated;
       final bool loggingIn =
           state.uri.toString() == '/login' || state.uri.toString() == '/signup';
@@ -69,9 +75,51 @@ GoRouter createRouter(AuthProvider authProvider) {
         },
       ),
       GoRoute(
+        path: '/filters',
+        builder: (BuildContext context, GoRouterState state) {
+          return const DiscoveryFiltersScreen();
+        },
+      ),
+      GoRoute(
+        path: '/safety-center',
+        builder: (BuildContext context, GoRouterState state) {
+          return const SafetyCenterScreen();
+        },
+      ),
+      GoRoute(
+        path: '/ai-date-planner',
+        builder: (BuildContext context, GoRouterState state) {
+          return const AiDatePlannerScreen();
+        },
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (BuildContext context, GoRouterState state) {
+          return const SettingsScreen();
+        },
+      ),
+      GoRoute(
+        path: '/likes',
+        builder: (BuildContext context, GoRouterState state) {
+          return const LikesScreen();
+        },
+      ),
+      GoRoute(
+        path: '/chats',
+        builder: (BuildContext context, GoRouterState state) {
+          return const ChatListScreen();
+        },
+      ),
+      GoRoute(
         path: '/subscription',
         builder: (BuildContext context, GoRouterState state) {
           return const SubscriptionScreen();
+        },
+      ),
+      GoRoute(
+        path: '/premium-plans',
+        builder: (BuildContext context, GoRouterState state) {
+          return const PremiumPlansScreen();
         },
       ),
       GoRoute(

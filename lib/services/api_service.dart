@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -909,7 +910,8 @@ class AppApiService {
       }
 
       await _supabase.storage.from('profile-photos').uploadBinary(
-            fileName.bytes,
+            fileName,
+            Uint8List.fromList(bytes),
             fileOptions: const FileOptions(contentType: 'image/jpeg'),
           );
 

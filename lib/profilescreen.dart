@@ -1,9 +1,10 @@
-import 'package:datingapp/screens/edit_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'services/api_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
+import 'screens/setting_screen.dart';
+import 'screens/safety_center_screen.dart';
 import 'widgets/shimmer_loading.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -62,7 +63,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_rounded, color: AppTheme.textPrimary),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -385,7 +391,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 20),
+
+            // Safety Center Quick Access
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SafetyCenterScreen()),
+                );
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.accentCyan.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentCyan.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.shield_rounded, color: AppTheme.accentCyan, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Safety & Privacy Center',
+                            style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Share My Date, verification & safety toolkit',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white38, size: 14),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
 
             // Account Action Buttons
             Row(

@@ -56,23 +56,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleMatch(ProfileModel profile) {
-    if (!mounted || profile.compatibilityScore < 90) return;
+    if (!mounted) return;
     setState(() => _matchedProfile = profile);
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.55),
-      builder: (_) => MatchDialog(
-        matchedProfile: profile,
-        onSendChat: () {
-          if (_matchedProfile != null) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => ChatRoomScreen(profile: _matchedProfile!)),
-            );
-          }
-        },
-        onKeepSwiping: () {},
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MatchCelebrationScreen(
+          matchedProfile: profile,
+        ),
       ),
     );
   }
@@ -209,15 +200,25 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceCard,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white12),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const DiscoveryFiltersScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: const Icon(Icons.tune_rounded,
+                          color: AppTheme.accentGold),
                     ),
-                    child: const Icon(Icons.tune_rounded,
-                        color: AppTheme.accentGold),
                   ),
                 ],
               ),

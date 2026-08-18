@@ -5,6 +5,8 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
 import 'profile_detail_screen.dart';
+import 'call_screen.dart';
+import 'ai_date_planner_screen.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final ProfileModel profile;
@@ -152,12 +154,48 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.videocam_rounded, color: AppTheme.textPrimary),
-            onPressed: () {},
+            tooltip: 'AI Date Planner',
+            icon: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AiDatePlannerScreen(
+                    matchName: profile.name.split(' ').first,
+                  ),
+                ),
+              );
+            },
           ),
           IconButton(
+            tooltip: 'Video Call',
+            icon: const Icon(Icons.videocam_rounded, color: AppTheme.textPrimary),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(
+                    profile: profile,
+                    isVideoCall: true,
+                  ),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            tooltip: 'Voice Call',
             icon: const Icon(Icons.call_rounded, color: AppTheme.textPrimary),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(
+                    profile: profile,
+                    isVideoCall: false,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
