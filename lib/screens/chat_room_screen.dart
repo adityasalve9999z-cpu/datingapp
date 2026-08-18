@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../services/api_service.dart';
@@ -20,27 +21,56 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   late List<Map<String, dynamic>> _messages;
   bool _isLoading = true;
+  StreamSubscription? _msgSubscription;
 
   @override
   void initState() {
     super.initState();
     _messages = [];
     _loadMessages();
+    _subscribeToRealtime();
+  }
+
+  void _subscribeToRealtime() {
+    _msgSubscription =
+        AppApiService.streamMessages(widget.profile.id).listen((liveMessages) {
+      if (liveMessages.isNotEmpty && mounted) {
+        setState(() {
+          _messages = liveMessages;
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _msgSubscription?.cancel();
+    _msgController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadMessages() async {
     final fetched = await AppApiService.fetchMessages(widget.profile.id);
-    final extra = [
-      {
-        'sender': 'them',
-        'text': widget.profile.promptAnswer ?? 'I’d love to visit that espresso bar on 4th street! ☕',
-        'time': '10:42 AM',
-      },
-    ];
     if (!mounted) return;
     setState(() {
-      _messages = [...fetched, ...extra];
+      _messages = fetched;
       _isLoading = false;
+    });
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -55,15 +85,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       _messages.add(msg);
       _msgController.clear();
     });
-    // Fire-and-forget: send to API in background
+    // Send to Supabase in background
     AppApiService.sendMessage(toUserId: widget.profile.id, text: text.trim());
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    });
+    _scrollToBottom();
   }
 
   @override

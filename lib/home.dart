@@ -309,7 +309,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       )
                     : TinderSwipeDeck(
                         profiles: filtered,
-                        onSwipe: (profile, direction) {
+                        onSwipe: (profile, direction) async {
                           if (direction == SwipeDirection.right) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -321,6 +321,27 @@ class _DiscoverTabState extends State<DiscoverTab> {
                                 ),
                               ),
                             );
+                            final res = await AppApiService.swipeRight(profile.id);
+                            if (res['result'] == 'match') {
+                              widget.onMatch?.call(profile);
+                            }
+                          } else if (direction == SwipeDirection.up) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Super liked ${profile.name.split(' ').first}! \u2B50'),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            );
+                            final res = await AppApiService.swipeRight(profile.id, isSuperLike: true);
+                            if (res['result'] == 'match') {
+                              widget.onMatch?.call(profile);
+                            }
+                          } else if (direction == SwipeDirection.left) {
+                            AppApiService.swipeLeft(profile.id);
                           }
                         },
                         onMatch: widget.onMatch,

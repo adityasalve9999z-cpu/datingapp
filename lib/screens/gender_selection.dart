@@ -437,12 +437,8 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen>
                   child: child,
                 ),
                 child: _ContinueButton(
-                  enabled: canContinue,
-                  onPressed: () {
-                    if (canContinue) {
-                      // Navigate to next onboarding step
-                    }
-                  },
+                  enabled: canContinue && !_isSubmitting,
+                  onPressed: canContinue && !_isSubmitting ? _handleSave : () {},
                   onDisabledTap: _handleDisabledTap,
                 ),
               ),
