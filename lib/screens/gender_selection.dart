@@ -91,6 +91,36 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen>
 
   String? _selectedGenderId;
   bool _showOnProfile = true;
+  bool _isSubmitting = false;
+
+  Future<void> _handleSave() async {
+    if (_selectedGenderId == null || _isSubmitting) return;
+    setState(() => _isSubmitting = true);
+
+    final selected = _options.firstWhere(
+      (opt) => opt.id == _selectedGenderId,
+      orElse: () => _options.first,
+    );
+
+    final result = await AppApiService.saveGender(
+      gender: selected.title,
+      showOnProfile: _showOnProfile,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['message'] as String? ?? 'Gender saved!'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
 
   static const int _currentStep = 3;
   static const int _totalSteps = 6;
