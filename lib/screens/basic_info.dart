@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 // ── AppTheme ─────────────────────────────────────────────────────────────────
 class AppTheme {
@@ -48,6 +49,38 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   final TextEditingController _professionController = TextEditingController();
   final Set<String> _selectedLifestyle = {};
   String? _selectedLookingFor;
+  bool _isSubmitting = false;
+
+  Future<void> _handleSave() async {
+    if (!_canSave || _isSubmitting) return;
+    setState(() => _isSubmitting = true);
+
+    final goalTitle = _lookingForOptions.firstWhere(
+      (opt) => opt['id'] == _selectedLookingFor,
+      orElse: () => {'title': 'Long-term connection'},
+    )['title'] as String;
+
+    final result = await AppApiService.saveProfile({
+      'education': _selectedEducation,
+      'occupation': _professionController.text.trim(),
+      'lifestyle': _selectedLifestyle.toList(),
+      'relationship_goal': goalTitle,
+    });
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['message'] as String? ?? 'Profile details saved!'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
 
   // Options Data
   final List<String> _educationOptions = [
@@ -260,12 +293,8 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
               child: _ContinueButton(
-                enabled: _canSave,
-                onPressed: () {
-                  if (_canSave) {
-                    // Navigate to next screen
-                  }
-                },
+                enabled: _canSave && !_isSubmitting,
+                onPressed: _canSave && !_isSubmitting ? _handleSave : () {},
               ),
             ),
           ],

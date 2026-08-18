@@ -211,22 +211,93 @@ class AppApiService {
     return {'success': true, 'message': 'Account created in demo mode'};
   }
 
+  static Map<String, dynamic> _normalizeProfilePayload(Map<String, dynamic> raw) {
+    final payload = <String, dynamic>{};
+    raw.forEach((key, value) {
+      if (value == null) return;
+      switch (key) {
+        case 'name':
+          final str = value.toString().trim();
+          final parts = str.split(' ');
+          payload['first_name'] = parts.isNotEmpty ? parts.first : str;
+          if (parts.length > 1) {
+            payload['last_name'] = parts.sublist(1).join(' ');
+          }
+          break;
+        case 'firstName':
+          payload['first_name'] = value;
+          break;
+        case 'lastName':
+          payload['last_name'] = value;
+          break;
+        case 'goals':
+        case 'relationshipGoal':
+          payload['relationship_goal'] = value;
+          break;
+        case 'promptAnswer':
+          payload['prompt_answer'] = value;
+          break;
+        case 'promptQuestion':
+          payload['prompt_question'] = value;
+          break;
+        case 'audioPromptTitle':
+          payload['audio_prompt_title'] = value;
+          break;
+        case 'audioPromptDuration':
+          payload['audio_prompt_duration'] = value;
+          break;
+        case 'showGender':
+          payload['show_gender'] = value;
+          break;
+        case 'mutualFriends':
+          payload['mutual_friends'] = value;
+          break;
+        case 'instagramHandle':
+          payload['instagram_handle'] = value;
+          break;
+        case 'profileCompletion':
+          payload['profile_completion'] = value;
+          break;
+        case 'isVerified':
+          payload['is_verified'] = value;
+          break;
+        case 'compatibilityScore':
+          payload['compatibility_score'] = value;
+          break;
+        case 'lookingFor':
+          payload['looking_for'] = value;
+          break;
+        default:
+          payload[key] = value;
+      }
+    });
+    return payload;
+  }
+
   static Future<List<ProfileModel>> fetchProfiles() async {
     try {
       final currentUserId = _supabase.auth.currentUser?.id;
-      var query = _supabase.from('profiles').select();
+      final swipedIds = await fetchSwipedIds();
+      final blockedIds = await fetchBlockedUsers();
+      final excludeIds = <String>{...swipedIds, ...blockedIds};
+      if (currentUserId != null) {
+        excludeIds.add(currentUserId);
+      }
 
+      var query = _supabase.from('profiles').select();
       if (currentUserId != null) {
         query = query.neq('id', currentUserId);
       }
 
-      final data = await query.limit(10);
+      final data = await query.limit(20);
       final users = data as List<dynamic>? ?? [];
 
       if (users.isNotEmpty) {
-        return users
+        final results = users
             .map((item) => ProfileModel.fromJson(item as Map<String, dynamic>))
+            .where((p) => !excludeIds.contains(p.id))
             .toList();
+        if (results.isNotEmpty) return results;
       }
     } catch (_) {}
 
@@ -238,7 +309,8 @@ class AppApiService {
     final user = _supabase.auth.currentUser;
     if (user != null) {
       try {
-        await _supabase.from('profiles').update(payload).eq('id', user.id);
+        final normalized = _normalizeProfilePayload(payload);
+        await _supabase.from('profiles').update(normalized).eq('id', user.id);
         return {'success': true, 'message': 'Profile setup synced'};
       } catch (e) {
         return {'success': false, 'message': e.toString()};
@@ -252,7 +324,8 @@ class AppApiService {
     final user = _supabase.auth.currentUser;
     if (user != null) {
       try {
-        await _supabase.from('profiles').update(payload).eq('id', user.id);
+        final normalized = _normalizeProfilePayload(payload);
+        await _supabase.from('profiles').update(normalized).eq('id', user.id);
         return {'success': true, 'message': 'Profile updated'};
       } catch (e) {
         return {'success': false, 'message': e.toString()};
@@ -262,7 +335,7 @@ class AppApiService {
   }
 
   static Future<Map<String, dynamic>> purchaseSubscription(String tier) async {
-    return {'success': true, 'message': 'Subscription activated'};
+    return updateSubscription(tier);
   }
 
   static Future<List<Map<String, dynamic>>> fetchMatches() async {
@@ -288,32 +361,37 @@ class AppApiService {
             final otherUserId = match['user1_id'] == user.id
                 ? match['user2_id']
                 : match['user1_id'];
-            final profileData = await _supabase
-                .from('profiles')
-                .select()
-                .eq('id', otherUserId)
-                .single();
-            final profile = ProfileModel.fromJson(profileData);
+            try {
+              final profileData = await _supabase
+                  .from('profiles')
+                  .select()
+                  .eq('id', otherUserId)
+                  .single();
+              final profile = ProfileModel.fromJson(profileData);
 
-            // Get last message
-            final messageData = await _supabase
-                .from('messages')
-                .select()
-                .eq('match_id', match['id'])
-                .order('created_at', ascending: false)
-                .limit(1)
-                .maybeSingle();
+              // Get last message
+              final messageData = await _supabase
+                  .from('messages')
+                  .select()
+                  .eq('match_id', match['id'])
+                  .order('created_at', ascending: false)
+                  .limit(1)
+                  .maybeSingle();
 
-            matchResults.add({
-              'profile': profile,
-              'lastMessage':
-                  messageData != null ? messageData['text'] : 'New Match!',
-              'time': 'Recently',
-              'unread': 0,
-              'isOnline': false,
-            });
+              matchResults.add({
+                'id': match['id'],
+                'profile': profile,
+                'lastMessage':
+                    messageData != null ? messageData['text'] : 'New Match!',
+                'time': messageData != null
+                    ? _formatTimestamp(messageData['created_at']?.toString())
+                    : 'Recently',
+                'unread': 0,
+                'isOnline': false,
+              });
+            } catch (_) {}
           }
-          return matchResults;
+          if (matchResults.isNotEmpty) return matchResults;
         }
       }
     } catch (_) {}
@@ -322,9 +400,10 @@ class AppApiService {
     return List.generate(profiles.length, (index) {
       final profile = profiles[index];
       return {
+        'id': 'match-$index',
         'profile': profile,
         'lastMessage': index.isEven
-            ? 'I love your energy! 💖'
+            ? 'I love your energy! \u{1F496}'
             : 'Want to grab coffee this week?',
         'time': index == 0 ? 'Now' : '${index + 1}h ago',
         'unread': index == 0 ? 2 : 0,
@@ -334,6 +413,40 @@ class AppApiService {
   }
 
   static Future<List<Map<String, dynamic>>> fetchLikes() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        final swipes = await _supabase
+            .from('swipes')
+            .select('swiper_id, action, created_at')
+            .eq('swiped_id', user.id)
+            .inFilter('action', ['like', 'super_like']);
+
+        if (swipes.isNotEmpty) {
+          final likesList = <Map<String, dynamic>>[];
+          for (final swipe in swipes) {
+            final swiperId = swipe['swiper_id']?.toString();
+            if (swiperId == null) continue;
+            try {
+              final profileData = await _supabase
+                  .from('profiles')
+                  .select()
+                  .eq('id', swiperId)
+                  .single();
+              final profile = ProfileModel.fromJson(profileData);
+              likesList.add({
+                'profile': profile,
+                'score': profile.compatibilityScore,
+                'action': swipe['action'],
+                'createdAt': swipe['created_at'],
+              });
+            } catch (_) {}
+          }
+          if (likesList.isNotEmpty) return likesList;
+        }
+      }
+    } catch (_) {}
+
     final profiles = await fetchProfiles();
     return profiles.asMap().entries.map((entry) {
       final index = entry.key;
@@ -455,7 +568,7 @@ class AppApiService {
               .map((msg) => {
                     'sender': msg['sender_id'] == user.id ? 'me' : 'them',
                     'text': msg['text'],
-                    'time': 'Now', // Formatting timestamp logic could go here
+                    'time': _formatTimestamp(msg['created_at']?.toString()),
                   })
               .toList();
         }
@@ -476,6 +589,48 @@ class AppApiService {
         'time': '10:32 AM',
       },
     ];
+  }
+
+  static Stream<List<Map<String, dynamic>>> streamMessages(String profileId) {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return Stream.value([]);
+    }
+
+    return _supabase
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: true)
+        .map((rows) {
+          final filtered = rows.where((msg) {
+            final senderId = msg['sender_id']?.toString();
+            final receiverId = msg['receiver_id']?.toString();
+            return (senderId == user.id && receiverId == profileId) ||
+                (senderId == profileId && receiverId == user.id);
+          }).toList();
+
+          return filtered.map((msg) {
+            return {
+              'id': msg['id'],
+              'sender': msg['sender_id'] == user.id ? 'me' : 'them',
+              'text': msg['text']?.toString() ?? '',
+              'time': _formatTimestamp(msg['created_at']?.toString()),
+            };
+          }).toList();
+        });
+  }
+
+  static String _formatTimestamp(String? isoString) {
+    if (isoString == null) return 'Now';
+    try {
+      final dt = DateTime.parse(isoString).toLocal();
+      final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '$hour:$minute $period';
+    } catch (_) {
+      return 'Now';
+    }
   }
 
   // ── Settings ──────────────────────────────────────────────────────────────

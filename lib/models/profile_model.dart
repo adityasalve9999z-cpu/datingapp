@@ -67,30 +67,49 @@ class ProfileModel {
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
-    final firstName = json['firstName']?.toString() ?? json['name']?.toString() ?? 'User';
-    final lastName = json['lastName']?.toString() ?? '';
+    final firstName = json['first_name']?.toString() ??
+        json['firstName']?.toString() ??
+        json['name']?.toString() ??
+        'User';
+    final lastName = json['last_name']?.toString() ?? json['lastName']?.toString() ?? '';
     final fullName = [firstName, lastName].where((s) => s.isNotEmpty).join(' ').trim();
     final photos = <String>[];
-    final image = json['image']?.toString();
-    if (image != null && image.isNotEmpty) {
-      photos.add(image);
-    }
-    if (json['images'] is List) {
-      for (final item in json['images'] as List) {
+    
+    // Check 'photos' array (Supabase text[] column)
+    if (json['photos'] is List) {
+      for (final item in json['photos'] as List) {
         final url = item?.toString();
         if (url != null && url.isNotEmpty) {
           photos.add(url);
         }
       }
     }
+    
+    // Check 'images' or 'image' fallback
+    if (photos.isEmpty) {
+      final image = json['image']?.toString();
+      if (image != null && image.isNotEmpty) {
+        photos.add(image);
+      }
+      if (json['images'] is List) {
+        for (final item in json['images'] as List) {
+          final url = item?.toString();
+          if (url != null && url.isNotEmpty) {
+            photos.add(url);
+          }
+        }
+      }
+    }
+    
     if (photos.isEmpty) {
       photos.add('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80');
     }
 
-    final company = json['company'];
-    final occupation = company is Map<String, dynamic>
-        ? company['name']?.toString() ?? 'Creative Professional'
-        : 'Creative Professional';
+    final occupation = json['occupation']?.toString() ??
+        (json['company'] is Map<String, dynamic>
+            ? (json['company'] as Map<String, dynamic>)['name']?.toString()
+            : null) ??
+        'Creative Professional';
 
     return ProfileModel(
       id: json['id']?.toString() ?? json['userId']?.toString() ?? fullName.replaceAll(' ', '-').toLowerCase(),
@@ -101,20 +120,22 @@ class ProfileModel {
       occupation: occupation,
       bio: json['bio']?.toString() ?? 'Looking for a meaningful connection and good conversation.',
       photos: photos,
-      compatibilityScore: int.tryParse(json['compatibilityScore']?.toString() ?? '') ?? 90,
+      compatibilityScore: int.tryParse(json['compatibility_score']?.toString() ?? json['compatibilityScore']?.toString() ?? '') ?? 90,
       distance: json['distance']?.toString() ?? 'Nearby',
-      isVerified: json['isVerified'] is bool ? json['isVerified'] as bool : true,
+      isVerified: json['is_verified'] is bool
+          ? json['is_verified'] as bool
+          : (json['isVerified'] is bool ? json['isVerified'] as bool : true),
       interests: (json['interests'] is List)
           ? (json['interests'] as List).map((e) => e.toString()).toList()
           : ['Design', 'Coffee', 'Travel'],
       location: json['location']?.toString() ?? 'San Francisco, CA',
-      audioPromptTitle: json['audioPromptTitle']?.toString(),
-      audioPromptDuration: json['audioPromptDuration']?.toString(),
-      promptQuestion: json['promptQuestion']?.toString(),
-      promptAnswer: json['promptAnswer']?.toString(),
+      audioPromptTitle: json['audio_prompt_title']?.toString() ?? json['audioPromptTitle']?.toString(),
+      audioPromptDuration: json['audio_prompt_duration']?.toString() ?? json['audioPromptDuration']?.toString(),
+      promptQuestion: json['prompt_question']?.toString() ?? json['promptQuestion']?.toString(),
+      promptAnswer: json['prompt_answer']?.toString() ?? json['promptAnswer']?.toString(),
       height: json['height']?.toString() ?? "5'7\"",
       zodiac: json['zodiac']?.toString() ?? 'Leo ♌',
-      relationshipGoal: json['relationshipGoal']?.toString() ?? 'Long-term connection',
+      relationshipGoal: json['relationship_goal']?.toString() ?? json['relationshipGoal']?.toString() ?? 'Long-term connection',
       education: json['education']?.toString() ?? 'University Graduate',
       degree: json['degree']?.toString() ?? "Bachelor's Degree",
       languages: (json['languages'] is List)
@@ -125,13 +146,54 @@ class ProfileModel {
       smoking: json['smoking']?.toString() ?? 'Never',
       exercise: json['exercise']?.toString() ?? 'Sometimes',
       pets: json['pets']?.toString() ?? 'No pets',
-      mutualFriends: int.tryParse(json['mutualFriends']?.toString() ?? '') ?? 0,
-      lookingFor: (json['lookingFor'] is List)
-          ? (json['lookingFor'] as List).map((e) => e.toString()).toList()
-          : const ['Genuine connection'],
-      instagramHandle: json['instagramHandle']?.toString(),
-      profileCompletion: int.tryParse(json['profileCompletion']?.toString() ?? '') ?? 85,
+      mutualFriends: int.tryParse(json['mutual_friends']?.toString() ?? json['mutualFriends']?.toString() ?? '') ?? 0,
+      lookingFor: (json['looking_for'] is List)
+          ? (json['looking_for'] as List).map((e) => e.toString()).toList()
+          : ((json['lookingFor'] is List)
+              ? (json['lookingFor'] as List).map((e) => e.toString()).toList()
+              : const ['Genuine connection']),
+      instagramHandle: json['instagram_handle']?.toString() ?? json['instagramHandle']?.toString(),
+      profileCompletion: int.tryParse(json['profile_completion']?.toString() ?? json['profileCompletion']?.toString() ?? '') ?? 85,
     );
+  }
+
+  Map<String, dynamic> toSupabaseJson() {
+    final parts = name.split(' ');
+    final firstName = parts.isNotEmpty ? parts.first : name;
+    final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+
+    return {
+      'first_name': firstName,
+      'last_name': lastName,
+      'age': age,
+      'bio': bio,
+      'occupation': occupation,
+      'location': location,
+      'distance': distance,
+      'height': height,
+      'zodiac': zodiac,
+      'relationship_goal': relationshipGoal,
+      'education': education,
+      'degree': degree,
+      'mbti': mbti,
+      'drinking': drinking,
+      'smoking': smoking,
+      'exercise': exercise,
+      'pets': pets,
+      'mutual_friends': mutualFriends,
+      'instagram_handle': instagramHandle,
+      'profile_completion': profileCompletion,
+      'is_verified': isVerified,
+      'photos': photos,
+      'interests': interests,
+      'languages': languages,
+      'looking_for': lookingFor,
+      'audio_prompt_title': audioPromptTitle,
+      'audio_prompt_duration': audioPromptDuration,
+      'prompt_question': promptQuestion,
+      'prompt_answer': promptAnswer,
+      'compatibility_score': compatibilityScore,
+    };
   }
 }
 
