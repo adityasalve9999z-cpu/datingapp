@@ -16,6 +16,10 @@ import 'config/supabase_config.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'providers/auth_provider.dart';
+import 'providers/profile_provider.dart';
+import 'providers/discovery_feed_provider.dart';
+import 'providers/matches_and_chat_provider.dart';
+import 'providers/app_settings_provider.dart';
 import 'router.dart';
 
 void main() async {
@@ -30,6 +34,10 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => DiscoveryFeedProvider()),
+        ChangeNotifierProvider(create: (_) => MatchesAndChatProvider()),
+        ChangeNotifierProvider(create: (_) => AppSettingsProvider()),
       ],
       child: const GlowDateApp(),
     ),
