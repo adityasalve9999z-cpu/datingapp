@@ -5,5 +5,7 @@ class SupabaseConfig {
   static const String supabaseAnonKey = supabasePublishableKey;
 }
 
+// ignore: constant_identifier_names
 const String SUPABASE_URL = SupabaseConfig.supabaseUrl;
+// ignore: constant_identifier_names
 const String SUPABASE_PUBLISHABLE_KEY = SupabaseConfig.supabasePublishableKey;
