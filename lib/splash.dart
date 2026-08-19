@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -64,6 +65,7 @@ class _SplashScreenState extends State<SplashScreen>
   // settings screens, rather than a generic smooth breathing loop.
   late final AnimationController _heartbeatController;
   late final Animation<double> _heartbeatScale;
+  Timer? _navTimer;
 
   @override
   void initState() {
@@ -100,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) _heartbeatController.repeat();
     });
 
-    Future.delayed(const Duration(milliseconds: 2200), () {
+    _navTimer = Timer(const Duration(milliseconds: 2200), () {
       if (!mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.isAuthenticated) {
@@ -113,6 +115,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _navTimer?.cancel();
     _animController.dispose();
     _heartbeatController.dispose();
     super.dispose();
