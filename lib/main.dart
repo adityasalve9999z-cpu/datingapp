@@ -52,6 +52,7 @@ class AppScrollBehavior extends MaterialScrollBehavior {
     ScrollableDetails details,
   ) {
     return Scrollbar(
+      controller: details.controller,
       thumbVisibility: true,
       thickness: 8,
       radius: const Radius.circular(8),

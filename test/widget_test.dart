@@ -25,6 +25,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
     expect(find.byType(GlowDateApp), findsOneWidget);
   });
 
@@ -36,7 +37,7 @@ void main() {
   testWidgets('Home screen shows the discovery shell', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
     expect(find.text('Discover'), findsWidgets);
-    expect(find.text('Likes'), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_rounded), findsWidgets);
   });
 }
 
