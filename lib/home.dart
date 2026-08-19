@@ -119,11 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: BoxShape.circle,
                 gradient: AppTheme.primaryGradient,
               ),
-              child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 20),
+              child: const Icon(Icons.favorite_rounded,
+                  color: Colors.white, size: 20),
             ),
             const SizedBox(width: 10),
             ShaderMask(
-              shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(bounds),
               child: const Text(
                 'GlowDate',
                 style: TextStyle(
@@ -222,7 +224,10 @@ class _FilterSheetState extends State<_FilterSheet> {
               children: [
                 const Text(
                   'Discovery Filters',
-                  style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold),
                 ),
                 TextButton(
                   onPressed: () => setState(() {
@@ -233,7 +238,8 @@ class _FilterSheetState extends State<_FilterSheet> {
                     _hasAudio = false;
                     _hasBio = true;
                   }),
-                  child: const Text('Reset', style: TextStyle(color: AppTheme.primaryRose)),
+                  child: const Text('Reset',
+                      style: TextStyle(color: AppTheme.primaryRose)),
                 ),
               ],
             ),
@@ -243,16 +249,23 @@ class _FilterSheetState extends State<_FilterSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Age Range', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+                const Text('Age Range',
+                    style: TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.w600)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     gradient: AppTheme.primaryGradient,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${_ageRange.start.toInt()} – ${_ageRange.end.toInt()} yrs',
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -272,16 +285,23 @@ class _FilterSheetState extends State<_FilterSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Max Distance', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+                const Text('Max Distance',
+                    style: TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.w600)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceCard,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${_maxDistance.toInt()} miles',
-                    style: const TextStyle(color: AppTheme.accentCyan, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: AppTheme.accentCyan,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -298,7 +318,9 @@ class _FilterSheetState extends State<_FilterSheet> {
             const SizedBox(height: 20),
 
             // Relationship Goals
-            const Text('Relationship Goal', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+            const Text('Relationship Goal',
+                style: TextStyle(
+                    color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Wrap(
               spacing: 10,
@@ -306,10 +328,12 @@ class _FilterSheetState extends State<_FilterSheet> {
               children: _goals.map((goal) {
                 final isSelected = _selectedGoal == goal;
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedGoal = isSelected ? null : goal),
+                  onTap: () =>
+                      setState(() => _selectedGoal = isSelected ? null : goal),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 10),
                     decoration: BoxDecoration(
                       gradient: isSelected ? AppTheme.primaryGradient : null,
                       color: isSelected ? null : AppTheme.surfaceCard,
@@ -321,8 +345,10 @@ class _FilterSheetState extends State<_FilterSheet> {
                     child: Text(
                       goal,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : AppTheme.textSecondary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color:
+                            isSelected ? Colors.white : AppTheme.textSecondary,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 13,
                       ),
                     ),
@@ -333,21 +359,29 @@ class _FilterSheetState extends State<_FilterSheet> {
             const SizedBox(height: 24),
 
             // Lifestyle Toggles
-            const Text('Preferences', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+            const Text('Preferences',
+                style: TextStyle(
+                    color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             _buildToggleTile(
-              Icons.verified_rounded, 'Verified profiles only',
-              _verifiedOnly, (v) => setState(() => _verifiedOnly = v),
+              Icons.verified_rounded,
+              'Verified profiles only',
+              _verifiedOnly,
+              (v) => setState(() => _verifiedOnly = v),
               AppTheme.accentCyan,
             ),
             _buildToggleTile(
-              Icons.mic_rounded, 'Has audio prompt',
-              _hasAudio, (v) => setState(() => _hasAudio = v),
+              Icons.mic_rounded,
+              'Has audio prompt',
+              _hasAudio,
+              (v) => setState(() => _hasAudio = v),
               AppTheme.primaryPurple,
             ),
             _buildToggleTile(
-              Icons.short_text_rounded, 'Has bio',
-              _hasBio, (v) => setState(() => _hasBio = v),
+              Icons.short_text_rounded,
+              'Has bio',
+              _hasBio,
+              (v) => setState(() => _hasBio = v),
               AppTheme.emeraldGreen,
             ),
             const SizedBox(height: 28),
@@ -373,11 +407,15 @@ class _FilterSheetState extends State<_FilterSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(27)),
                   ),
                   child: const Text(
                     'Apply Filters',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
                   ),
                 ),
               ),
@@ -388,7 +426,8 @@ class _FilterSheetState extends State<_FilterSheet> {
     );
   }
 
-  Widget _buildToggleTile(IconData icon, String label, bool value, ValueChanged<bool> onChanged, Color color) {
+  Widget _buildToggleTile(IconData icon, String label, bool value,
+      ValueChanged<bool> onChanged, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -400,7 +439,9 @@ class _FilterSheetState extends State<_FilterSheet> {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(width: 12),
-          Expanded(child: Text(label, style: const TextStyle(color: AppTheme.textPrimary))),
+          Expanded(
+              child: Text(label,
+                  style: const TextStyle(color: AppTheme.textPrimary))),
           Switch(
             value: value,
             onChanged: onChanged,
@@ -410,4 +451,4 @@ class _FilterSheetState extends State<_FilterSheet> {
       ),
     );
   }
-
+}
