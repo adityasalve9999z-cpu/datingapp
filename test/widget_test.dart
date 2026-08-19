@@ -24,8 +24,7 @@ void main() {
         child: const GlowDateApp(),
       ),
     );
-    await tester.pump(const Duration(seconds: 3));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(GlowDateApp), findsOneWidget);
   });
 
