@@ -43,7 +43,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
 
   // Step 5 — Basic Details
   String _selectedMbti = 'INFP';
-  String _selectedHeight = "5'6"";
+  String _selectedHeight = "5'6\"";
   final List<String> _mbtiOptions = [
     'INTJ', 'INTP', 'ENTJ', 'ENTP',
     'INFJ', 'INFP', 'ENFJ', 'ENFP',
