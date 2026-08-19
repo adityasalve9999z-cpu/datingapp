@@ -33,11 +33,13 @@ class WelcomeScreen extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: AppTheme.sunsetGradient,
                   ),
-                  child: const Icon(Icons.favorite_rounded, size: 60, color: Colors.white),
+                  child: const Icon(Icons.favorite_rounded,
+                      size: 60, color: Colors.white),
                 ),
                 const SizedBox(height: 32),
                 ShaderMask(
-                  shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
+                  shaderCallback: (bounds) =>
+                      AppTheme.primaryGradient.createShader(bounds),
                   child: const Text(
                     'GlowDate',
                     style: TextStyle(
@@ -70,12 +72,14 @@ class WelcomeScreen extends StatelessWidget {
                     foregroundColor: AppTheme.textPrimary,
                     side: const BorderSide(color: Colors.white24),
                     minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28)),
                   ),
                   onPressed: () => context.go('/login'),
                   child: const Text(
                     'SIGN IN',
-                    style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, letterSpacing: 1.2),
                   ),
                 ),
                 const SizedBox(height: 20),
