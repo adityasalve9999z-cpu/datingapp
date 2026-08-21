@@ -437,8 +437,9 @@ class _LikesScreenState extends State<LikesScreen>
                       ),
                     ),
                   ),
-                );
-              },
+                ),
+              );
+            },
               childCount: profiles.length * 2,
             ),
           ),
