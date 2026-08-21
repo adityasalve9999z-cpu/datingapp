@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../widgets/animated_glow_button.dart';
 
 // ── AppTheme ─────────────────────────────────────────────────────────────────
 class AppTheme {
@@ -201,24 +202,21 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
               // Action Buttons
               Column(
                 children: [
-                  _PrimaryGradientButton(
+                  AnimatedGlowButton(
                     label: 'Allow Location Access',
                     icon: Icons.my_location_rounded,
+                    backgroundColor: AppTheme.primaryRose,
+                    gradient: AppTheme.primaryGradient,
                     onPressed: _onAllowLocation,
                   ),
                   const SizedBox(height: 12),
-                  TextButton(
+                  AnimatedOutlinedGlowButton(
+                    label: 'Not Now',
+                    textColor: AppTheme.textMuted,
+                    borderColor: Colors.white12,
                     onPressed: () {
-                      // Handle skip or manual location entry
+                      Navigator.maybePop(context);
                     },
-                    child: const Text(
-                      'Not Now',
-                      style: TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 8),
                 ],

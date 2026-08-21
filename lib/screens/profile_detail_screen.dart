@@ -3,6 +3,7 @@ import '../models/profile_model.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
+import '../widgets/animated_glow_button.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
   final ProfileModel profile;
@@ -717,35 +718,47 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
             left: 30,
             right: 30,
             child: AppTheme.glassContainer(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, color: AppTheme.primaryRose, size: 30),
+                  AnimatedCircleActionButton(
+                    icon: Icons.close_rounded,
+                    iconColor: AppTheme.primaryRose,
+                    glowColor: AppTheme.primaryRose,
+                    size: 54,
+                    iconSize: 28,
                     onPressed: () {
                       Navigator.pop(context);
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.star_rounded, color: AppTheme.accentCyan, size: 30),
+                  AnimatedCircleActionButton(
+                    icon: Icons.star_rounded,
+                    iconColor: AppTheme.accentCyan,
+                    glowColor: AppTheme.accentCyan,
+                    size: 50,
+                    iconSize: 26,
                     onPressed: () {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Super Liked ${profile.name}!'),
+                          content: Text('Super Liked ${profile.name}! \u2B50'),
                           backgroundColor: AppTheme.surfaceCard,
                         ),
                       );
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.favorite_rounded, color: AppTheme.emeraldGreen, size: 30),
+                  AnimatedCircleActionButton(
+                    icon: Icons.favorite_rounded,
+                    iconColor: AppTheme.emeraldGreen,
+                    glowColor: AppTheme.emeraldGreen,
+                    size: 58,
+                    iconSize: 30,
                     onPressed: () {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Liked ${profile.name}!'),
+                          content: Text('Liked ${profile.name}! \u2764\uFE0F'),
                           backgroundColor: AppTheme.surfaceCard,
                         ),
                       );

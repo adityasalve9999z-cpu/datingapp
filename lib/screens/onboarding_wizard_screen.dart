@@ -191,8 +191,11 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(28, 0, 28, 20),
-              child: _AnimatedContinueButton(
+              child: AnimatedGlowButton(
                 label: _currentStep == _totalSteps - 1 ? 'COMPLETE PROFILE' : 'CONTINUE',
+                backgroundColor: AppTheme.primaryRose,
+                gradient: AppTheme.primaryGradient,
+                icon: _currentStep == _totalSteps - 1 ? Icons.check_circle_rounded : Icons.arrow_forward_rounded,
                 onPressed: _nextStep,
               ),
             ),

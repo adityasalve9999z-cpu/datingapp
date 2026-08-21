@@ -1,6 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../widgets/animated_glow_button.dart';
 
 // ── AppTheme ─────────────────────────────────────────────────────────────────
 class AppTheme {
@@ -560,7 +560,7 @@ class _LookingForTileState extends State<_LookingForTile> {
 }
 
 // ── Continue Button ──────────────────────────────────────────────────────────
-class _ContinueButton extends StatefulWidget {
+class _ContinueButton extends StatelessWidget {
   final bool enabled;
   final VoidCallback onPressed;
 
@@ -570,61 +570,33 @@ class _ContinueButton extends StatefulWidget {
   });
 
   @override
-  State<_ContinueButton> createState() => _ContinueButtonState();
-}
-
-class _ContinueButtonState extends State<_ContinueButton> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor:
-          widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown:
-            widget.enabled ? (_) => setState(() => _isPressed = true) : null,
-        onTapUp:
-            widget.enabled ? (_) => setState(() => _isPressed = false) : null,
-        onTapCancel:
-            widget.enabled ? () => setState(() => _isPressed = false) : null,
-        onTap: widget.enabled ? widget.onPressed : null,
-        child: AnimatedScale(
-          scale:
-              _isPressed ? 0.98 : (_isHovered && widget.enabled ? 1.01 : 1.0),
-          duration: const Duration(milliseconds: 120),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            height: 56,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: widget.enabled ? AppTheme.primaryGradient : null,
-              color: widget.enabled ? null : AppTheme.surfaceCard,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: widget.enabled
-                  ? [
-                      BoxShadow(
-                        color: AppTheme.primaryRose.withOpacity(0.35),
-                        blurRadius: 18,
-                        offset: const Offset(0, 8),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Center(
-              child: Text(
-                'Continue',
-                style: TextStyle(
-                  color: widget.enabled ? Colors.white : AppTheme.textMuted,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
+    if (enabled) {
+      return AnimatedGlowButton(
+        label: 'Continue',
+        backgroundColor: AppTheme.primaryRose,
+        gradient: AppTheme.primaryGradient,
+        icon: Icons.arrow_forward_rounded,
+        onPressed: onPressed,
+      );
+    }
+
+    return Container(
+      height: 56,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: const Center(
+        child: Text(
+          'Continue',
+          style: TextStyle(
+            color: AppTheme.textMuted,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
       ),

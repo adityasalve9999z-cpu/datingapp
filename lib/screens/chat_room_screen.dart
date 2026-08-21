@@ -4,6 +4,7 @@ import '../models/profile_model.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
+import '../widgets/animated_glow_button.dart';
 import 'profile_detail_screen.dart';
 import 'call_screen.dart';
 import 'ai_date_planner_screen.dart';
@@ -289,16 +290,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               ),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.primaryRose),
-                    onPressed: () {},
+                  BouncingTapWrapper(
+                    onTap: () {},
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white10,
+                      ),
+                      child: const Icon(Icons.add_rounded, color: AppTheme.primaryRose, size: 22),
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceCard,
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white10),
                       ),
                       child: TextField(
                         controller: _msgController,
@@ -313,16 +323,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => _sendMessage(_msgController.text),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: AppTheme.primaryGradient,
-                      ),
-                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                    ),
+                  AnimatedCircleActionButton(
+                    icon: Icons.send_rounded,
+                    iconColor: Colors.white,
+                    glowColor: AppTheme.primaryRose,
+                    size: 46,
+                    iconSize: 20,
+                    gradient: AppTheme.primaryGradient,
+                    onPressed: () => _sendMessage(_msgController.text),
                   ),
                 ],
               ),
@@ -334,7 +342,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   Widget _buildQuickChip(String text) {
-    return GestureDetector(
+    return BouncingTapWrapper(
       onTap: () => _sendMessage(text),
       child: Container(
         margin: const EdgeInsets.only(right: 8),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/animated_glow_button.dart';
 
 class PremiumPlansScreen extends StatefulWidget {
   const PremiumPlansScreen({super.key});
@@ -500,12 +501,18 @@ class _PremiumPlansScreenState extends State<PremiumPlansScreen>
 
   Widget _buildBottomCta(_Plan plan) {
     final isCurrentPlan = _selectedPlanId == _currentTier;
+    final buttonLabel = isCurrentPlan
+        ? 'Current Plan'
+        : (plan.id == 'free'
+            ? 'Downgrade to Free'
+            : 'Upgrade to ${plan.name}');
+
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppTheme.surfaceDark,
-          border: const Border(top: BorderSide(color: Colors.white10)),
+          border: Border(top: BorderSide(color: Colors.white10)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -518,54 +525,16 @@ class _PremiumPlansScreenState extends State<PremiumPlansScreen>
               ),
               const SizedBox(height: 10),
             ],
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: isCurrentPlan
-                      ? const LinearGradient(
-                          colors: [Color(0xFF444444), Color(0xFF333333)])
-                      : plan.gradient,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: isCurrentPlan
-                      ? []
-                      : [
-                          BoxShadow(
-                            color: plan.accentColor.withOpacity(0.35),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: _isSubmitting ? null : _subscribe,
-                    child: Center(
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2.5),
-                            )
-                          : Text(
-                              isCurrentPlan
-                                  ? 'Current Plan'
-                                  : (plan.id == 'free'
-                                      ? 'Downgrade to Free'
-                                      : 'Upgrade to ${plan.name}'),
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15),
-                            ),
-                    ),
-                  ),
-                ),
-              ),
+            AnimatedGlowButton(
+              label: buttonLabel,
+              isLoading: _isSubmitting,
+              gradient: isCurrentPlan
+                  ? const LinearGradient(
+                      colors: [Color(0xFF444444), Color(0xFF333333)])
+                  : plan.gradient,
+              backgroundColor: plan.accentColor,
+              icon: isCurrentPlan ? Icons.check_circle_rounded : Icons.star_rounded,
+              onPressed: isCurrentPlan ? null : _subscribe,
             ),
           ],
         ),
