@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../theme/app_theme.dart';
 import '../screens/profile_detail_screen.dart';
+import 'animated_glow_button.dart';
 
 class TinderSwipeDeck extends StatefulWidget {
   final List<ProfileModel> profiles;
@@ -952,9 +953,7 @@ class _HoverCircleIconButtonState extends State<_HoverCircleIconButton> {
 }
 
 /// The "Refresh Deck" button shown once the user has swiped through
-/// everyone. Uses MaterialStateProperty.resolveWith to change background
-/// color on hover — the built-in Material hover-state pattern, rather than
-/// a custom MouseRegion wrapper.
+/// everyone with dynamic glow & shimmer sweep.
 class _HoverElevatedButton extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icon;
@@ -967,38 +966,14 @@ class _HoverElevatedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
+    return AnimatedGlowButton(
+      label: label,
+      icon: icon,
+      width: 220,
+      height: 52,
+      backgroundColor: AppTheme.primaryRose,
+      gradient: AppTheme.primaryGradient,
       onPressed: onPressed,
-      icon: Icon(icon),
-      label: Text(label),
-      style: ButtonStyle(
-        foregroundColor: const MaterialStatePropertyAll(Colors.white),
-        padding: const MaterialStatePropertyAll(
-          EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        ),
-        shape: MaterialStatePropertyAll(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        ),
-        overlayColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.hovered)) {
-            return Colors.white.withOpacity(0.12);
-          }
-          if (states.contains(MaterialState.pressed)) {
-            return Colors.white.withOpacity(0.2);
-          }
-          return null;
-        }),
-        backgroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.hovered)) {
-            // Slightly lighter rose on hover so the button visibly "wakes up"
-            return const Color(0xFFFF4785);
-          }
-          return AppTheme.primaryRose;
-        }),
-        elevation: MaterialStateProperty.resolveWith((states) {
-          return states.contains(MaterialState.hovered) ? 8 : 2;
-        }),
-      ),
     );
   }
 }
