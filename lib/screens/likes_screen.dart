@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'profile_detail_screen.dart';
 import '../widgets/shimmer_loading.dart';
+import '../widgets/animated_glow_button.dart';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
@@ -147,16 +148,24 @@ class _LikesScreenState extends State<LikesScreen>
                       ],
                     ),
                   ),
-                  TextButton(
+                  AnimatedGlowButton(
+                    label: _isUnlocked ? 'Lock' : 'Unlock All',
+                    width: 105,
+                    height: 38,
+                    backgroundColor: AppTheme.accentGold,
+                    gradient: AppTheme.goldGradient,
+                    foregroundColor: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                     onPressed: () {
                       setState(() {
                         _isUnlocked = !_isUnlocked;
                       });
                     },
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.accentGold,
-                    ),
-                    child: Text(_isUnlocked ? 'Lock' : 'Unlock All'),
                   ),
                 ],
               ),
@@ -181,7 +190,7 @@ class _LikesScreenState extends State<LikesScreen>
                 final isLiked = _likedIndices.contains(index);
                 final showHeartPop = _animatingHeartIndex == index;
 
-                return GestureDetector(
+                return BouncingTapWrapper(
                   onTap: () {
                     if (!shouldBlur) {
                       Navigator.push(
@@ -199,12 +208,13 @@ class _LikesScreenState extends State<LikesScreen>
                       });
                     }
                   },
-                  onDoubleTap: () {
-                    if (!shouldBlur) {
-                      _triggerHeartAnimation(index);
-                    }
-                  },
-                  child: Container(
+                  child: GestureDetector(
+                    onDoubleTap: () {
+                      if (!shouldBlur) {
+                        _triggerHeartAnimation(index);
+                      }
+                    },
+                    child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
