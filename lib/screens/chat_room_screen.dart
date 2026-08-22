@@ -2,12 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../services/api_service.dart';
+import '../services/ai_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/animated_glow_button.dart';
 import 'profile_detail_screen.dart';
 import 'call_screen.dart';
 import 'ai_date_planner_screen.dart';
+import 'ai_agent_screen.dart';
+
 
 class ChatRoomScreen extends StatefulWidget {
   final ProfileModel profile;
@@ -267,16 +270,54 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ),
           ),
 
-          // Icebreaker Chips Quick Suggestions
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          // AI Wingman Quick Reply & Coach Bar
+          Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                _buildQuickChip('☕ Best coffee spot?'),
-                _buildQuickChip('🎞️ Show me a photo'),
-                _buildQuickChip('✨ What’s your weekend plan?'),
-              ],
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceDark,
+              border: Border(top: BorderSide(color: AppTheme.accentGold.withOpacity(0.2))),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _showAiReplyAssistModal(profile.name),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.sunsetGradient,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.accentGold.withOpacity(0.3),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 14),
+                          SizedBox(width: 5),
+                          Text(
+                            'GlowAI Assist',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  _buildQuickChip('☕ Best coffee spot?'),
+                  _buildQuickChip('🎞️ Show me a photo'),
+                  _buildQuickChip('✨ What’s your weekend plan?'),
+                ],
+              ),
             ),
           ),
 
@@ -341,6 +382,176 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  void _showAiReplyAssistModal(String matchName) {
+    bool isLoading = true;
+    List<AiReplyOption> suggestions = [];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            if (isLoading) {
+              final lastMsg = _messages.isNotEmpty
+                  ? (_messages.last['text']?.toString() ?? 'Hey')
+                  : 'Hey!';
+              AiService.getReplySuggestions(
+                lastMessage: lastMsg,
+                matchName: matchName,
+              ).then((res) {
+                if (mounted) {
+                  setModalState(() {
+                    isLoading = false;
+                    suggestions = res;
+                  });
+                }
+              });
+            }
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.sunsetGradient,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'GlowAI Reply Assist for $matchName',
+                              style: const TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              'Choose a flavor to insert or ask wingman for advice',
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.open_in_new_rounded, color: AppTheme.accentGold, size: 20),
+                        tooltip: 'Open Full Wingman Coach',
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AiAgentScreen(
+                                initialMatchName: matchName,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (isLoading)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(color: AppTheme.accentGold),
+                      ),
+                    )
+                  else ...[
+                    ...suggestions.map((opt) => Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceCard,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppTheme.accentGold.withOpacity(0.25)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    opt.label,
+                                    style: const TextStyle(
+                                      color: AppTheme.primaryRose,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(ctx);
+                                          _msgController.text = opt.text;
+                                        },
+                                        child: const Text(
+                                          'Use in text',
+                                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppTheme.accentGold,
+                                          foregroundColor: Colors.black,
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.pop(ctx);
+                                          _sendMessage(opt.text);
+                                        },
+                                        child: const Text(
+                                          'Send Now',
+                                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                opt.text,
+                                style: const TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontSize: 13.5,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildQuickChip(String text) {
     return BouncingTapWrapper(
       onTap: () => _sendMessage(text),
@@ -360,3 +571,4 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 }
+

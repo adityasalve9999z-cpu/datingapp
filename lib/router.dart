@@ -25,6 +25,8 @@ import 'screens/setting_screen.dart';
 import 'screens/likes_screen.dart';
 import 'screens/chat_list_screen.dart';
 import 'screens/premium_plans_screen.dart';
+import 'screens/ai_agent_screen.dart';
+
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -211,6 +213,18 @@ GoRouter createRouter(AuthProvider authProvider) {
           return const BasicToAdvancedScreen();
         },
       ),
+      GoRoute(
+        path: '/ai-wingman',
+        name: 'ai-wingman',
+        builder: (BuildContext context, GoRouterState state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return AiAgentScreen(
+            initialMatchName: extra?['matchName'] as String?,
+            initialTopic: extra?['topic'] as String?,
+          );
+        },
+      ),
     ],
   );
 }
+

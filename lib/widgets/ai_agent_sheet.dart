@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/ai_service.dart';
+import '../screens/ai_agent_screen.dart';
+
 
 class AiAgentSheet extends StatefulWidget {
   const AiAgentSheet({super.key});
@@ -74,11 +76,12 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
     // Call AI service
     final response = await AiService.sendMessage(text);
 
+
     if (!mounted) return;
 
     setState(() {
       _isTyping = false;
-      _messages.add(ChatMessage(text: response, isMe: false));
+      _messages.add(ChatMessage(text: response.content, isMe: false));
     });
 
     Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
@@ -143,6 +146,18 @@ class _AiAgentSheetState extends State<AiAgentSheet> {
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.open_in_full_rounded,
+                      color: AppTheme.accentGold, size: 20),
+                  tooltip: 'Full Screen Wingman',
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AiAgentScreen()),
+                    );
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded,
