@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_glow_button.dart';
@@ -156,6 +157,20 @@ class _PremiumPlansScreenState extends State<PremiumPlansScreen>
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
+      return;
+    }
+
+    final selectedPlan = _plans.firstWhere(
+      (p) => p.id == _selectedPlanId,
+      orElse: () => _plans[1],
+    );
+
+    if (_selectedPlanId != 'free') {
+      context.push('/payment', extra: {
+        'planTitle': selectedPlan.name,
+        'planPrice': selectedPlan.price,
+        'planPeriod': selectedPlan.period,
+      });
       return;
     }
 
