@@ -1,3 +1,4 @@
+import 'package:datingapp/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'models/profile_model.dart';
@@ -7,7 +8,8 @@ import 'screens/chat_room_screen.dart';
 import 'screens/discovery_filters_screen.dart';
 import 'screens/likes_screen.dart';
 import 'screens/match_celebration_screen.dart';
-import 'screens/services/api_service.dart' if (dart.library.io) 'services/api_service.dart';
+import 'screens/services/api_service.dart'
+    if (dart.library.io) 'services/api_service.dart';
 import 'theme/app_theme.dart';
 import 'widgets/modern_bottom_nav.dart';
 import 'widgets/tinder_swipe_deck.dart';
@@ -212,7 +214,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          const Icon(Icons.notifications_rounded, color: AppTheme.accentCyan, size: 22),
+                          const Icon(Icons.notifications_rounded,
+                              color: AppTheme.accentCyan, size: 22),
                           Positioned(
                             top: -2,
                             right: -2,
@@ -354,7 +357,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
                                 ),
                               ),
                             );
-                            final res = await AppApiService.swipeRight(profile.id);
+                            final res =
+                                await AppApiService.swipeRight(profile.id);
                             if (res['result'] == 'match') {
                               widget.onMatch?.call(profile);
                             }
@@ -369,7 +373,9 @@ class _DiscoverTabState extends State<DiscoverTab> {
                                 ),
                               ),
                             );
-                            final res = await AppApiService.swipeRight(profile.id, isSuperLike: true);
+                            final res = await AppApiService.swipeRight(
+                                profile.id,
+                                isSuperLike: true);
                             if (res['result'] == 'match') {
                               widget.onMatch?.call(profile);
                             }
