@@ -237,7 +237,7 @@ class _PhotoVerificationScreenState extends State<PhotoVerificationScreen>
         ),
         const SizedBox(height: 40),
         AnimatedGlowButton(
-          text: 'Start Verification',
+          label: 'Start Verification',
           icon: Icons.camera_alt_rounded,
           onPressed: _startVerificationFlow,
         ),
@@ -411,7 +411,7 @@ class _PhotoVerificationScreenState extends State<PhotoVerificationScreen>
         ),
         const SizedBox(height: 24),
         AnimatedGlowButton(
-          text: 'Snap Pose',
+          label: 'Snap Pose',
           icon: Icons.camera_rounded,
           onPressed: _captureCurrentPose,
         ),
@@ -536,7 +536,7 @@ class _PhotoVerificationScreenState extends State<PhotoVerificationScreen>
           ),
           const SizedBox(height: 36),
           AnimatedGlowButton(
-            text: 'Return to Profile',
+            label: 'Return to Profile',
             icon: Icons.check_rounded,
             onPressed: () {
               if (context.canPop()) {
