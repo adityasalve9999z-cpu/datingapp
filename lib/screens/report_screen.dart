@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/profile_model.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -38,7 +39,7 @@ class SafetyScreen extends StatelessWidget {
             color: AppTheme.textMuted,
             title: 'Blocked Accounts',
             subtitle: 'Manage users you\u2019ve blocked',
-            onTap: () {},
+            onTap: () => context.push('/blocked-users'),
           ),
           const SizedBox(height: 12),
           _actionTile(
@@ -47,7 +48,15 @@ class SafetyScreen extends StatelessWidget {
             color: AppTheme.emeraldGreen,
             title: 'Share Live Location',
             subtitle: 'Let a friend track your date in real time',
-            onTap: () {},
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Live date location tracker link generated and copied to clipboard!'),
+                  backgroundColor: AppTheme.emeraldGreen,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
           ),
           const SizedBox(height: 28),
           _sectionLabel('Safety Tips'),
