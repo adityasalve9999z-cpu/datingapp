@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'models/profile_model.dart';
 import 'profilescreen.dart';
 import 'screens/chat_list_screen.dart';
@@ -6,9 +7,8 @@ import 'screens/chat_room_screen.dart';
 import 'screens/discovery_filters_screen.dart';
 import 'screens/likes_screen.dart';
 import 'screens/match_celebration_screen.dart';
-import 'services/api_service.dart';
+import 'screens/services/api_service.dart' if (dart.library.io) 'services/api_service.dart';
 import 'theme/app_theme.dart';
-import 'widgets/match_dialog.dart';
 import 'widgets/modern_bottom_nav.dart';
 import 'widgets/tinder_swipe_deck.dart';
 import 'widgets/shimmer_loading.dart';
@@ -200,6 +200,36 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       ],
                     ),
                   ),
+                  GestureDetector(
+                    onTap: () => context.push('/notifications'),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.notifications_rounded, color: AppTheme.accentCyan, size: 22),
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppTheme.primaryRose,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
