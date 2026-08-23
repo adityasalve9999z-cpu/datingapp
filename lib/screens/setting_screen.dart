@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
@@ -210,14 +211,35 @@ class _SettingsScreenState extends State<SettingsScreen> with TickerProviderStat
               value: _incognitoMode,
               onChanged: (v) { setState(() => _incognitoMode = v); _saveSettings(); },
             ),
-            _actionTile(icon: Icons.block_rounded, label: 'Blocked Accounts', color: AppTheme.textMuted, onTap: () {}),
-            _actionTile(icon: Icons.shield_rounded, label: 'Safety Center', color: AppTheme.accentGold, onTap: () {}),
+            _actionTile(
+              icon: Icons.block_rounded,
+              label: 'Blocked Accounts',
+              color: AppTheme.textMuted,
+              onTap: () => context.push('/blocked-users'),
+            ),
+            _actionTile(
+              icon: Icons.shield_rounded,
+              label: 'Safety Center',
+              color: AppTheme.accentGold,
+              onTap: () => context.push('/safety-center'),
+            ),
           ]),
 
           const SizedBox(height: 20),
           _sectionLabel('Account'),
           _groupCard([
-            _actionTile(icon: Icons.verified_user_rounded, label: 'Verify Your Profile', color: AppTheme.accentCyan, onTap: () {}),
+            _actionTile(
+              icon: Icons.verified_user_rounded,
+              label: 'Verify Your Profile',
+              color: AppTheme.accentCyan,
+              onTap: () => context.push('/verify-photo'),
+            ),
+            _actionTile(
+              icon: Icons.notifications_active_rounded,
+              label: 'Notifications Center',
+              color: AppTheme.primaryRose,
+              onTap: () => context.push('/notifications'),
+            ),
             _actionTile(icon: Icons.lock_rounded, label: 'Change Password', color: AppTheme.primaryPurple, onTap: () {}),
             _actionTile(icon: Icons.link_rounded, label: 'Linked Accounts', color: AppTheme.emeraldGreen, onTap: () {}),
             _actionTile(icon: Icons.language_rounded, label: 'Language', value: 'English', color: AppTheme.accentGold, onTap: () {}),
