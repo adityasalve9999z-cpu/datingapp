@@ -287,7 +287,7 @@ class _PaymentScreenState extends State<PaymentScreen>
                 ),
                 const SizedBox(height: 24),
                 AnimatedGlowButton(
-                  text: 'Start Exploring',
+                  label: 'Start Exploring',
                   icon: Icons.favorite_rounded,
                   onPressed: () {
                     Navigator.of(ctx).pop();
@@ -1196,7 +1196,7 @@ class _PaymentScreenState extends State<PaymentScreen>
             const SizedBox(width: 20),
             Expanded(
               child: AnimatedGlowButton(
-                text: _isProcessing ? 'Processing...' : 'Pay & Unlock Now',
+                label: _isProcessing ? 'Processing...' : 'Pay & Unlock Now',
                 icon: _isProcessing ? Icons.sync : Icons.lock_open_rounded,
                 onPressed: _isProcessing ? () {} : _processPayment,
               ),
