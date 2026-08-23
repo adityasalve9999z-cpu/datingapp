@@ -26,7 +26,14 @@ import 'screens/likes_screen.dart';
 import 'screens/chat_list_screen.dart';
 import 'screens/premium_plans_screen.dart';
 import 'screens/ai_agent_screen.dart';
-
+import 'screens/payment_screen.dart';
+import 'screens/photo_verification_screen.dart';
+import 'screens/notification_screen.dart';
+import 'screens/blocked_users_screen.dart';
+import 'screens/report_screen.dart';
+import 'screens/gender_selection.dart';
+import 'screens/basic_info.dart';
+import 'screens/location_Permission.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -224,7 +231,68 @@ GoRouter createRouter(AuthProvider authProvider) {
           );
         },
       ),
+      GoRoute(
+        path: '/payment',
+        name: 'payment',
+        builder: (BuildContext context, GoRouterState state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return PaymentScreen(
+            planTitle: extra?['planTitle'] as String?,
+            planPrice: extra?['planPrice'] as String?,
+            planPeriod: extra?['planPeriod'] as String?,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/verify-photo',
+        name: 'verify-photo',
+        builder: (BuildContext context, GoRouterState state) {
+          return const PhotoVerificationScreen();
+        },
+      ),
+      GoRoute(
+        path: '/notifications',
+        name: 'notifications',
+        builder: (BuildContext context, GoRouterState state) {
+          return const NotificationScreen();
+        },
+      ),
+      GoRoute(
+        path: '/blocked-users',
+        name: 'blocked-users',
+        builder: (BuildContext context, GoRouterState state) {
+          return const BlockedUsersScreen();
+        },
+      ),
+      GoRoute(
+        path: '/report',
+        name: 'report',
+        builder: (BuildContext context, GoRouterState state) {
+          final profile = state.extra as ProfileModel? ?? mockProfiles.first;
+          return ReportScreen(profile: profile);
+        },
+      ),
+      GoRoute(
+        path: '/gender-selection',
+        name: 'gender-selection',
+        builder: (BuildContext context, GoRouterState state) {
+          return const GenderSelectionScreen();
+        },
+      ),
+      GoRoute(
+        path: '/basic-info',
+        name: 'basic-info',
+        builder: (BuildContext context, GoRouterState state) {
+          return const ProfileDetailsScreen();
+        },
+      ),
+      GoRoute(
+        path: '/location-permission',
+        name: 'location-permission',
+        builder: (BuildContext context, GoRouterState state) {
+          return const LocationPermissionScreen();
+        },
+      ),
     ],
   );
 }
-
