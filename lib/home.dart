@@ -29,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   List<ProfileModel> _discoverProfiles = [];
   bool _isLoadingDiscover = true;
-  ProfileModel? _matchedProfile;
 
   @override
   void initState() {
@@ -53,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleMatch(ProfileModel profile) {
     if (!mounted) return;
-    setState(() => _matchedProfile = profile);
     Navigator.push(
       context,
       MaterialPageRoute(
