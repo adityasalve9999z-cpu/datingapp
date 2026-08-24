@@ -1,20 +1,22 @@
-import 'package:datingapp/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'models/profile_model.dart';
 import 'profilescreen.dart';
 import 'screens/chat_list_screen.dart';
-import 'screens/chat_room_screen.dart';
 import 'screens/discovery_filters_screen.dart';
 import 'screens/likes_screen.dart';
 import 'screens/match_celebration_screen.dart';
-import 'screens/services/api_service.dart'
-    if (dart.library.io) 'services/api_service.dart';
+import 'screens/profile_detail_screen.dart';
+import 'services/api_service.dart';
 import 'theme/app_theme.dart';
 import 'widgets/modern_bottom_nav.dart';
 import 'widgets/tinder_swipe_deck.dart';
 import 'widgets/shimmer_loading.dart';
 import 'widgets/ai_agent_sheet.dart';
+import 'widgets/sparks_stories_tray.dart';
+import 'widgets/ai_daily_spark_banner.dart';
+import 'widgets/discovery_category_filter_bar.dart';
+import 'widgets/discover_grid_explore_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,14 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() => _isLoadingDiscover = false);
     }
-    return;
-    // Existing implementation intentionally kept unreachable below.
-    // This method is replaced by the block above.
-    /*
-      _discoverProfiles = profiles;
-      _isLoadingDiscover = false;
-    });
-    */
   }
 
   void _handleMatch(ProfileModel profile) {
@@ -77,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
         profiles: _discoverProfiles,
         isLoading: _isLoadingDiscover,
         onMatch: _handleMatch,
+        onRefresh: _loadDiscoverProfiles,
       ),
       const LikesScreen(),
       const ChatListScreen(),
@@ -113,12 +108,14 @@ class DiscoverTab extends StatefulWidget {
   final List<ProfileModel> profiles;
   final bool isLoading;
   final ValueChanged<ProfileModel>? onMatch;
+  final Future<void> Function()? onRefresh;
 
   const DiscoverTab({
     super.key,
     required this.profiles,
     required this.isLoading,
     this.onMatch,
+    this.onRefresh,
   });
 
   @override
@@ -130,6 +127,9 @@ class _DiscoverTabState extends State<DiscoverTab> {
   final FocusNode _searchFocus = FocusNode();
   String _query = '';
   bool _isFocused = false;
+  bool _showAiBanner = true;
+  DiscoveryCategory _selectedCategory = DiscoveryCategory.all;
+  DiscoveryViewMode _viewMode = DiscoveryViewMode.swipeDeck;
 
   @override
   void initState() {
@@ -147,16 +147,80 @@ class _DiscoverTabState extends State<DiscoverTab> {
   }
 
   List<ProfileModel> get _filteredProfiles {
-    if (_query.trim().isEmpty) return widget.profiles;
-    final lower = _query.toLowerCase();
-    return widget.profiles
-        .where((p) => p.name.toLowerCase().contains(lower))
-        .toList();
+    var list = widget.profiles;
+
+    // 1. Category Filtering
+    switch (_selectedCategory) {
+      case DiscoveryCategory.verified:
+        list = list.where((p) => p.isVerified).toList();
+        break;
+      case DiscoveryCategory.nearby:
+        list = list.where((p) {
+          final distStr = p.distance.toLowerCase();
+          return distStr.contains('km') || distStr.contains('mile') || distStr.contains('nearby') || distStr.contains('2') || distStr.contains('3') || distStr.contains('5');
+        }).toList();
+        break;
+      case DiscoveryCategory.highSynergy:
+        list = list.where((p) => p.compatibilityScore >= 90).toList();
+        break;
+      case DiscoveryCategory.interests:
+        list = list.where((p) => p.interests.isNotEmpty).toList();
+        break;
+      case DiscoveryCategory.all:
+        break;
+    }
+
+    // 2. Search Query Filtering
+    if (_query.trim().isNotEmpty) {
+      final lower = _query.toLowerCase();
+      list = list.where((p) => p.name.toLowerCase().contains(lower) || p.occupation.toLowerCase().contains(lower) || p.interests.any((i) => i.toLowerCase().contains(lower))).toList();
+    }
+
+    return list;
+  }
+
+  ProfileModel? get _dailySparkProfile {
+    if (widget.profiles.isEmpty) return null;
+    return widget.profiles.reduce(
+      (curr, next) => curr.compatibilityScore > next.compatibilityScore ? curr : next,
+    );
+  }
+
+  Future<void> _handleSwipeAction(ProfileModel profile, SwipeDirection direction) async {
+    if (direction == SwipeDirection.right) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('You liked ${profile.name.split(' ').first}. Keep going! \u2764\uFE0F'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      );
+      final res = await AppApiService.swipeRight(profile.id);
+      if (res['result'] == 'match') {
+        widget.onMatch?.call(profile);
+      }
+    } else if (direction == SwipeDirection.up) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Super liked ${profile.name.split(' ').first}! \u2B50'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      );
+      final res = await AppApiService.swipeRight(profile.id, isSuperLike: true);
+      if (res['result'] == 'match') {
+        widget.onMatch?.call(profile);
+      }
+    } else if (direction == SwipeDirection.left) {
+      AppApiService.swipeLeft(profile.id);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredProfiles;
+    final dailySpark = _dailySparkProfile;
+
     return Container(
       decoration: const BoxDecoration(
         gradient: RadialGradient(
@@ -175,7 +239,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
           children: [
             // ── Header ──────────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(22, 18, 22, 10),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
               child: Row(
                 children: [
                   Expanded(
@@ -191,9 +255,9 @@ class _DiscoverTabState extends State<DiscoverTab> {
                             letterSpacing: -0.6,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: 3),
                         Text(
-                          'Fresh picks and instant sparks',
+                          'Fresh picks & instant sparks',
                           style: TextStyle(
                             color: AppTheme.textSecondary,
                             fontSize: 13,
@@ -249,17 +313,37 @@ class _DiscoverTabState extends State<DiscoverTab> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.white12),
                       ),
-                      child: const Icon(Icons.tune_rounded,
-                          color: AppTheme.accentGold),
+                      child: const Icon(
+                        Icons.tune_rounded,
+                        color: AppTheme.accentGold,
+                        size: 22,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
 
+            // ── Stories Tray (Active Sparks) ─────────────────────────────────
+            if (!widget.isLoading && widget.profiles.isNotEmpty)
+              SparksStoriesTray(
+                profiles: widget.profiles,
+                onSelectProfile: (profile) {
+                  // Handled inside SparksStoriesTray preview modal
+                },
+              ),
+
+            // ── AI Daily Spark Recommendation Banner ────────────────────────
+            if (!widget.isLoading && _showAiBanner && dailySpark != null && _query.isEmpty)
+              AiDailySparkBanner(
+                profile: dailySpark,
+                onDismiss: () => setState(() => _showAiBanner = false),
+                onSparkAction: (p) => AiAgentSheet.show(context),
+              ),
+
             // ── Search Bar ──────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOut,
@@ -268,14 +352,14 @@ class _DiscoverTabState extends State<DiscoverTab> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: _isFocused
-                        ? AppTheme.primaryRose.withOpacity(0.75)
-                        : Colors.white.withOpacity(0.09),
+                        ? AppTheme.primaryRose.withValues(alpha: 0.75)
+                        : Colors.white.withValues(alpha: 0.09),
                     width: _isFocused ? 1.4 : 1,
                   ),
                   boxShadow: _isFocused
                       ? [
                           BoxShadow(
-                            color: AppTheme.primaryRose.withOpacity(0.18),
+                            color: AppTheme.primaryRose.withValues(alpha: 0.18),
                             blurRadius: 14,
                             offset: const Offset(0, 4),
                           )
@@ -289,13 +373,13 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       color: AppTheme.textPrimary, fontSize: 14),
                   onChanged: (v) => setState(() => _query = v),
                   decoration: InputDecoration(
-                    hintText: 'Search by name…',
+                    hintText: 'Search by name, occupation, passion…',
                     hintStyle: const TextStyle(
-                        color: AppTheme.textMuted, fontSize: 14),
+                        color: AppTheme.textMuted, fontSize: 13),
                     prefixIcon: const Icon(
                       Icons.search_rounded,
-                      color: AppTheme.primaryRose,
-                      size: 22,
+                      color: AppTheme.accentGold,
+                      size: 20,
                     ),
                     suffixIcon: _query.isNotEmpty
                         ? GestureDetector(
@@ -306,19 +390,28 @@ class _DiscoverTabState extends State<DiscoverTab> {
                             child: const Icon(
                               Icons.close_rounded,
                               color: AppTheme.textMuted,
-                              size: 20,
+                              size: 18,
                             ),
                           )
                         : null,
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                        horizontal: 14, vertical: 12),
                   ),
                 ),
               ),
             ),
 
-            // ── Swipe Deck / Skeleton ────────────────────────────────────────
+            // ── Discovery Category Filter Bar & Mode Toggle ──────────────────
+            DiscoveryCategoryFilterBar(
+              selectedCategory: _selectedCategory,
+              onCategoryChanged: (cat) => setState(() => _selectedCategory = cat),
+              viewMode: _viewMode,
+              onViewModeChanged: (mode) => setState(() => _viewMode = mode),
+              totalCount: filtered.length,
+            ),
+
+            // ── Main Content: Deck vs Grid vs Skeleton / Empty ───────────────
             Expanded(
               child: AnimatedCrossFade(
                 firstChild: const DiscoverCardSkeleton(),
@@ -330,61 +423,63 @@ class _DiscoverTabState extends State<DiscoverTab> {
                             Icon(
                               Icons.search_off_rounded,
                               size: 56,
-                              color: AppTheme.textMuted.withOpacity(0.5),
+                              color: AppTheme.textMuted.withValues(alpha: 0.5),
                             ),
                             const SizedBox(height: 14),
                             const Text(
-                              'No profiles match your search',
+                              'No profiles match this filter',
                               style: TextStyle(
                                 color: AppTheme.textMuted,
                                 fontSize: 15,
                               ),
                             ),
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedCategory = DiscoveryCategory.all;
+                                  _searchController.clear();
+                                  _query = '';
+                                });
+                              },
+                              icon: const Icon(Icons.refresh_rounded, size: 16),
+                              label: const Text('Reset Filters'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.surfaceCard,
+                                foregroundColor: AppTheme.accentGold,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       )
-                    : TinderSwipeDeck(
-                        profiles: filtered,
-                        onSwipe: (profile, direction) async {
-                          if (direction == SwipeDirection.right) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'You liked ${profile.name.split(' ').first}. Keep going!'),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                    : _viewMode == DiscoveryViewMode.gridView
+                        ? DiscoverGridExploreView(
+                            profiles: filtered,
+                            onLike: (profile) =>
+                                _handleSwipeAction(profile, SwipeDirection.right),
+                            onSuperLike: (profile) =>
+                                _handleSwipeAction(profile, SwipeDirection.up),
+                            onSelectProfile: (profile) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProfileDetailScreen(
+                                    profile: profile,
+                                    heroTag: 'discover_${profile.id}',
+                                  ),
                                 ),
-                              ),
-                            );
-                            final res =
-                                await AppApiService.swipeRight(profile.id);
-                            if (res['result'] == 'match') {
-                              widget.onMatch?.call(profile);
-                            }
-                          } else if (direction == SwipeDirection.up) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'Super liked ${profile.name.split(' ').first}! \u2B50'),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                            );
-                            final res = await AppApiService.swipeRight(
-                                profile.id,
-                                isSuperLike: true);
-                            if (res['result'] == 'match') {
-                              widget.onMatch?.call(profile);
-                            }
-                          } else if (direction == SwipeDirection.left) {
-                            AppApiService.swipeLeft(profile.id);
-                          }
-                        },
-                        onMatch: widget.onMatch,
-                      ),
+                              );
+                            },
+                          )
+                        : TinderSwipeDeck(
+                            profiles: filtered,
+                            onSwipe: (profile, direction) =>
+                                _handleSwipeAction(profile, direction),
+                            onMatch: widget.onMatch,
+                          ),
                 crossFadeState: widget.isLoading
                     ? CrossFadeState.showFirst
                     : CrossFadeState.showSecond,
@@ -397,6 +492,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
     );
   }
 }
+
 
 /// Wraps a widget with a mouse-hover reaction: a slight scale-up plus a
 /// softened/lifted shadow, using MouseRegion + AnimatedContainer exactly like
