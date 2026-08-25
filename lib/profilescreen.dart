@@ -5,6 +5,9 @@ import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
 import 'screens/setting_screen.dart';
 import 'screens/safety_center_screen.dart';
+import 'screens/boost_spotlight_screen.dart';
+import 'screens/passport_travel_screen.dart';
+import 'screens/ai_agent_screen.dart';
 import 'widgets/shimmer_loading.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -271,6 +274,150 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // VIP Instant Perks Quick Actions
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BoostSpotlightScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF5B247A), Color(0xFF1B1464)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFFFF512F).withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(Icons.rocket_launch_rounded,
+                              color: Color(0xFFFF512F), size: 24),
+                          SizedBox(height: 6),
+                          Text(
+                            'Spotlight 10x',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '1 Free Ready',
+                            style: TextStyle(
+                              color: AppTheme.accentGold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PassportTravelScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppTheme.accentCyan.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(Icons.public_rounded,
+                              color: AppTheme.accentCyan, size: 24),
+                          SizedBox(height: 6),
+                          Text(
+                            'Passport Mode',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Teleport Anywhere',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AiAgentScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppTheme.accentGold.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(Icons.auto_awesome_rounded,
+                              color: AppTheme.accentGold, size: 24),
+                          SizedBox(height: 6),
+                          Text(
+                            'AI Wingman',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Bio & Openers',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 28),

@@ -4,6 +4,8 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/animated_glow_button.dart';
+import '../widgets/ai_compatibility_radar_sheet.dart';
+import '../widgets/superlike_note_dialog.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
   final ProfileModel profile;
@@ -205,25 +207,38 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       // Match Compatibility & Distance Row
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              gradient: AppTheme.sunsetGradient,
-                              borderRadius: BorderRadius.circular(20),
+                          GestureDetector(
+                            onTap: () => AiCompatibilityRadarSheet.show(
+                              context,
+                              profile: profile,
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.bolt_rounded, color: Colors.white, size: 18),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${profile.compatibilityScore}% Compatibility',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                gradient: AppTheme.primaryGradient,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.accentGold.withValues(alpha: 0.35),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.bolt_rounded, color: AppTheme.darkBackground, size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${profile.compatibilityScore}% Chemistry (Radar)',
+                                    style: const TextStyle(
+                                      color: AppTheme.darkBackground,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -739,12 +754,12 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                     size: 50,
                     iconSize: 26,
                     onPressed: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Super Liked ${profile.name}! \u2B50'),
-                          backgroundColor: AppTheme.surfaceCard,
-                        ),
+                      SuperlikeNoteDialog.show(
+                        context,
+                        profile: profile,
+                        onSendSuperlike: (note) {
+                          Navigator.pop(context);
+                        },
                       );
                     },
                   ),

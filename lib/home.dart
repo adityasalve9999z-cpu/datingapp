@@ -7,6 +7,8 @@ import 'screens/discovery_filters_screen.dart';
 import 'screens/likes_screen.dart';
 import 'screens/match_celebration_screen.dart';
 import 'screens/profile_detail_screen.dart';
+import 'screens/boost_spotlight_screen.dart';
+import 'screens/passport_travel_screen.dart';
 import 'services/api_service.dart';
 import 'theme/app_theme.dart';
 import 'widgets/modern_bottom_nav.dart';
@@ -17,6 +19,9 @@ import 'widgets/sparks_stories_tray.dart';
 import 'widgets/ai_daily_spark_banner.dart';
 import 'widgets/discovery_category_filter_bar.dart';
 import 'widgets/discover_grid_explore_view.dart';
+import 'widgets/boost_active_pill.dart';
+import 'widgets/superlike_note_dialog.dart';
+import 'widgets/ai_compatibility_radar_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -126,6 +131,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
   String _query = '';
   bool _isFocused = false;
   bool _showAiBanner = true;
+  bool _isBoostActive = true;
+  String _passportCity = 'Current Location (GPS)';
   DiscoveryCategory _selectedCategory = DiscoveryCategory.all;
   DiscoveryViewMode _viewMode = DiscoveryViewMode.swipeDeck;
 
@@ -198,17 +205,16 @@ class _DiscoverTabState extends State<DiscoverTab> {
         widget.onMatch?.call(profile);
       }
     } else if (direction == SwipeDirection.up) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Super liked ${profile.name.split(' ').first}! \u2B50'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
+      SuperlikeNoteDialog.show(
+        context,
+        profile: profile,
+        onSendSuperlike: (note) async {
+          final res = await AppApiService.swipeRight(profile.id, isSuperLike: true);
+          if (res['result'] == 'match') {
+            widget.onMatch?.call(profile);
+          }
+        },
       );
-      final res = await AppApiService.swipeRight(profile.id, isSuperLike: true);
-      if (res['result'] == 'match') {
-        widget.onMatch?.call(profile);
-      }
     } else if (direction == SwipeDirection.left) {
       AppApiService.swipeLeft(profile.id);
     }
@@ -243,8 +249,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
+                      children: [
+                        const Text(
                           'Discover',
                           style: TextStyle(
                             color: AppTheme.textPrimary,
@@ -253,48 +259,97 @@ class _DiscoverTabState extends State<DiscoverTab> {
                             letterSpacing: -0.6,
                           ),
                         ),
-                        SizedBox(height: 3),
+                        const SizedBox(height: 3),
                         Text(
-                          'Fresh picks & instant sparks',
+                          _passportCity.contains('GPS')
+                              ? 'Fresh picks & instant sparks'
+                              : '✈️ Teleported: $_passportCity',
                           style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 13,
+                            color: _passportCity.contains('GPS')
+                                ? AppTheme.textSecondary
+                                : AppTheme.accentCyan,
+                            fontSize: 12.5,
+                            fontWeight: _passportCity.contains('GPS')
+                                ? FontWeight.normal
+                                : FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
+
+                  // 🚀 Spotlight Boost Trigger Button
                   GestureDetector(
-                    onTap: () => context.push('/notifications'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BoostSpotlightScreen(),
+                        ),
+                      );
+                    },
                     child: Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceCard,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF512F), Color(0xFFDD2476)],
+                        ),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          const Icon(Icons.notifications_rounded,
-                              color: AppTheme.accentCyan, size: 22),
-                          Positioned(
-                            top: -2,
-                            right: -2,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppTheme.primaryRose,
-                              ),
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFDD2476).withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
                           ),
                         ],
+                      ),
+                      child: const Icon(
+                        Icons.rocket_launch_rounded,
+                        color: Colors.white,
+                        size: 20,
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
+
+                  // ✈️ Passport Travel Mode Trigger Button
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PassportTravelScreen(
+                            currentCity: _passportCity,
+                          ),
+                        ),
+                      );
+                      if (result is Map && result.containsKey('city')) {
+                        setState(() => _passportCity = result['city']);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: _passportCity.contains('GPS')
+                              ? Colors.white12
+                              : AppTheme.accentCyan,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.public_rounded,
+                        color: _passportCity.contains('GPS')
+                            ? AppTheme.accentCyan
+                            : AppTheme.accentGold,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Filter Settings
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -305,7 +360,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceCard,
                         borderRadius: BorderRadius.circular(16),
@@ -314,7 +369,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       child: const Icon(
                         Icons.tune_rounded,
                         color: AppTheme.accentGold,
-                        size: 22,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -322,13 +377,18 @@ class _DiscoverTabState extends State<DiscoverTab> {
               ),
             ),
 
+            // ── Live Spotlight Boost Pill ────────────────────────────────────
+            if (_isBoostActive)
+              BoostActivePill(
+                initialMinutes: 30,
+                onExpired: () => setState(() => _isBoostActive = false),
+              ),
+
             // ── Stories Tray (Active Sparks) ─────────────────────────────────
             if (!widget.isLoading && widget.profiles.isNotEmpty)
               SparksStoriesTray(
                 profiles: widget.profiles,
-                onSelectProfile: (profile) {
-                  // Handled inside SparksStoriesTray preview modal
-                },
+                onSelectProfile: (profile) {},
               ),
 
             // ── AI Daily Spark Recommendation Banner ────────────────────────
@@ -336,7 +396,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
               AiDailySparkBanner(
                 profile: dailySpark,
                 onDismiss: () => setState(() => _showAiBanner = false),
-                onSparkAction: (p) => AiAgentSheet.show(context),
+                onSparkAction: (p) => AiCompatibilityRadarSheet.show(context, profile: p),
               ),
 
             // ── Search Bar ──────────────────────────────────────────────────
