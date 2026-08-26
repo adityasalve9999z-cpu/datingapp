@@ -27,6 +27,8 @@ class _LikesScreenState extends State<LikesScreen>
   // Track the last double-tapped index to trigger the pop-up heart animation
   int? _animatingHeartIndex;
 
+  get AppApiService => null;
+
   @override
   void initState() {
     super.initState();
@@ -449,3 +451,5 @@ class _LikesScreenState extends State<LikesScreen>
     );
   }
 }
+
+
