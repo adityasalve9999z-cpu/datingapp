@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Brand Color Palette — "Lume" Deep Midnight Plum & Champagne Gold
@@ -72,7 +73,10 @@ class AppTheme {
         onPrimary: darkBackground,
         onSurface: textPrimary,
       ),
-      fontFamily: 'Roboto',
+      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).apply(
+        bodyColor: textPrimary,
+        displayColor: textPrimary,
+      ),
       cardTheme: CardThemeData(
         color: surfaceCard,
         elevation: 8,
@@ -121,11 +125,22 @@ class AppTheme {
     BorderRadius? borderRadius,
     EdgeInsetsGeometry? padding,
     EdgeInsetsGeometry? margin,
-    double blur = 15.0,
-    Color border = const Color(0xFF3A2740),
+    double blur = 20.0,
+    Color border = const Color(0x33FFFFFF), // Subtle glowing border
   }) {
     return Container(
       margin: margin,
+      decoration: BoxDecoration(
+        borderRadius: borderRadius ?? BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 15,
+            spreadRadius: -5,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: ClipRRect(
         borderRadius: borderRadius ?? BorderRadius.circular(24),
         child: BackdropFilter(
@@ -135,8 +150,8 @@ class AppTheme {
             decoration: BoxDecoration(
               gradient: glassGradient,
               borderRadius: borderRadius ?? BorderRadius.circular(24),
-              border: Border.all(color: border, width: 1.2),
-              color: surfaceDark.withOpacity(0.6),
+              border: Border.all(color: border, width: 1.0),
+              color: surfaceDark.withOpacity(0.4),
             ),
             child: child,
           ),
