@@ -335,17 +335,17 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
       width: double.infinity,
       height: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(24),
         child: Stack(
           children: [
             // Photo View & Tap Navigator
@@ -369,7 +369,17 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
             Positioned.fill(
               child: Container(
                 decoration: const BoxDecoration(
-                  gradient: AppTheme.cardOverlayGradient,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Colors.transparent,
+                      Color(0x99160D1C),
+                      Color(0xFA160D1C),
+                    ],
+                    stops: [0.0, 0.5, 0.75, 1.0],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
             ),
@@ -642,14 +652,16 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
           child: Opacity(
             opacity: _swipeProgress,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.emeraldGreen, width: 4),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.emeraldGreen.withOpacity(0.5),
-                    blurRadius: 15,
+                    color: AppTheme.emeraldGreen.withOpacity(0.4),
+                    blurRadius: 20,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
@@ -657,9 +669,9 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                 'LIKE',
                 style: TextStyle(
                   color: AppTheme.emeraldGreen,
-                  fontSize: 36,
+                  fontSize: 40,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+                  letterSpacing: 4,
                 ),
               ),
             ),
@@ -677,14 +689,16 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
           child: Opacity(
             opacity: _swipeProgress,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.primaryRose, width: 4),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primaryRose.withOpacity(0.5),
-                    blurRadius: 15,
+                    color: AppTheme.primaryRose.withOpacity(0.4),
+                    blurRadius: 20,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
@@ -692,9 +706,9 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                 'NOPE',
                 style: TextStyle(
                   color: AppTheme.primaryRose,
-                  fontSize: 36,
+                  fontSize: 40,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+                  letterSpacing: 4,
                 ),
               ),
             ),

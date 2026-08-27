@@ -18,8 +18,8 @@ class BouncingTapWrapper extends StatefulWidget {
     super.key,
     required this.child,
     required this.onTap,
-    this.scaleFactor = 0.93,
-    this.duration = const Duration(milliseconds: 130),
+    this.scaleFactor = 0.90,
+    this.duration = const Duration(milliseconds: 100),
     this.enableHaptics = true,
   });
 
