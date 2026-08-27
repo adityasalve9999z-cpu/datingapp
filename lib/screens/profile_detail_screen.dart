@@ -809,21 +809,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       ),
     );
   }
-        children: [
-          Icon(icon, size: 16, color: AppTheme.primaryRose),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildLifestyleBadge(String category, String value) {
     final color = AppTheme.lifestyleColor(category, value);
