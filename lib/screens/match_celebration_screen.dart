@@ -23,6 +23,7 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
   late AnimationController _animController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _pulseAnimation;
+  late Animation<double> _slideAnimation;
   final TextEditingController _icebreakerController = TextEditingController();
 
   final List<String> _quickIcebreakers = [
@@ -43,6 +44,13 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
     _scaleAnimation = CurvedAnimation(
       parent: _animController,
       curve: Curves.elasticOut,
+    );
+
+    _slideAnimation = Tween<double>(begin: 80.0, end: 25.0).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: Curves.elasticOut,
+      ),
     );
 
     _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
@@ -123,13 +131,20 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
                         ShaderMask(
                           shaderCallback: (bounds) =>
                               AppTheme.primaryGradient.createShader(bounds),
-                          child: const Text(
+                          child: Text(
                             "IT'S A MATCH!",
                             style: TextStyle(
-                              fontSize: 34,
+                              fontSize: 38,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 2,
                               color: Colors.white,
+                              shadows: [
+                                BoxShadow(
+                                  color: AppTheme.primaryRose.withOpacity(0.6),
+                                  blurRadius: 15,
+                                  spreadRadius: 2,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -189,12 +204,12 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
                           children: [
                             // User Avatar (Left)
                             Positioned(
-                              left: 30,
+                              left: _slideAnimation.value,
                               child: Transform.scale(
                                 scale: _pulseAnimation.value,
                                 child: Container(
-                                  width: 120,
-                                  height: 120,
+                                  width: 130,
+                                  height: 130,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(color: AppTheme.accentGold, width: 3),
@@ -215,12 +230,12 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
 
                             // Matched Avatar (Right)
                             Positioned(
-                              right: 30,
+                              right: _slideAnimation.value,
                               child: Transform.scale(
                                 scale: _pulseAnimation.value,
                                 child: Container(
-                                  width: 120,
-                                  height: 120,
+                                  width: 130,
+                                  height: 130,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(color: AppTheme.primaryRose, width: 3),
