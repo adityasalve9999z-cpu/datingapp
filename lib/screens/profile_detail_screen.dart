@@ -67,7 +67,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
             slivers: [
               // Hero Photo Header View
               SliverAppBar(
-                expandedHeight: MediaQuery.of(context).size.height * 0.55,
+                expandedHeight: MediaQuery.of(context).size.height * 0.70,
                 pinned: true,
                 backgroundColor: AppTheme.darkBackground,
                 leading: Container(
@@ -456,13 +456,11 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                         runSpacing: 10,
                         children: profile.interests
                             .map(
-                              (interest) => Container(
+                              (interest) => AppTheme.glassContainer(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.surfaceCard,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: AppTheme.primaryRose.withOpacity(0.3)),
-                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: AppTheme.primaryRose.withOpacity(0.3),
+                                blur: 10,
                                 child: Text(
                                   interest,
                                   style: const TextStyle(
@@ -789,15 +787,28 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   }
 
   Widget _buildDetailTile(IconData icon, String text) {
-    return Container(
+    return AppTheme.glassContainer(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
-      ),
+      borderRadius: BorderRadius.circular(16),
+      border: Colors.white.withOpacity(0.15),
+      blur: 10,
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppTheme.textSecondary, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
         children: [
           Icon(icon, size: 16, color: AppTheme.primaryRose),
           const SizedBox(width: 8),
