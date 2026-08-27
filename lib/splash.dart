@@ -59,6 +59,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animController;
   late Animation<double> _scaleAnim;
   late Animation<double> _fadeAnim;
+  late Animation<double> _bgBreathAnimation;
 
   // Heartbeat pulse for the logo mark once the entrance animation settles —
   // two quick beats then a rest, matching the rhythm used on the home and
@@ -96,6 +97,13 @@ class _SplashScreenState extends State<SplashScreen>
       TweenSequenceItem(tween: ConstantTween(1.0), weight: 56),
     ]).animate(_heartbeatController);
 
+    _bgBreathAnimation = Tween<double>(begin: 1.2, end: 1.8).animate(
+      CurvedAnimation(
+        parent: _heartbeatController,
+        curve: Curves.easeInOutSine,
+      ),
+    );
+
     _animController.forward().whenComplete(() {
       // Start the ambient heartbeat only after the entrance pop finishes,
       // so the two animations don't fight each other on the same scale value.
@@ -125,21 +133,21 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            colors: [
-              Color(0x33FF2A6D),
-              AppTheme.darkBackground,
-            ],
-            radius: 1.2,
-          ),
-        ),
-        child: Center(
-          child: AnimatedBuilder(
-            animation: Listenable.merge([_animController, _heartbeatController]),
-            builder: (context, child) {
-              return FadeTransition(
+      body: AnimatedBuilder(
+        animation: Listenable.merge([_animController, _heartbeatController]),
+        builder: (context, child) {
+          return Container(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: const [
+                  Color(0x44FF2A6D),
+                  AppTheme.darkBackground,
+                ],
+                radius: _bgBreathAnimation.value,
+              ),
+            ),
+            child: Center(
+              child: FadeTransition(
                 opacity: _fadeAnim,
                 child: ScaleTransition(
                   scale: _scaleAnim,
@@ -208,12 +216,11 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                     ],
-                  ),
                 ),
               );
-            },
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
