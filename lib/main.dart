@@ -20,6 +20,7 @@ import 'providers/profile_provider.dart';
 import 'providers/discovery_feed_provider.dart';
 import 'providers/matches_and_chat_provider.dart';
 import 'providers/app_settings_provider.dart';
+import 'providers/app_loading_provider.dart';
 import 'router.dart';
 
 void main() async {
@@ -38,6 +39,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => DiscoveryFeedProvider()),
         ChangeNotifierProvider(create: (_) => MatchesAndChatProvider()),
         ChangeNotifierProvider(create: (_) => AppSettingsProvider()),
+        ChangeNotifierProvider(create: (_) => AppLoadingProvider()),
       ],
       child: const GlowDateApp(),
     ),
@@ -79,6 +81,17 @@ class GlowDateApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       scrollBehavior: AppScrollBehavior(),
       routerConfig: appRouter,
+      builder: (context, child) {
+        return Consumer<AppLoadingProvider>(
+          builder: (context, loadingProvider, _) {
+            return GlowLoadingOverlay(
+              isLoading: loadingProvider.isLoading,
+              message: loadingProvider.message,
+              child: child!,
+            );
+          },
+        );
+      },
     );
   }
 }
