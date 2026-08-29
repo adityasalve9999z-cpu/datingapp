@@ -3,39 +3,38 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Brand Color Palette — "Lume" Deep Midnight Plum & Champagne Gold
-  static const Color darkBackground = Color(0xFF160D1C); // Near-black plum
-  static const Color surfaceDark = Color(0xFF221328); // Card/field surface
-  static const Color surfaceCard = Color(0xFF2A1830); // Lighter plum card
-  static const Color surfaceGlass = Color(0x333A2740); // Glassmorphic overlay
+  // Brand Color Palette — "Premium Onyx & Champagne Gold"
+  static const Color darkBackground = Color(0xFF0F0F11); // Pure Onyx Black
+  static const Color surfaceDark = Color(0xFF16161A); // Dark Charcoal
+  static const Color surfaceCard = Color(0xFF1E1E24); // Slate Black
+  static const Color surfaceGlass = Color(0x332A2A35); // Glassmorphic overlay
 
-  static const Color primaryRose = Color(0xFFE8A7A0); // Soft blush secondary
-  static const Color primaryCoral =
-      Color(0xFFE07A6B); // Warm error/coral highlight
-  static const Color primaryPurple = Color(0xFF4A2E55); // Deep accent purple
-  static const Color accentCyan = Color(0xFF72A6A6); // Muted soft teal/cyan
-  static const Color accentGold = Color(0xFFD4A857); // Champagne gold accent
+  static const Color primaryRose = Color(0xFFE5C07B); // Champagne gold secondary
+  static const Color primaryCoral = Color(0xFFE86C60); // Warm coral
+  static const Color primaryPurple = Color(0xFF2C2C35); // Deep slate accent
+  static const Color accentCyan = Color(0xFF72A6A6); // Muted teal
+  static const Color accentGold = Color(0xFFD4AF37); // Rich gold
   static const Color emeraldGreen = Color(0xFF81B29A); // Muted sage green
 
   static const Color textPrimary = Color(0xFFF3EEE9);
   static const Color textSecondary = Color(0xFFA79AAE);
-  static const Color textMuted = Color(0xFF6E6274);
+  static const Color textMuted = Color(0xFF767682);
 
   // Gradient Presets
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFFD4A857), Color(0xFFC79340)],
+    colors: [Color(0xFFD4AF37), Color(0xFFB5932A)],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
 
   static const LinearGradient sunsetGradient = LinearGradient(
-    colors: [Color(0xFFD4A857), Color(0xFFE8A7A0)],
+    colors: [Color(0xFFD4AF37), Color(0xFFE5E4E2)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient goldGradient = LinearGradient(
-    colors: [Color(0xFFD4A857), Color(0xFF8A7245)],
+    colors: [Color(0xFFD4AF37), Color(0xFF8A7245)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -43,8 +42,8 @@ class AppTheme {
   static const LinearGradient cardOverlayGradient = LinearGradient(
     colors: [
       Colors.transparent,
-      Color(0x66160D1C),
-      Color(0xF1160D1C),
+      Color(0x660F0F11),
+      Color(0xF10F0F11),
     ],
     stops: [0.0, 0.5, 1.0],
     begin: Alignment.topCenter,

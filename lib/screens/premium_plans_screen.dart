@@ -78,11 +78,8 @@ class _PremiumPlansScreenState extends State<PremiumPlansScreen>
       name: 'Gold',
       price: '\$19.99',
       period: 'per month',
-      accentColor: const Color(0xFFD4A857),
-      gradient: const LinearGradient(
-          colors: [Color(0xFFD4A857), Color(0xFFB8882E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight),
+      accentColor: AppTheme.accentGold,
+      gradient: AppTheme.goldGradient,
       badgeIcon: Icons.star_rounded,
       isPopular: true,
       features: const [
@@ -101,9 +98,9 @@ class _PremiumPlansScreenState extends State<PremiumPlansScreen>
       name: 'Platinum',
       price: '\$34.99',
       period: 'per month',
-      accentColor: const Color(0xFF7EC8E3),
+      accentColor: const Color(0xFFE5E4E2), // Platinum
       gradient: const LinearGradient(
-          colors: [Color(0xFF7EC8E3), Color(0xFF4FA8C9)],
+          colors: [Color(0xFFE5E4E2), Color(0xFF9E9E9E)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight),
       badgeIcon: Icons.diamond_rounded,
