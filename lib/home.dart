@@ -168,15 +168,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: TinderSwipeDeck(
-          profiles: _activeProfiles,
-          onSwipe: _handleSwipe,
-          onUndo: _handleUndo,
-          onMatch: _triggerMatchPopup,
-        ),
-      ),
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryRose))
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TinderSwipeDeck(
+                profiles: _activeProfiles,
+                onSwipe: _handleSwipe,
+                onUndo: _handleUndo,
+                onMatch: _triggerMatchPopup,
+              ),
+            ),
     );
   }
 
