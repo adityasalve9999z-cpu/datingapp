@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../theme/app_theme.dart';
 import 'profile_detail_screen.dart';
+import 'call_screen.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final ProfileModel profile;
@@ -122,11 +123,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.videocam_rounded, color: AppTheme.textPrimary),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(profile: profile, isVideoCall: true),
+                ),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.call_rounded, color: AppTheme.textPrimary),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(profile: profile, isVideoCall: false),
+                ),
+              );
+            },
           ),
         ],
       ),

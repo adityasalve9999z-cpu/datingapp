@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'splash.dart';
 import 'home.dart';
 import 'screens/onboarding_wizard_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
+import 'providers/call_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const GlowDateApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CallProvider()),
+      ],
+      child: const GlowDateApp(),
+    ),
+  );
 }
 
 class GlowDateApp extends StatelessWidget {
