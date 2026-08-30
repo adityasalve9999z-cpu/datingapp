@@ -65,6 +65,41 @@ class ProfileModel {
     this.instagramHandle,
     this.profileCompletion = 85,
   });
+
+  factory ProfileModel.fromJson(Map<String, dynamic> json) {
+    return ProfileModel(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? 'Unknown',
+      age: json['age'] as int? ?? 25,
+      occupation: json['occupation']?.toString() ?? '',
+      bio: json['bio']?.toString() ?? '',
+      photos: (json['photos'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      compatibilityScore: json['compatibilityScore'] as int? ?? 50,
+      distance: json['distance']?.toString() ?? '1 mile away',
+      isVerified: json['isVerified'] as bool? ?? false,
+      interests: (json['interests'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      location: json['location']?.toString() ?? '',
+      audioPromptTitle: json['audioPromptTitle']?.toString(),
+      audioPromptDuration: json['audioPromptDuration']?.toString(),
+      promptQuestion: json['promptQuestion']?.toString(),
+      promptAnswer: json['promptAnswer']?.toString(),
+      height: json['height']?.toString() ?? "5'7\"",
+      zodiac: json['zodiac']?.toString() ?? "Leo ♌",
+      relationshipGoal: json['relationshipGoal']?.toString() ?? "Long-term connection",
+      education: json['education']?.toString() ?? "University Graduate",
+      degree: json['degree']?.toString() ?? "Bachelor's Degree",
+      languages: (json['languages'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? ["English"],
+      mbti: json['mbti']?.toString() ?? "INFP",
+      drinking: json['drinking']?.toString() ?? "Socially",
+      smoking: json['smoking']?.toString() ?? "Never",
+      exercise: json['exercise']?.toString() ?? "Sometimes",
+      pets: json['pets']?.toString() ?? "No pets",
+      mutualFriends: json['mutualFriends'] as int? ?? 0,
+      lookingFor: (json['lookingFor'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? ["Genuine connection"],
+      instagramHandle: json['instagramHandle']?.toString(),
+      profileCompletion: json['profileCompletion'] as int? ?? 85,
+    );
+  }
 }
 
 final List<ProfileModel> mockProfiles = [
