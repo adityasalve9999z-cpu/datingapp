@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -9,12 +10,53 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _bioController = TextEditingController(
-    text: 'Art gallery explorer & specialty coffee fanatic ☕. Looking for someone to share late-night rooftop vinyl sessions and Sunday morning market runs.',
-  );
-  final TextEditingController _promptController = TextEditingController(
-    text: 'Freshly roasted espresso and spontaneous road trips up the coastline.',
-  );
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _promptController = TextEditingController();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await AppApiService.fetchUserProfile();
+    if (mounted) {
+      setState(() {
+        _bioController.text = profile['bio'] ?? '';
+        _promptController.text = profile['promptAnswer'] ?? '';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    setState(() => _isLoading = true);
+    final result = await AppApiService.updateProfile({
+      'bio': _bioController.text,
+      'promptAnswer': _promptController.text,
+    });
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile saved successfully!'),
+            backgroundColor: AppTheme.surfaceDark,
+          ),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Failed to save profile'),
+            backgroundColor: AppTheme.primaryCoral,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,21 +65,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         title: const Text('Edit Profile'),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Profile saved successfully!'),
-                  backgroundColor: AppTheme.surfaceDark,
+          _isLoading
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryRose))),
+                )
+              : TextButton(
+                  onPressed: _saveProfile,
+                  child: const Text('Save', style: TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
-              );
-            },
-            child: const Text('Save', style: TextStyle(color: AppTheme.primaryRose, fontWeight: FontWeight.bold, fontSize: 16)),
-          ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryRose))
+        : SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         physics: const BouncingScrollPhysics(),
         child: Column(
