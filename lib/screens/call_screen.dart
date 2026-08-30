@@ -55,7 +55,11 @@ class _CallScreenState extends State<CallScreen> {
               Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.black87, Colors.transparent, Colors.black87],
+                    colors: [
+                      Colors.black87,
+                      Colors.transparent,
+                      Colors.black87
+                    ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     stops: [0.0, 0.5, 1.0],
@@ -68,7 +72,8 @@ class _CallScreenState extends State<CallScreen> {
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 12.0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -76,10 +81,14 @@ class _CallScreenState extends State<CallScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 32),
+                              icon: const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: Colors.white,
+                                  size: 32),
                               onPressed: _endCall,
                             ),
-                            const Icon(Icons.encrypted_rounded, color: AppTheme.emeraldGreen, size: 16),
+                            const Icon(newMethod,
+                                color: AppTheme.emeraldGreen, size: 16),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -125,6 +134,8 @@ class _CallScreenState extends State<CallScreen> {
     );
   }
 
+  dynamic get newMethod => Icons.encrypted_rounded;
+
   Widget _buildAudioBackground() {
     return Stack(
       fit: StackFit.expand,
@@ -155,7 +166,9 @@ class _CallScreenState extends State<CallScreen> {
               ],
               image: DecorationImage(
                 image: NetworkImage(
-                  widget.profile.photos.isNotEmpty ? widget.profile.photos.first : '',
+                  widget.profile.photos.isNotEmpty
+                      ? widget.profile.photos.first
+                      : '',
                 ),
                 fit: BoxFit.cover,
               ),
@@ -203,18 +216,23 @@ class _CallScreenState extends State<CallScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _buildControlButton(
-              icon: callState.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+              icon:
+                  callState.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
               isActive: !callState.isMuted,
               onTap: () => callState.toggleMute(),
             ),
             if (widget.isVideoCall)
               _buildControlButton(
-                icon: callState.isCameraOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
+                icon: callState.isCameraOn
+                    ? Icons.videocam_rounded
+                    : Icons.videocam_off_rounded,
                 isActive: callState.isCameraOn,
                 onTap: () => callState.toggleCamera(),
               ),
             _buildControlButton(
-              icon: callState.isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded,
+              icon: callState.isSpeakerOn
+                  ? Icons.volume_up_rounded
+                  : Icons.volume_down_rounded,
               isActive: callState.isSpeakerOn,
               onTap: () => callState.toggleSpeaker(),
             ),

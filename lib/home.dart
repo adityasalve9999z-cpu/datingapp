@@ -8,6 +8,7 @@ import 'screens/likes_screen.dart';
 import 'screens/chat_list_screen.dart';
 import 'screens/chat_room_screen.dart';
 import 'profilescreen.dart';
+import 'services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,10 +19,32 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentTabIndex = 0;
-  List<ProfileModel> _activeProfiles = List.from(mockProfiles);
+  List<ProfileModel> _activeProfiles = [];
   final List<ProfileModel> _swipedHistory = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfiles();
+  }
+
+  Future<void> _loadProfiles() async {
+    final profiles = await AppApiService.fetchProfiles();
+    if (mounted) {
+      setState(() {
+        _activeProfiles = profiles;
+        _isLoading = false;
+      });
+    }
+  }
 
   void _handleSwipe(ProfileModel profile, SwipeDirection direction) {
+    if (direction == SwipeDirection.right || direction == SwipeDirection.up) {
+      AppApiService.swipeRight(profile.id, isSuperLike: direction == SwipeDirection.up);
+    } else {
+      AppApiService.swipeLeft(profile.id);
+    }
     setState(() {
       _swipedHistory.add(profile);
       _activeProfiles.removeWhere((p) => p.id == profile.id);

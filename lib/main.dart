@@ -7,6 +7,7 @@ import 'screens/onboarding_wizard_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/subscription_screen.dart';
 import 'providers/call_provider.dart';
+import 'services/api_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +55,7 @@ class LoginScreenAuth extends StatefulWidget {
 class _LoginScreenAuthState extends State<LoginScreenAuth> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -162,9 +164,25 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/home');
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () async {
+                              setState(() => _isLoading = true);
+                              final result = await AppApiService.login(
+                                email: _emailController.text,
+                                password: _passwordController.text,
+                              );
+                              setState(() => _isLoading = false);
+                              if (result['success']) {
+                                if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                              } else {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(result['message']), backgroundColor: AppTheme.primaryCoral),
+                                  );
+                                }
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
@@ -172,15 +190,17 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      child: const Text(
-                        'SIGN IN',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'SIGN IN',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
 
@@ -214,8 +234,18 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
   }
 }
 
-class SignupScreenAuth extends StatelessWidget {
+class SignupScreenAuth extends StatefulWidget {
   const SignupScreenAuth({super.key});
+
+  @override
+  State<SignupScreenAuth> createState() => _SignupScreenAuthState();
+}
+
+class _SignupScreenAuthState extends State<SignupScreenAuth> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -244,34 +274,53 @@ class SignupScreenAuth extends StatelessWidget {
                 style: TextStyle(color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 32),
-              _buildInputTile(Icons.person_rounded, 'Full Name'),
+              _buildInputTile(Icons.person_rounded, 'Full Name', _nameController),
               const SizedBox(height: 16),
-              _buildInputTile(Icons.email_rounded, 'Email Address'),
+              _buildInputTile(Icons.email_rounded, 'Email Address', _emailController),
               const SizedBox(height: 16),
-              _buildInputTile(Icons.lock_rounded, 'Password', isObscure: true),
+              _buildInputTile(Icons.lock_rounded, 'Password', _passwordController, isObscure: true),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/onboarding');
-                  },
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          setState(() => _isLoading = true);
+                          final result = await AppApiService.signup(
+                            name: _nameController.text,
+                            email: _emailController.text,
+                            password: _passwordController.text,
+                          );
+                          setState(() => _isLoading = false);
+                          if (result['success']) {
+                            if (mounted) Navigator.pushReplacementNamed(context, '/onboarding');
+                          } else {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(result['message']), backgroundColor: AppTheme.primaryCoral),
+                              );
+                            }
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryRose,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  child: const Text(
-                    'GET STARTED',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'GET STARTED',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -281,7 +330,7 @@ class SignupScreenAuth extends StatelessWidget {
     );
   }
 
-  Widget _buildInputTile(IconData icon, String hint, {bool isObscure = false}) {
+  Widget _buildInputTile(IconData icon, String hint, TextEditingController controller, {bool isObscure = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       decoration: BoxDecoration(
@@ -290,6 +339,7 @@ class SignupScreenAuth extends StatelessWidget {
         border: Border.all(color: Colors.white12),
       ),
       child: TextField(
+        controller: controller,
         obscureText: isObscure,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
