@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'providers/discovery_feed_provider.dart';
+import 'providers/matches_and_chat_provider.dart';
 import 'models/profile_model.dart';
 import 'profilescreen.dart';
 import 'screens/chat_list_screen.dart';
@@ -32,49 +35,23 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  List<ProfileModel> _discoverProfiles = [];
-  bool _isLoadingDiscover = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDiscoverProfiles();
-  }
-
-  Future<void> _loadDiscoverProfiles() async {
-    try {
-      final profiles = await AppApiService.fetchProfiles();
-      if (!mounted) return;
-      setState(() {
-        _discoverProfiles = profiles;
-        _isLoadingDiscover = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _isLoadingDiscover = false);
-    }
-  }
 
   void _handleMatch(ProfileModel profile) {
     if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MatchCelebrationScreen(
-          matchedProfile: profile,
-        ),
-      ),
-    );
+    context.push('/match-celebration', extra: profile);
   }
 
   @override
   Widget build(BuildContext context) {
+    final feedProvider = context.watch<DiscoveryFeedProvider>();
+    final chatProvider = context.watch<MatchesAndChatProvider>();
+
     final tabs = <Widget>[
       DiscoverTab(
-        profiles: _discoverProfiles,
-        isLoading: _isLoadingDiscover,
+        profiles: feedProvider.profiles,
+        isLoading: feedProvider.isLoading,
         onMatch: _handleMatch,
-        onRefresh: _loadDiscoverProfiles,
+        onRefresh: () => feedProvider.loadProfiles(),
       ),
       const LikesScreen(),
       const ChatListScreen(),
@@ -100,8 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: ModernBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        unreadChatCount: 3,
-        newMatchCount: _discoverProfiles.length.clamp(1, 9),
+        unreadChatCount: chatProvider.unreadCount,
+        newMatchCount: feedProvider.profiles.length.clamp(1, 9),
       ),
     );
   }
@@ -280,14 +257,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
 
                   // 🚀 Spotlight Boost Trigger Button
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const BoostSpotlightScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push('/boost-spotlight'),
                     child: Container(
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
@@ -315,14 +285,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                   // ✈️ Passport Travel Mode Trigger Button
                   GestureDetector(
                     onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PassportTravelScreen(
-                            currentCity: _passportCity,
-                          ),
-                        ),
-                      );
+                      final result = await context.push<Map>('/passport-travel', extra: _passportCity);
                       if (result is Map && result.containsKey('city')) {
                         setState(() => _passportCity = result['city']);
                       }
@@ -351,14 +314,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
 
                   // Filter Settings
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const DiscoveryFiltersScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push('/filters'),
                     child: Container(
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
@@ -521,15 +477,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                             onSuperLike: (profile) =>
                                 _handleSwipeAction(profile, SwipeDirection.up),
                             onSelectProfile: (profile) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ProfileDetailScreen(
-                                    profile: profile,
-                                    heroTag: 'discover_${profile.id}',
-                                  ),
-                                ),
-                              );
+                              context.push('/profile-detail', extra: profile);
                             },
                           )
                         : TinderSwipeDeck(
@@ -946,7 +894,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final occupation =
         _dashboardData['occupation']?.toString() ?? 'GlowDate member';
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/edit-profile'),
+      onTap: () => context.push('/edit-profile'),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -1017,7 +965,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _buildPremiumCard() {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/subscription'),
+      onTap: () => context.push('/subscription'),
       child: AnimatedBuilder(
         animation: _premiumGlow,
         builder: (context, child) {
@@ -1080,7 +1028,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _buildGrowthCard() {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/basic-to-advanced'),
+      onTap: () => context.push('/basic-to-advanced'),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

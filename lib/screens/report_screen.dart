@@ -25,12 +25,7 @@ class SafetyScreen extends StatelessWidget {
             color: AppTheme.primaryCoral,
             title: 'Report a User',
             subtitle: 'Flag inappropriate behavior or content',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ReportScreen(profile: mockProfiles.first),
-              ),
-            ),
+            onTap: () => context.push('/report', extra: mockProfiles.first),
           ),
           const SizedBox(height: 12),
           _actionTile(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/profile_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_glow_button.dart';
-import 'chat_room_screen.dart';
 
 class MatchCelebrationScreen extends StatefulWidget {
   final ProfileModel matchedProfile;
@@ -71,12 +71,7 @@ class _MatchCelebrationScreenState extends State<MatchCelebrationScreen>
   }
 
   void _openChat([String? customInitialMessage]) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatRoomScreen(profile: widget.matchedProfile),
-      ),
-    );
+    context.go('/chat-room', extra: widget.matchedProfile);
   }
 
   @override

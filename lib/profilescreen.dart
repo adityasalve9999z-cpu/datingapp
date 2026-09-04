@@ -1,48 +1,21 @@
 import 'package:flutter/material.dart';
-import 'services/api_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/profile_provider.dart';
+import 'providers/app_settings_provider.dart';
 import 'theme/app_theme.dart';
-import 'screens/edit_profile_screen.dart';
-import 'screens/subscription_screen.dart';
-import 'screens/setting_screen.dart';
-import 'screens/safety_center_screen.dart';
-import 'screens/boost_spotlight_screen.dart';
-import 'screens/passport_travel_screen.dart';
-import 'screens/ai_agent_screen.dart';
 import 'widgets/shimmer_loading.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  double _distanceRadius = 25.0;
-  RangeValues _ageRange = const RangeValues(21, 32);
-  bool _pushNotifications = true;
-  bool _darkMode = true;
-  Map<String, dynamic> _profileData = {};
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
-    final data = await AppApiService.fetchUserProfile();
-    if (!mounted) return;
-    setState(() {
-      _profileData = data;
-      _isLoading = false;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final profileProvider = context.watch<ProfileProvider>();
+    final settingsProvider = context.watch<AppSettingsProvider>();
+
+    if (profileProvider.isLoading) {
       return Scaffold(
         backgroundColor: AppTheme.darkBackground,
         appBar: AppBar(
@@ -51,13 +24,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         body: const ProfileScreenSkeleton(),
       );
     }
-    final userAvatar = _profileData['photo']?.toString() ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80';
-    final name = _profileData['name']?.toString() ?? 'Maya';
-    final age = _profileData['age']?.toString() ?? '25';
-    final occupation = _profileData['occupation']?.toString() ?? 'UX Designer @ TechStudio';
-    final location = _profileData['location']?.toString() ?? 'San Francisco';
-    final completion = _profileData['profileCompletion'] ?? 85;
-    final completionValue = (completion as num).toDouble();
+
+    final userAvatar = profileProvider.avatarUrl;
+    final name = profileProvider.name;
+    final age = profileProvider.age;
+    final occupation = profileProvider.occupation;
+    final location = profileProvider.location;
+    final completionValue = profileProvider.profileCompletion;
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
@@ -66,12 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_rounded, color: AppTheme.textPrimary),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
-            },
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),
@@ -210,12 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // GlowDate Platinum Membership Card
             GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
-                );
-              },
+              onTap: () => context.push('/subscription'),
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -256,12 +219,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
-                        );
-                      },
+                      onPressed: () => context.push('/subscription'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
@@ -283,14 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const BoostSpotlightScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push('/boost-spotlight'),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -330,14 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PassportTravelScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push('/passport-travel'),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -375,14 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AiAgentScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push('/ai-wingman'),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -448,7 +385,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       const Text('Maximum Distance', style: TextStyle(color: AppTheme.textPrimary)),
                       Text(
-                        '${_distanceRadius.toInt()} miles',
+                        '${settingsProvider.maxDistance.toInt()} miles',
                         style: const TextStyle(
                           color: AppTheme.primaryRose,
                           fontWeight: FontWeight.bold,
@@ -457,10 +394,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   Slider(
-                    value: _distanceRadius,
+                    value: settingsProvider.maxDistance,
                     min: 5,
                     max: 100,
-                    onChanged: (val) => setState(() => _distanceRadius = val),
+                    onChanged: (val) => settingsProvider.setDistance(val),
                   ),
                 ],
               ),
@@ -483,7 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       const Text('Age Range', style: TextStyle(color: AppTheme.textPrimary)),
                       Text(
-                        '${_ageRange.start.toInt()} - ${_ageRange.end.toInt()}',
+                        '${settingsProvider.ageRange.start.toInt()} - ${settingsProvider.ageRange.end.toInt()}',
                         style: const TextStyle(
                           color: AppTheme.primaryRose,
                           fontWeight: FontWeight.bold,
@@ -492,10 +429,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   RangeSlider(
-                    values: _ageRange,
+                    values: settingsProvider.ageRange,
                     min: 18,
                     max: 60,
-                    onChanged: (val) => setState(() => _ageRange = val),
+                    onChanged: (val) => settingsProvider.setAgeRange(val),
                   ),
                 ],
               ),
@@ -522,17 +459,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SwitchListTile(
                     title: const Text('Push Notifications', style: TextStyle(color: AppTheme.textPrimary)),
                     subtitle: const Text('Get updates on new matches and messages', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                    value: _pushNotifications,
+                    value: settingsProvider.pushNotifications,
                     activeTrackColor: AppTheme.primaryRose,
-                    onChanged: (val) => setState(() => _pushNotifications = val),
+                    onChanged: (val) => settingsProvider.setNotifications(val),
                   ),
                   const Divider(color: Colors.white10, height: 1),
                   SwitchListTile(
                     title: const Text('Dark Mode Theme', style: TextStyle(color: AppTheme.textPrimary)),
                     subtitle: const Text('Always use dark obsidian layout', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                    value: _darkMode,
+                    value: settingsProvider.isDarkMode,
                     activeTrackColor: AppTheme.primaryRose,
-                    onChanged: (val) => setState(() => _darkMode = val),
+                    onChanged: (_) {}, // Dark mode is always on in this app
                   ),
                 ],
               ),
@@ -542,12 +479,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // Safety Center Quick Access
             InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SafetyCenterScreen()),
-                );
-              },
+              onTap: () => context.push('/safety-center'),
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -600,12 +532,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-                      );
-                    },
+                    onPressed: () => context.push('/edit-profile'),
                     icon: const Icon(Icons.edit_rounded),
                     label: const Text('Edit Profile'),
                     style: ElevatedButton.styleFrom(
@@ -621,8 +548,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 14),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/login');
+                    onPressed: () async {
+                      final authProvider = context.read<AuthProvider>();
+                      await authProvider.logout();
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
                     },
                     icon: const Icon(Icons.logout_rounded, color: AppTheme.primaryRose),
                     label: const Text('Log Out', style: TextStyle(color: AppTheme.primaryRose)),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/profile_model.dart';
 import '../services/api_service.dart';
 import '../widgets/shimmer_loading.dart';
-import 'chat_room_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Lume palette — kept local here so this file is drop-in runnable even before
@@ -173,12 +173,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 final profile = _profiles[index];
                           return GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ChatRoomScreen(profile: profile),
-                                ),
-                              );
+                              context.push('/chat-room', extra: profile);
                             },
                             child: Container(
                               margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -262,12 +257,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(18),
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ChatRoomScreen(profile: profile),
-                              ),
-                            );
+                            context.push('/chat-room', extra: profile);
                           },
                           child: Container(
                             padding: const EdgeInsets.all(12),

@@ -146,82 +146,86 @@ class _SplashScreenState extends State<SplashScreen>
                 radius: _bgBreathAnimation.value,
               ),
             ),
-            child: Center(
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: ScaleTransition(
-                  scale: _scaleAnim,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Transform.scale(
-                        scale: _heartbeatScale.value,
-                        child: _HoverGlow(
-                          child: Container(
-                            padding: const EdgeInsets.all(28),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: AppTheme.sunsetGradient,
-                            ),
-                            child: const Icon(
-                              Icons.favorite_rounded,
-                              size: 70,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      ShaderMask(
-                        shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
-                        child: const Text(
-                          'GlowDate',
-                          style: TextStyle(
-                            fontSize: 42,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Where Meaningful Connections Spark',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: AppTheme.textSecondary,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      // Animated Glow Loading Line
-                      SizedBox(
-                        width: 140,
-                        height: 4,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: const LinearProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryRose),
-                            backgroundColor: Color(0x33FF2A6D),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Loading your experience...',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textMuted,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ],
-                ),
-              );
-            ),
-          );
+            child: newMethod();
         },
       ),
     );
+  }
+
+  Center newMethod() {
+    return Center(
+            child: FadeTransition(
+              opacity: _fadeAnim,
+              child: ScaleTransition(
+                scale: _scaleAnim,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Transform.scale(
+                      scale: _heartbeatScale.value,
+                      child: _HoverGlow(
+                        child: Container(
+                          padding: const EdgeInsets.all(28),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: AppTheme.sunsetGradient,
+                          ),
+                          child: const Icon(
+                            Icons.favorite_rounded,
+                            size: 70,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    ShaderMask(
+                      shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
+                      child: const Text(
+                        'GlowDate',
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Where Meaningful Connections Spark',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: AppTheme.textSecondary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    // Animated Glow Loading Line
+                    SizedBox(
+                      width: 140,
+                      height: 4,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: const LinearProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryRose),
+                          backgroundColor: Color(0x33FF2A6D),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Loading your experience...',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textMuted,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
+              ),
+            );
+          ),
+        );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
@@ -90,7 +91,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message'] as String)),
       );
-      Navigator.pushReplacementNamed(context, '/home');
+      context.go('/home');
     }
   }
 

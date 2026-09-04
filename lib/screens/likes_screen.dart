@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/profile_model.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
-import 'profile_detail_screen.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/animated_glow_button.dart';
 
@@ -193,15 +193,7 @@ class _LikesScreenState extends State<LikesScreen>
                 return BouncingTapWrapper(
                   onTap: () {
                     if (!shouldBlur) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProfileDetailScreen(
-                            profile: profile,
-                            heroTag: 'likes_photo_${profile.id}_$index',
-                          ),
-                        ),
-                      );
+                      context.push('/profile-detail', extra: profile);
                     } else {
                       setState(() {
                         _isUnlocked = true;

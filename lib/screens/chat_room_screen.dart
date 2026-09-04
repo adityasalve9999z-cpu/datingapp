@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/profile_model.dart';
 import '../services/api_service.dart';
 import '../services/ai_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/animated_glow_button.dart';
-import 'profile_detail_screen.dart';
-import 'call_screen.dart';
-import 'ai_date_planner_screen.dart';
-import 'ai_agent_screen.dart';
 
 
 class ChatRoomScreen extends StatefulWidget {
@@ -108,15 +105,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         titleSpacing: 0,
         title: GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ProfileDetailScreen(
-                  profile: profile,
-                  heroTag: 'chat_header_${profile.id}',
-                ),
-              ),
-            );
+            context.push('/profile-detail', extra: profile);
           },
           child: Row(
             children: [
@@ -161,44 +150,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             tooltip: 'AI Date Planner',
             icon: const Icon(Icons.auto_awesome_rounded, color: AppTheme.accentGold),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AiDatePlannerScreen(
-                    matchName: profile.name.split(' ').first,
-                  ),
-                ),
-              );
+              context.push('/ai-date-planner', extra: profile.name.split(' ').first);
             },
           ),
           IconButton(
             tooltip: 'Video Call',
             icon: const Icon(Icons.videocam_rounded, color: AppTheme.textPrimary),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CallScreen(
-                    profile: profile,
-                    isVideoCall: true,
-                  ),
-                ),
-              );
+              context.push('/call', extra: {
+                'profile': profile,
+                'isVideoCall': true,
+              });
             },
           ),
           IconButton(
             tooltip: 'Voice Call',
             icon: const Icon(Icons.call_rounded, color: AppTheme.textPrimary),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CallScreen(
-                    profile: profile,
-                    isVideoCall: false,
-                  ),
-                ),
-              );
+              context.push('/call', extra: {
+                'profile': profile,
+                'isVideoCall': false,
+              });
             },
           ),
         ],
@@ -453,14 +425,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         tooltip: 'Open Full Wingman Coach',
                         onPressed: () {
                           Navigator.pop(ctx);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AiAgentScreen(
-                                initialMatchName: matchName,
-                              ),
-                            ),
-                          );
+                          context.push('/ai-wingman', extra: {
+                            'matchName': matchName,
+                          });
                         },
                       ),
                     ],

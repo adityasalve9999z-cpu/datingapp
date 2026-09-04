@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import '../services/ai_service.dart';
 import '../theme/app_theme.dart';
@@ -568,7 +569,7 @@ class _AiAgentScreenState extends State<AiAgentScreen> with SingleTickerProvider
                     label: 'Date Concierge',
                     gradient: AppTheme.goldGradient,
                     onTap: () {
-                      Navigator.pushNamed(context, '/ai-date-planner');
+                      context.push('/ai-date-planner');
                     },
                   ),
                 ],
