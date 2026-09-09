@@ -243,13 +243,13 @@ class _SignupScreenState extends State<SignupScreen> {
                   const SizedBox(height: 32),
                   Center(
                     child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(fontSize: 13.5, color: LumeColors.textSecondary),
+                      text: const TextSpan(
+                        style: TextStyle(fontSize: 13.5, color: LumeColors.textSecondary),
                         children: [
-                          const TextSpan(text: 'Already have an account?  '),
+                          TextSpan(text: 'Already have an account?  '),
                           TextSpan(
                             text: 'Log in',
-                            style: const TextStyle(color: LumeColors.gold, fontWeight: FontWeight.w700),
+                            style: TextStyle(color: LumeColors.gold, fontWeight: FontWeight.w700),
                             recognizer: null,
                           ),
                         ],
@@ -297,7 +297,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 color: LumeColors.gold,
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(color: LumeColors.gold.withOpacity(0.55), blurRadius: 14, spreadRadius: 1),
+                  BoxShadow(color: LumeColors.gold.withValues(alpha: 0.55), blurRadius: 14, spreadRadius: 1),
                 ],
               ),
               child: const Icon(Icons.auto_awesome_rounded, size: 13, color: LumeColors.bg),
@@ -314,10 +314,10 @@ class _SignupScreenState extends State<SignupScreen> {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(opacity), width: 1.6),
+        border: Border.all(color: color.withValues(alpha: opacity), width: 1.6),
         color: LumeColors.surface,
       ),
-      child: Icon(Icons.person_rounded, color: color.withOpacity(opacity + 0.15), size: size * 0.42),
+      child: Icon(Icons.person_rounded, color: color.withValues(alpha: opacity + 0.15), size: size * 0.42),
     );
   }
 
@@ -413,9 +413,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 style: const TextStyle(color: LumeColors.textSecondary, fontSize: 12.5, height: 1.4),
                 children: [
                   const TextSpan(text: 'I agree to Lume\'s '),
-                  TextSpan(text: 'Terms of Service', style: TextStyle(color: LumeColors.gold.withOpacity(0.9), fontWeight: FontWeight.w600)),
+                  TextSpan(text: 'Terms of Service', style: TextStyle(color: LumeColors.gold.withValues(alpha: 0.9), fontWeight: FontWeight.w600)),
                   const TextSpan(text: ' and '),
-                  TextSpan(text: 'Privacy Policy', style: TextStyle(color: LumeColors.gold.withOpacity(0.9), fontWeight: FontWeight.w600)),
+                  TextSpan(text: 'Privacy Policy', style: TextStyle(color: LumeColors.gold.withValues(alpha: 0.9), fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -434,7 +434,7 @@ class _SignupScreenState extends State<SignupScreen> {
           borderRadius: BorderRadius.circular(16),
           gradient: const LinearGradient(colors: [LumeColors.gold, Color(0xFFC79340)]),
           boxShadow: [
-            BoxShadow(color: LumeColors.gold.withOpacity(0.28), blurRadius: 20, offset: const Offset(0, 8)),
+            BoxShadow(color: LumeColors.gold.withValues(alpha: 0.28), blurRadius: 20, offset: const Offset(0, 8)),
           ],
         ),
         child: Material(
@@ -465,7 +465,7 @@ class _SignupScreenState extends State<SignupScreen> {
         Expanded(child: Container(height: 1, color: LumeColors.surfaceBorder)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Text('or sign up with', style: TextStyle(color: LumeColors.textSecondary.withOpacity(0.8), fontSize: 12)),
+          child: Text('or sign up with', style: TextStyle(color: LumeColors.textSecondary.withValues(alpha: 0.8), fontSize: 12)),
         ),
         Expanded(child: Container(height: 1, color: LumeColors.surfaceBorder)),
       ],

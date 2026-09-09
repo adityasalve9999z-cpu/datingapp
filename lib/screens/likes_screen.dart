@@ -165,12 +165,12 @@ class _LikesScreenState extends State<LikesScreen>
                       border: Border.all(
                         color: shouldBlur
                             ? Colors.white10
-                            : AppTheme.accentGold.withOpacity(0.5),
+                            : AppTheme.accentGold.withValues(alpha: 0.5),
                         width: 1.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -198,7 +198,7 @@ class _LikesScreenState extends State<LikesScreen>
                                   filter:
                                       ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                                   child: Container(
-                                    color: Colors.black.withOpacity(0.4),
+                                    color: Colors.black.withValues(alpha: 0.4),
                                     child: const Center(
                                       child: Icon(
                                         Icons.lock_rounded,
@@ -250,7 +250,7 @@ class _LikesScreenState extends State<LikesScreen>
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.55),
+                                    color: Colors.black.withValues(alpha: 0.55),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(

@@ -41,7 +41,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                 leading: Container(
                   margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
@@ -53,7 +53,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                   Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -332,7 +332,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                           decoration: BoxDecoration(
                             color: AppTheme.surfaceCard,
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.white.withOpacity(0.08)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,7 +405,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 decoration: BoxDecoration(
                                   color: AppTheme.surfaceCard,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: AppTheme.primaryRose.withOpacity(0.3)),
+                                  border: Border.all(color: AppTheme.primaryRose.withValues(alpha: 0.3)),
                                 ),
                                 child: Text(
                                   interest,
@@ -461,7 +461,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                         decoration: BoxDecoration(
                           color: AppTheme.surfaceCard,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.07)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,7 +471,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.primaryPurple.withOpacity(0.15),
+                                    color: AppTheme.primaryPurple.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Icon(Icons.school_rounded, color: AppTheme.primaryPurple, size: 20),
@@ -509,7 +509,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.accentCyan.withOpacity(0.15),
+                                    color: AppTheme.accentCyan.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Icon(Icons.language_rounded, color: AppTheme.accentCyan, size: 20),
@@ -521,9 +521,9 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                     children: profile.languages.map((lang) => Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: AppTheme.accentCyan.withOpacity(0.1),
+                                        color: AppTheme.accentCyan.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: AppTheme.accentCyan.withOpacity(0.3)),
+                                        border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3)),
                                       ),
                                       child: Text(lang, style: const TextStyle(color: AppTheme.accentCyan, fontSize: 12, fontWeight: FontWeight.w600)),
                                     )).toList(),
@@ -553,14 +553,14 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 decoration: BoxDecoration(
                                   color: AppTheme.surfaceCard,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.white.withOpacity(0.07)),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
                                 ),
                                 child: Row(
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: AppTheme.accentGold.withOpacity(0.15),
+                                        color: AppTheme.accentGold.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: const Icon(Icons.people_rounded, color: AppTheme.accentGold, size: 20),
@@ -726,7 +726,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -752,9 +752,9 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -785,16 +785,16 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(Icons.psychology_rounded, color: color, size: 20),

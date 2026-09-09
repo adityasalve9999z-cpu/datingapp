@@ -83,9 +83,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Text(
                         'Maya, 25',
                         style: TextStyle(
@@ -112,11 +112,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Profile Completion Gauge Card
             AppTheme.glassContainer(
               padding: const EdgeInsets.all(18),
-              child: Row(
+              child: const Row(
                 children: [
                   Stack(
                     alignment: Alignment.center,
-                    children: const [
+                    children: [
                       SizedBox(
                         width: 54,
                         height: 54,
@@ -137,8 +137,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 16),
-                  const Expanded(
+                  SizedBox(width: 16),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -179,7 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.accentGold.withOpacity(0.35),
+                      color: AppTheme.accentGold.withValues(alpha: 0.35),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -187,10 +187,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: Row(
                   children: [
-                    Expanded(
+                    const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             'GlowDate Platinum',
                             style: TextStyle(

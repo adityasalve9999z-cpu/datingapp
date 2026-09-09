@@ -35,10 +35,10 @@ class MatchDialog extends StatelessWidget {
                 end: Alignment.bottomCenter,
               ),
               borderRadius: BorderRadius.circular(36),
-              border: Border.all(color: AppTheme.primaryRose.withOpacity(0.4), width: 1.5),
+              border: Border.all(color: AppTheme.primaryRose.withValues(alpha: 0.4), width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.primaryRose.withOpacity(0.3),
+                  color: AppTheme.primaryRose.withValues(alpha: 0.3),
                   blurRadius: 40,
                   spreadRadius: 2,
                 ),
@@ -55,7 +55,7 @@ class MatchDialog extends StatelessWidget {
                     gradient: AppTheme.sunsetGradient,
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryRose.withOpacity(0.5),
+                        color: AppTheme.primaryRose.withValues(alpha: 0.5),
                         blurRadius: 20,
                       ),
                     ],
@@ -105,7 +105,7 @@ class MatchDialog extends StatelessWidget {
                             border: Border.all(color: Colors.white, width: 3),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withValues(alpha: 0.5),
                                 blurRadius: 15,
                               ),
                             ],
@@ -128,7 +128,7 @@ class MatchDialog extends StatelessWidget {
                             border: Border.all(color: AppTheme.primaryRose, width: 3),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryRose.withOpacity(0.5),
+                                color: AppTheme.primaryRose.withValues(alpha: 0.5),
                                 blurRadius: 15,
                               ),
                             ],
@@ -187,7 +187,7 @@ class MatchDialog extends StatelessWidget {
                       onKeepSwiping();
                     },
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),
                       ),
@@ -220,7 +220,7 @@ extension WidgetDecorationX on Widget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryRose.withOpacity(0.4),
+            color: AppTheme.primaryRose.withValues(alpha: 0.4),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),

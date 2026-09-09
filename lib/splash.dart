@@ -86,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
                           gradient: AppTheme.sunsetGradient,
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primaryRose.withOpacity(0.5),
+                              color: AppTheme.primaryRose.withValues(alpha: 0.5),
                               blurRadius: 35,
                               spreadRadius: 5,
                             ),

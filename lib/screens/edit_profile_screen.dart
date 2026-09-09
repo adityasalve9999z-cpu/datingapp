@@ -140,7 +140,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               decoration: BoxDecoration(
                 color: AppTheme.surfaceCard,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.primaryRose.withOpacity(0.3)),
+                border: Border.all(color: AppTheme.primaryRose.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -75,7 +75,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: surfaceCard,
         elevation: 8,
-        shadowColor: Colors.black.withOpacity(0.4),
+        shadowColor: Colors.black.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
         ),
@@ -94,7 +94,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: surfaceCard,
-        selectedColor: primaryRose.withOpacity(0.2),
+        selectedColor: primaryRose.withValues(alpha: 0.2),
         labelStyle: const TextStyle(color: textPrimary, fontSize: 13, fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
@@ -106,7 +106,7 @@ class AppTheme {
         activeTrackColor: primaryRose,
         inactiveTrackColor: Colors.white10,
         thumbColor: Colors.white,
-        overlayColor: primaryRose.withOpacity(0.2),
+        overlayColor: primaryRose.withValues(alpha: 0.2),
         trackHeight: 4,
       ),
     );

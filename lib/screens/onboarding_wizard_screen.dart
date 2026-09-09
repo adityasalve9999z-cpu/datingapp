@@ -419,7 +419,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? color.withOpacity(0.25) : AppTheme.surfaceCard,
+                      color: isSelected ? color.withValues(alpha: 0.25) : AppTheme.surfaceCard,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: isSelected ? color : Colors.white12, width: isSelected ? 2 : 1),
                     ),

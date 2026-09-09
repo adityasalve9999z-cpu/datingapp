@@ -342,7 +342,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -394,7 +394,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                         decoration: BoxDecoration(
                           color: idx == _currentPhotoIndex
                               ? Colors.white
-                              : Colors.white.withOpacity(0.3),
+                              : Colors.white.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -451,7 +451,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primaryRose.withOpacity(0.4),
+                          color: AppTheme.primaryRose.withValues(alpha: 0.4),
                           blurRadius: 8,
                         ),
                       ],
@@ -475,7 +475,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white24),
                     ),
@@ -563,7 +563,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             border: Border.all(color: Colors.white38),
                           ),
                           child: const Icon(
@@ -591,7 +591,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       height: 1.4,
                     ),
                   ),
@@ -612,7 +612,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: Colors.white24),
                               ),
@@ -662,7 +662,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                 border: Border.all(color: AppTheme.emeraldGreen, width: 4),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.emeraldGreen.withOpacity(0.5),
+                    color: AppTheme.emeraldGreen.withValues(alpha: 0.5),
                     blurRadius: 15,
                   ),
                 ],
@@ -697,7 +697,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                 border: Border.all(color: AppTheme.primaryRose, width: 4),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primaryRose.withOpacity(0.5),
+                    color: AppTheme.primaryRose.withValues(alpha: 0.5),
                     blurRadius: 15,
                   ),
                 ],
@@ -733,7 +733,7 @@ class _TinderSwipeDeckState extends State<TinderSwipeDeck>
                 border: Border.all(color: AppTheme.accentCyan, width: 4),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.accentCyan.withOpacity(0.6),
+                    color: AppTheme.accentCyan.withValues(alpha: 0.6),
                     blurRadius: 20,
                   ),
                 ],
@@ -880,10 +880,10 @@ class _ActionButtonState extends State<_ActionButton>
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: AppTheme.surfaceCard,
-            border: Border.all(color: widget.color.withOpacity(0.4), width: 1.5),
+            border: Border.all(color: widget.color.withValues(alpha: 0.4), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: widget.color.withOpacity(0.25),
+                color: widget.color.withValues(alpha: 0.25),
                 blurRadius: 12,
                 spreadRadius: 1,
               ),

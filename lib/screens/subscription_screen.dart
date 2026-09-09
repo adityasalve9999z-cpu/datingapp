@@ -37,7 +37,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 gradient: _isPlatinum ? AppTheme.sunsetGradient : AppTheme.goldGradient,
                 boxShadow: [
                   BoxShadow(
-                    color: (_isPlatinum ? AppTheme.primaryRose : AppTheme.accentGold).withOpacity(0.5),
+                    color: (_isPlatinum ? AppTheme.primaryRose : AppTheme.accentGold).withValues(alpha: 0.5),
                     blurRadius: 30,
                   ),
                 ],
@@ -237,7 +237,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: (_isPlatinum ? AppTheme.primaryRose : AppTheme.accentGold).withOpacity(0.3),
+                      color: (_isPlatinum ? AppTheme.primaryRose : AppTheme.accentGold).withValues(alpha: 0.3),
                       blurRadius: 12,
                     ),
                   ]

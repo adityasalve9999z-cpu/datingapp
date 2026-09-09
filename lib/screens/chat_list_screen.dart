@@ -224,8 +224,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         },
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Divider(color: LumeColors.surfaceBorder, height: 24),
                     ),
                   ],
@@ -277,7 +277,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
                                 color: unread
-                                    ? LumeColors.gold.withOpacity(0.35)
+                                    ? LumeColors.gold.withValues(alpha: 0.35)
                                     : LumeColors.surfaceBorder,
                                 width: unread ? 1.2 : 1,
                               ),
@@ -297,7 +297,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                           fit: BoxFit.cover,
                                         ),
                                         border: Border.all(
-                                          color: unread ? LumeColors.gold.withOpacity(0.5) : Colors.transparent,
+                                          color: unread ? LumeColors.gold.withValues(alpha: 0.5) : Colors.transparent,
                                           width: 1.5,
                                         ),
                                       ),

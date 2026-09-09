@@ -146,7 +146,7 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primaryRose.withOpacity(0.4),
+                          color: AppTheme.primaryRose.withValues(alpha: 0.4),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         ),

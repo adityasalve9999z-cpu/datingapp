@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentTabIndex = 0;
-  List<ProfileModel> _activeProfiles = List.from(mockProfiles);
+  final List<ProfileModel> _activeProfiles = List.from(mockProfiles);
   final List<ProfileModel> _swipedHistory = [];
 
   void _handleSwipe(ProfileModel profile, SwipeDirection direction) {
@@ -396,7 +396,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   borderRadius: BorderRadius.circular(27),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryRose.withOpacity(0.4),
+                      color: AppTheme.primaryRose.withValues(alpha: 0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -445,7 +445,7 @@ class _FilterSheetState extends State<_FilterSheet> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: color,
+            activeThumbColor: color,
           ),
         ],
       ),
