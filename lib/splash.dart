@@ -146,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
                 radius: _bgBreathAnimation.value,
               ),
             ),
-            child: newMethod();
+            child: newMethod(),
         },
       ),
     );
@@ -224,7 +224,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ],
               ),
-            );
+            ),
           ),
         );
   }
