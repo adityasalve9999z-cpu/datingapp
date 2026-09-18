@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:http/http.dart' as http;
-import '../config/config.dart';
+import '../config/api_config.dart';
 
 class RazorpayService {
   late Razorpay _razorpay;
@@ -28,15 +28,13 @@ class RazorpayService {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    print("Payment Success: ${response.paymentId}");
-    
     // Send to backend for verification
     try {
       final verifyResponse = await http.post(
-        Uri.parse('${Config.apiUrl}/payments/verify'),
+        Uri.parse('${ApiConfig.baseUrl}/payments/verify'),
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': 'Bearer ${Config.token}', // TODO: Add auth token here
+          // 'Authorization': 'Bearer ${ApiConfig.token}', // TODO: Add auth token here
         },
         body: jsonEncode({
           'razorpay_payment_id': response.paymentId,
@@ -50,23 +48,20 @@ class RazorpayService {
           onSuccess!(response);
         }
       } else {
-        print("Backend verification failed");
         // Could trigger onFailure here instead if backend fails
       }
     } catch (e) {
-      print("Error verifying payment: $e");
+      // Handle error implicitly or log using standard tools later
     }
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
-    print("Payment Error: ${response.code} - ${response.message}");
     if (onFailure != null) {
       onFailure!(response);
     }
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
-    print("External Wallet: ${response.walletName}");
     if (onExternalWallet != null) {
       onExternalWallet!(response);
     }
@@ -83,10 +78,10 @@ class RazorpayService {
     try {
       // 1. Create order on backend
       final orderResponse = await http.post(
-        Uri.parse('${Config.apiUrl}/payments/create-order'),
+        Uri.parse('${ApiConfig.baseUrl}/payments/create-order'),
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': 'Bearer ${Config.token}', // TODO: Add auth token here
+          // 'Authorization': 'Bearer ${ApiConfig.token}', // TODO: Add auth token here
         },
         body: jsonEncode({
           'amount': amountInSmallestCurrency,
