@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/api_config.dart';
 import '../config/supabase_config.dart';
@@ -20,7 +21,7 @@ class AppApiService {
   // Active WebSocket & realtime streams
   static final Map<String, StreamController<List<Map<String, dynamic>>>> _chatStreamControllers = {};
   static final Map<String, List<Map<String, dynamic>>> _cachedMessagesMap = {};
-  static dynamic _webSocket;
+  static WebSocketChannel? _webSocket;
   static Timer? _heartbeatTimer;
 
   static SupabaseClient? _safeSupabase() {
@@ -1318,17 +1319,58 @@ class AppApiService {
   static void _initWebSocket(String token) {
     _disconnectWebSocket();
     try {
-      // In production Flutter, WebSocket connection is initialized here
-      // to receive live message broadcasts.
-      _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-        // Send ping if connected
+      final wsUrl = '${ApiConfig.wsUrl}?token=$token';
+      _webSocket = WebSocketChannel.connect(Uri.parse(wsUrl));
+
+      _webSocket!.stream.listen((message) {
+        try {
+          final data = jsonDecode(message);
+          if (data['type'] == 'typing') {
+             // Handle typing indicator (optional)
+          } else if (data['type'] == 'pong') {
+             // Heartbeat pong received
+          } else {
+             // Handle chat message
+             final senderId = data['sender_id']?.toString() ?? '';
+             final newMsg = {
+               'id': data['id']?.toString(),
+               'sender': 'them',
+               'text': data['text']?.toString() ?? '',
+               'time': _formatTimestamp(data['created_at']?.toString() ?? DateTime.now().toIso8601String()),
+               'isRead': false,
+             };
+             if (senderId.isNotEmpty) {
+               final existing = _cachedMessagesMap[senderId] ?? [];
+               existing.add(newMsg);
+               _cachedMessagesMap[senderId] = existing;
+               _notifyStreamController(senderId, existing);
+             }
+          }
+        } catch (e) {
+          debugPrint('WebSocket message error: $e');
+        }
+      }, onDone: () {
+        debugPrint('WebSocket closed');
+        _disconnectWebSocket();
+      }, onError: (error) {
+        debugPrint('WebSocket error: $error');
+        _disconnectWebSocket();
       });
-    } catch (_) {}
+
+      _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+        if (_webSocket != null) {
+          _webSocket!.sink.add(jsonEncode({'type': 'ping'}));
+        }
+      });
+    } catch (e) {
+      debugPrint('WebSocket connection failed: $e');
+    }
   }
 
   static void _disconnectWebSocket() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
+    _webSocket?.sink.close();
     _webSocket = null;
   }
 
