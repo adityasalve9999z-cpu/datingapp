@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import 'api_service.dart';
 
 class RazorpayService {
   late Razorpay _razorpay;
@@ -29,12 +30,10 @@ class RazorpayService {
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
     // Send to backend for verification
     try {
+      final token = await AppApiService.getStoredToken();
       final verifyResponse = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/payments/verify'),
-        headers: {
-          'Content-Type': 'application/json',
-          // 'Authorization': 'Bearer ${ApiConfig.token}', // TODO: Add auth token here
-        },
+        headers: ApiConfig.getHeaders(token: token),
         body: jsonEncode({
           'razorpay_payment_id': response.paymentId,
           'razorpay_order_id': response.orderId,
@@ -73,18 +72,21 @@ class RazorpayService {
     required String contact,
     required String email,
     String currency = 'INR',
+    String? itemType,
+    String? itemId,
   }) async {
     try {
+      final token = await AppApiService.getStoredToken();
+      
       // 1. Create order on backend
       final orderResponse = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/payments/create-order'),
-        headers: {
-          'Content-Type': 'application/json',
-          // 'Authorization': 'Bearer ${ApiConfig.token}', // TODO: Add auth token here
-        },
+        headers: ApiConfig.getHeaders(token: token),
         body: jsonEncode({
           'amount': amountInSmallestCurrency,
           'currency': currency,
+          if (itemType != null) 'item_type': itemType,
+          if (itemId != null) 'item_id': itemId,
         }),
       );
 

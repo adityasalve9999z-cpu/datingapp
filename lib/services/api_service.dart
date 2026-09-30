@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/api_config.dart';
 import '../config/supabase_config.dart';
 import '../models/profile_model.dart';
+import 'razorpay_service.dart';
 
 /// Central API Service for GlowDate Dating App.
 /// Connects seamlessly to the FastAPI backend with JWT authentication,
@@ -1198,15 +1199,70 @@ class AppApiService {
   // ── Subscriptions & Settings ──────────────────────────────────────────────
 
   static Future<Map<String, dynamic>> fetchSubscription() async {
-    return {'tier': 'Gold', 'is_active': true, 'expires_at': '2027-01-01'};
+    final token = await getStoredToken();
+    if (token != null && token != 'demo-token') {
+      try {
+        final url = Uri.parse('${ApiConfig.baseUrl}/subscriptions/me');
+        final response = await http
+            .get(url, headers: ApiConfig.getHeaders(token: token))
+            .timeout(ApiConfig.timeout);
+        if (response.statusCode == 200) {
+          return jsonDecode(response.body)['data'] ?? {};
+        }
+      } catch (e) {
+        debugPrint('Error fetching subscription: $e');
+      }
+    }
+    return {'plan_type': 'FREE', 'is_active': true, 'expires_at': null};
   }
 
   static Future<Map<String, dynamic>> purchaseSubscription(String tier) async {
-    return updateSubscription(tier);
+    final completer = Completer<Map<String, dynamic>>();
+    
+    final email = await getSavedUserEmail() ?? 'test@example.com';
+    final name = await getSavedUserName() ?? 'User';
+    final phone = '9999999999'; // Default for test
+    
+    final razorpay = RazorpayService(
+      onSuccess: (response) {
+        completer.complete({'success': true, 'message': 'Subscription activated: $tier'});
+      },
+      onFailure: (response) {
+        completer.complete({'success': false, 'message': 'Payment failed or cancelled.'});
+      },
+    );
+    
+    final amount = tier.toUpperCase() == 'PLATINUM' ? 299900 : 149900; // in paise
+    
+    await razorpay.openCheckout(
+      amountInSmallestCurrency: amount,
+      name: 'Glow Premium',
+      description: '$tier Subscription',
+      contact: phone,
+      email: email,
+      itemType: 'subscription',
+      itemId: tier.toUpperCase(),
+    );
+    
+    return completer.future;
   }
 
   static Future<Map<String, dynamic>> updateSubscription(String tier, {DateTime? expiresAt}) async {
-    return {'success': true, 'message': 'Subscription activated: $tier'};
+    final token = await getStoredToken();
+    if (token != null && token != 'demo-token') {
+      try {
+        final url = Uri.parse('${ApiConfig.baseUrl}/subscriptions/cancel');
+        final response = await http
+            .post(url, headers: ApiConfig.getHeaders(token: token))
+            .timeout(ApiConfig.timeout);
+        if (response.statusCode == 200) {
+          return {'success': true, 'message': 'Subscription auto-renew cancelled'};
+        }
+      } catch (e) {
+        debugPrint('Error updating subscription: $e');
+      }
+    }
+    return {'success': true, 'message': 'Subscription updated: $tier'};
   }
 
   static Future<Map<String, dynamic>> saveSettings(Map<String, dynamic> settings) async {
