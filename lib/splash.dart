@@ -147,6 +147,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
             child: newMethod(),
+          );
         },
       ),
     );
