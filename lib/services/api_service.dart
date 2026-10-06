@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../config/api_config.dart';
 import '../config/supabase_config.dart';
@@ -21,7 +21,7 @@ class AppApiService {
   // Active WebSocket & realtime streams
   static final Map<String, StreamController<List<Map<String, dynamic>>>> _chatStreamControllers = {};
   static final Map<String, List<Map<String, dynamic>>> _cachedMessagesMap = {};
-  static WebSocketChannel? _webSocket;
+  static io.Socket? _webSocket;
   static Timer? _heartbeatTimer;
 
   static SupabaseClient? _safeSupabase() {
@@ -1319,14 +1319,25 @@ class AppApiService {
   static void _initWebSocket(String token) {
     _disconnectWebSocket();
     try {
-      final wsUrl = '${ApiConfig.wsUrl}?token=$token';
-      _webSocket = WebSocketChannel.connect(Uri.parse(wsUrl));
+      final baseUrlStr = ApiConfig.baseUrl.replaceAll('/api/v1', '');
+      _webSocket = io.io(baseUrlStr, io.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .setQuery({'token': token})
+          .build());
+      
+      _webSocket!.connect();
 
-      _webSocket!.stream.listen((message) {
+      _webSocket!.onConnect((_) {
+        debugPrint('Socket.IO connected');
+      });
+
+      _webSocket!.on('message', (data) {
         try {
-          final data = jsonDecode(message);
+          if (data is String) data = jsonDecode(data);
+          
           if (data['type'] == 'typing') {
-             // Handle typing indicator (optional)
+             // Handle typing indicator
           } else if (data['type'] == 'pong') {
              // Heartbeat pong received
           } else {
@@ -1347,31 +1358,38 @@ class AppApiService {
              }
           }
         } catch (e) {
-          debugPrint('WebSocket message error: $e');
+          debugPrint('Socket.IO message error: $e');
         }
-      }, onDone: () {
-        debugPrint('WebSocket closed');
+      });
+
+      _webSocket!.onDisconnect((_) {
+        debugPrint('Socket.IO disconnected');
         _disconnectWebSocket();
-      }, onError: (error) {
-        debugPrint('WebSocket error: $error');
+      });
+
+      _webSocket!.onError((error) {
+        debugPrint('Socket.IO error: $error');
         _disconnectWebSocket();
       });
 
       _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-        if (_webSocket != null) {
-          _webSocket!.sink.add(jsonEncode({'type': 'ping'}));
+        if (_webSocket != null && _webSocket!.connected) {
+          _webSocket!.emit('ping', {'type': 'ping'});
         }
       });
     } catch (e) {
-      debugPrint('WebSocket connection failed: $e');
+      debugPrint('Socket.IO connection failed: $e');
     }
   }
 
   static void _disconnectWebSocket() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
-    _webSocket?.sink.close();
-    _webSocket = null;
+    if (_webSocket != null) {
+      _webSocket!.disconnect();
+      _webSocket!.dispose();
+      _webSocket = null;
+    }
   }
 
   static void _notifyStreamController(String partnerId, List<Map<String, dynamic>> messages) {
