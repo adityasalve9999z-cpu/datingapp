@@ -30,6 +30,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void initState() {
     super.initState();
     _messages = [];
+    AppApiService.initWebSocketIfNeeded();
     _loadMessages();
     _subscribeToRealtime();
   }

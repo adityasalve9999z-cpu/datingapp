@@ -1197,6 +1197,63 @@ class AppApiService {
     return {'success': true, 'message': 'Account deactivated'};
   }
 
+  // ── Notifications ────────────────────────────────────────────────────────
+
+  static Future<List<Map<String, dynamic>>> fetchNotifications() async {
+    final token = await getStoredToken();
+    if (token != null && token != 'demo-token') {
+      try {
+        final url = Uri.parse('${ApiConfig.baseUrl}/notifications');
+        final response = await http
+            .get(url, headers: ApiConfig.getHeaders(token: token))
+            .timeout(ApiConfig.timeout);
+
+        if (response.statusCode == 200) {
+          final body = jsonDecode(response.body);
+          final List list = body['data'] ?? [];
+          return list.map((item) => item as Map<String, dynamic>).toList();
+        }
+      } catch (e) {
+        debugPrint('Error fetching notifications: $e');
+      }
+    }
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> markNotificationAsRead(String id) async {
+    final token = await getStoredToken();
+    if (token != null && token != 'demo-token') {
+      try {
+        final url = Uri.parse('${ApiConfig.baseUrl}/notifications/$id/read');
+        final response = await http
+            .put(url, headers: ApiConfig.getHeaders(token: token))
+            .timeout(ApiConfig.timeout);
+
+        if (response.statusCode == 200) {
+          return {'success': true};
+        }
+      } catch (_) {}
+    }
+    return {'success': true};
+  }
+
+  static Future<Map<String, dynamic>> markAllNotificationsAsRead() async {
+    final token = await getStoredToken();
+    if (token != null && token != 'demo-token') {
+      try {
+        final url = Uri.parse('${ApiConfig.baseUrl}/notifications/read-all');
+        final response = await http
+            .put(url, headers: ApiConfig.getHeaders(token: token))
+            .timeout(ApiConfig.timeout);
+
+        if (response.statusCode == 200) {
+          return {'success': true};
+        }
+      } catch (_) {}
+    }
+    return {'success': true};
+  }
+
   // ── Subscriptions & Settings ──────────────────────────────────────────────
 
   static Future<Map<String, dynamic>> fetchSubscription() async {
@@ -1315,6 +1372,15 @@ class AppApiService {
   }
 
   // ── WebSocket & Internal Helpers ──────────────────────────────────────────
+
+  static Future<void> initWebSocketIfNeeded() async {
+    if (_webSocket == null || !_webSocket!.connected) {
+      final token = await getStoredToken();
+      if (token != null && token != 'demo-token') {
+        _initWebSocket(token);
+      }
+    }
+  }
 
   static void _initWebSocket(String token) {
     _disconnectWebSocket();

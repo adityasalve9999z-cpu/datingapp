@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/profile_model.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class NotificationItem {
@@ -41,75 +42,50 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   String _selectedCategory = 'all';
 
-  final List<NotificationItem> _notifications = [
-    NotificationItem(
-      id: '1',
-      title: 'It\'s a Match! 🎉',
-      message: 'You and Sophie liked each other. Say hello before sparks fade!',
-      timeAgo: '5m ago',
-      category: 'matches',
-      icon: Icons.favorite_rounded,
-      iconColor: AppTheme.primaryRose,
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500',
-      actionRoute: '/chat-room',
-      routeExtra: mockProfiles.first,
-    ),
-    NotificationItem(
-      id: '2',
-      title: 'Someone Super Liked You! ⭐',
-      message: 'Alex sent you a Super Like with a personalized message note.',
-      timeAgo: '24m ago',
-      category: 'likes',
-      icon: Icons.star_rounded,
-      iconColor: AppTheme.accentCyan,
-      avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500',
-      actionRoute: '/likes',
-    ),
-    NotificationItem(
-      id: '3',
-      title: 'AI Date Planner Ready 🤖',
-      message: 'Your custom romantic dinner & rooftop itinerary with Maya has been generated.',
-      timeAgo: '2h ago',
-      category: 'system',
-      icon: Icons.auto_awesome_rounded,
-      iconColor: AppTheme.primaryPurple,
-      actionRoute: '/ai-date-planner',
-      routeExtra: 'Maya',
-    ),
-    NotificationItem(
-      id: '4',
-      title: 'Weekend Spotlight Boost Active ⚡',
-      message: 'Your profile is currently receiving 10x more discovery impressions for 45 more mins.',
-      timeAgo: '4h ago',
-      category: 'promos',
-      icon: Icons.bolt_rounded,
-      iconColor: AppTheme.accentGold,
-      actionRoute: '/home',
-      isRead: true,
-    ),
-    NotificationItem(
-      id: '5',
-      title: 'Security Alert 🛡️',
-      message: 'New login detected on Chrome / Windows in New York. If this wasn\'t you, secure your account.',
-      timeAgo: '1d ago',
-      category: 'system',
-      icon: Icons.shield_rounded,
-      iconColor: AppTheme.emeraldGreen,
-      actionRoute: '/safety-center',
-      isRead: true,
-    ),
-    NotificationItem(
-      id: '6',
-      title: 'Special 50% Off Platinum Pass 💎',
-      message: 'Limited time weekend special: unlock incognito browsing and unlimited rewinds at half price.',
-      timeAgo: '2d ago',
-      category: 'promos',
-      icon: Icons.workspace_premium_rounded,
-      iconColor: AppTheme.accentGold,
-      actionRoute: '/premium-plans',
-      isRead: true,
-    ),
-  ];
+  List<NotificationItem> _notifications = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    setState(() => _isLoading = true);
+    final data = await AppApiService.fetchNotifications();
+    
+    // Parse backend data
+    final items = data.map((json) {
+      Color color = AppTheme.primaryPurple;
+      IconData icon = Icons.notifications;
+      if (json['type'] == 'match') {
+        color = AppTheme.primaryRose;
+        icon = Icons.favorite_rounded;
+      } else if (json['type'] == 'like') {
+        color = AppTheme.accentCyan;
+        icon = Icons.star_rounded;
+      }
+      
+      return NotificationItem(
+        id: json['id']?.toString() ?? '',
+        title: json['title'] ?? 'Notification',
+        message: json['message'] ?? '',
+        timeAgo: 'Recently', // You'd format the timestamp here
+        category: json['type'] == 'match' ? 'matches' : (json['type'] == 'like' ? 'likes' : 'system'),
+        icon: icon,
+        iconColor: color,
+        isRead: json['is_read'] == true,
+      );
+    }).toList();
+
+    if (mounted) {
+      setState(() {
+        _notifications = items;
+        _isLoading = false;
+      });
+    }
+  }
 
   final List<Map<String, String>> _categories = [
     {'id': 'all', 'label': 'All'},
@@ -124,7 +100,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return _notifications.where((n) => n.category == _selectedCategory).toList();
   }
 
-  void _markAllAsRead() {
+  void _markAllAsRead() async {
+    await AppApiService.markAllNotificationsAsRead();
     setState(() {
       for (final n in _notifications) {
         n.isRead = true;
@@ -145,10 +122,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
     });
   }
 
-  void _handleNotificationTap(NotificationItem item) {
-    setState(() {
-      item.isRead = true;
-    });
+  void _handleNotificationTap(NotificationItem item) async {
+    if (!item.isRead) {
+      await AppApiService.markNotificationAsRead(item.id);
+      setState(() {
+        item.isRead = true;
+      });
+    }
 
     if (item.actionRoute != null) {
       context.push(item.actionRoute!, extra: item.routeExtra);
@@ -226,7 +206,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
         children: [
           _buildCategoryFilter(),
           Expanded(
-            child: _filteredNotifications.isEmpty
+            child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryRose))
+                : _filteredNotifications.isEmpty
                 ? _buildEmptyState()
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
