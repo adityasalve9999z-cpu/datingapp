@@ -1,54 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/api_service.dart';
+import '../services/jwt_service.dart';
 
+/// ─────────────────────────────────────────────────────────────────────────────
+/// AuthProvider
+/// ─────────────────────────────────────────────────────────────────────────────
+/// Central authentication state manager.
+///
+/// Authentication strategy (in priority order):
+///   1. FastAPI backend JWT  — stored in SharedPreferences
+///   2. Supabase session     — fallback / legacy
+///   3. Demo mode            — offline / unreachable backend
+///
+/// The provider also exposes:
+///   • changePassword()  — delegates to /auth/change-password
+///   • forgotPassword()  — delegates to /auth/forgot-password
+///   • resetPassword()   — delegates to /auth/reset-password
+///   • tokenStatus       — human-readable token expiry string
+///   • isTokenExpired    — whether the stored access token is expired
+/// ─────────────────────────────────────────────────────────────────────────────
 class AuthProvider extends ChangeNotifier {
-  User? _user;
+  // ── State ───────────────────────────────────────────────────────────────────
+  User? _supabaseUser;
   bool _isAuthenticated = false;
+  bool _isLoading = true;
   String? _userName;
   String? _userEmail;
-  bool _isLoading = true;
+  String? _userId;
+  String? _accessToken;
 
-  User? get user => _user;
+  // ── Getters ─────────────────────────────────────────────────────────────────
+  User? get user => _supabaseUser;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => _isAuthenticated || _user != null;
+  bool get isAuthenticated => _isAuthenticated || _supabaseUser != null;
   String? get userName => _userName;
   String? get userEmail => _userEmail;
+  String? get userId => _userId;
+  String? get accessToken => _accessToken;
 
+  /// Human-readable token expiry status ("Expires in 45m", "Expired", …)
+  String get tokenStatus => JwtService.expiryDescription(_accessToken);
+
+  /// True when the current access token is definitively expired.
+  bool get isTokenExpired => JwtService.isExpired(_accessToken);
+
+  // ── Construction ─────────────────────────────────────────────────────────────
   AuthProvider() {
     _initializeAuth();
   }
+
+  // ── Initialization ────────────────────────────────────────────────────────────
 
   Future<void> _initializeAuth() async {
     _isLoading = true;
     notifyListeners();
 
     // 1. Check stored backend JWT token
-    final token = await AppApiService.getStoredToken();
+    _accessToken = await AppApiService.getStoredToken();
     _userName = await AppApiService.getSavedUserName();
     _userEmail = await AppApiService.getSavedUserEmail();
+    _userId = await AppApiService.getSavedCurrentUserId();
 
-    if (token != null && token.isNotEmpty) {
+    if (_accessToken != null && _accessToken!.isNotEmpty) {
+      // Token is present — accept as authenticated even if expired;
+      // the auto-refresh interceptor will renew it on the next API call.
       _isAuthenticated = true;
     }
 
     // 2. Check Supabase session if available
     try {
       final session = Supabase.instance.client.auth.currentSession;
-      _user = session?.user;
-      if (_user != null) {
-        _isAuthenticated = true;
-      }
+      _supabaseUser = session?.user;
+      if (_supabaseUser != null) _isAuthenticated = true;
 
       Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         final AuthChangeEvent event = data.event;
         final Session? s = data.session;
 
-        if (event == AuthChangeEvent.signedIn || event == AuthChangeEvent.tokenRefreshed) {
-          _user = s?.user;
+        if (event == AuthChangeEvent.signedIn ||
+            event == AuthChangeEvent.tokenRefreshed) {
+          _supabaseUser = s?.user;
           _isAuthenticated = true;
         } else if (event == AuthChangeEvent.signedOut) {
-          _user = null;
+          _supabaseUser = null;
         }
         notifyListeners();
       });
@@ -57,6 +92,8 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+  // ── Login / Signup ────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     _isLoading = true;
@@ -68,6 +105,8 @@ class AuthProvider extends ChangeNotifier {
       _isAuthenticated = true;
       _userName = result['name']?.toString() ?? email.split('@').first;
       _userEmail = email;
+      _accessToken = await AppApiService.getStoredToken();
+      _userId = await AppApiService.getSavedCurrentUserId();
     }
 
     _isLoading = false;
@@ -97,6 +136,8 @@ class AuthProvider extends ChangeNotifier {
       _isAuthenticated = true;
       _userName = name.split(' ').first;
       _userEmail = email;
+      _accessToken = await AppApiService.getStoredToken();
+      _userId = await AppApiService.getSavedCurrentUserId();
     }
 
     _isLoading = false;
@@ -104,17 +145,71 @@ class AuthProvider extends ChangeNotifier {
     return result;
   }
 
+  // ── Logout ────────────────────────────────────────────────────────────────────
+
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
 
     await AppApiService.logout();
+
     _isAuthenticated = false;
-    _user = null;
+    _supabaseUser = null;
     _userName = null;
     _userEmail = null;
+    _userId = null;
+    _accessToken = null;
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  // ── Password Management ───────────────────────────────────────────────────────
+
+  /// Change the authenticated user's password.
+  /// Returns {'success': bool, 'message': String}.
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    return AppApiService.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+  }
+
+  /// Initiate a password reset flow for the given email.
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    return AppApiService.forgotPassword(email: email);
+  }
+
+  /// Complete the password reset using the token received by email.
+  Future<Map<String, dynamic>> resetPassword({
+    required String resetToken,
+    required String newPassword,
+  }) async {
+    return AppApiService.resetPassword(
+      resetToken: resetToken,
+      newPassword: newPassword,
+    );
+  }
+
+  // ── Token Utilities ───────────────────────────────────────────────────────────
+
+  /// Force a token refresh immediately (e.g., called from settings or on app resume).
+  Future<bool> refreshToken() async {
+    final diagnostics = await AppApiService.getTokenDiagnostics();
+    final newToken = await AppApiService.getStoredToken();
+    if (newToken != _accessToken) {
+      _accessToken = newToken;
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  /// Returns a full diagnostic map of both tokens (for developer settings screens).
+  Future<Map<String, dynamic>> getTokenDiagnostics() {
+    return AppApiService.getTokenDiagnostics();
   }
 }

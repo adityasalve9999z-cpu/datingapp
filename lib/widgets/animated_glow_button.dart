@@ -149,9 +149,9 @@ class _AnimatedGlowButtonState extends State<AnimatedGlowButton>
 
   @override
   Widget build(BuildContext context) {
-    final borderRadius = widget.borderRadius ?? BorderRadius.circular(20);
+    final borderRadius = widget.borderRadius ?? BorderRadius.circular(14);
     final baseColor = widget.backgroundColor;
-    final shimmerColor = Colors.white.withOpacity(0.32);
+    final shimmerColor = Colors.white.withOpacity(0.28);
 
     return GestureDetector(
       onTapDown: (_) {
@@ -164,8 +164,8 @@ class _AnimatedGlowButtonState extends State<AnimatedGlowButton>
       onTapCancel: () => setState(() => _pressed = false),
       onTap: widget.isLoading ? null : widget.onPressed,
       child: AnimatedScale(
-        scale: _pressed ? 0.94 : 1.0,
-        duration: const Duration(milliseconds: 140),
+        scale: _pressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 120),
         curve: Curves.easeOutCubic,
         child: SizedBox(
           width: widget.width ?? double.infinity,
@@ -179,16 +179,16 @@ class _AnimatedGlowButtonState extends State<AnimatedGlowButton>
                     colors: [
                       baseColor,
                       Color.lerp(
-                              baseColor, AppTheme.primaryCoral, shift * 0.45) ??
+                              baseColor, AppTheme.primaryCoral, shift * 0.5) ??
                           baseColor.withOpacity(0.85),
                     ],
-                    begin: Alignment(-1.0 + shift * 0.5, -0.3),
-                    end: Alignment(1.0 - shift * 0.5, 0.3),
+                    begin: Alignment(-1.0 + shift * 0.4, -0.2),
+                    end: Alignment(1.0 - shift * 0.4, 0.2),
                   );
 
-              final currentBlur = _pressed ? 5.0 : _pulseAnimation.value;
+              final currentBlur = _pressed ? 4.0 : _pulseAnimation.value;
               final currentSpread =
-                  _pressed ? 0.0 : _pulseAnimation.value * 0.2;
+                  _pressed ? 0.0 : _pulseAnimation.value * 0.15;
 
               return DecoratedBox(
                 decoration: BoxDecoration(
@@ -196,16 +196,16 @@ class _AnimatedGlowButtonState extends State<AnimatedGlowButton>
                   borderRadius: borderRadius,
                   boxShadow: [
                     BoxShadow(
-                      color: baseColor.withOpacity(_pressed ? 0.25 : 0.45),
+                      color: baseColor.withOpacity(_pressed ? 0.20 : 0.40),
                       blurRadius: currentBlur,
                       spreadRadius: currentSpread,
-                      offset: Offset(0, _pressed ? 2 : 6),
+                      offset: Offset(0, _pressed ? 1 : 4),
                     ),
                     BoxShadow(
-                      color: AppTheme.primaryRose
-                          .withOpacity(_pressed ? 0.05 : 0.18),
-                      blurRadius: currentBlur * 1.5,
-                      spreadRadius: currentSpread * 1.5,
+                      color: AppTheme.accentCyan
+                          .withOpacity(_pressed ? 0.05 : 0.12),
+                      blurRadius: currentBlur * 2.0,
+                      spreadRadius: currentSpread,
                       offset: const Offset(0, 0),
                     ),
                   ],
@@ -453,14 +453,14 @@ class _AnimatedOutlinedGlowButtonState
           height: widget.height,
           decoration: BoxDecoration(
             color: _isPressed
-                ? widget.borderColor.withOpacity(0.15)
-                : AppTheme.surfaceGlass,
-            borderRadius: BorderRadius.circular(18),
+                ? widget.borderColor.withOpacity(0.12)
+                : AppTheme.surfaceCard.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: _isPressed
                   ? widget.borderColor.withOpacity(0.8)
                   : widget.borderColor,
-              width: 1.5,
+              width: 1.0,
             ),
             boxShadow: _isPressed
                 ? [

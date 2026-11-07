@@ -205,14 +205,14 @@ class _DiscoverTabState extends State<DiscoverTab> {
     return Container(
       decoration: const BoxDecoration(
         gradient: RadialGradient(
-          center: Alignment(0.0, -1.15),
-          radius: 1.35,
+          center: Alignment(0.0, -1.2),
+          radius: 1.4,
           colors: [
-            Color(0x42FF2A6D),
-            Color(0x161A1A2E),
+            Color(0x35006FEE), // HeroUI primary blue glow
+            Color(0x1218181B),
             AppTheme.darkBackground,
           ],
-          stops: [0.0, 0.42, 1.0],
+          stops: [0.0, 0.45, 1.0],
         ),
       ),
       child: SafeArea(
@@ -262,12 +262,12 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFFFF512F), Color(0xFFDD2476)],
+                          colors: [Color(0xFFF31260), Color(0xFFDD0070)],
                         ),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFDD2476).withValues(alpha: 0.35),
+                            color: const Color(0xFFF31260).withValues(alpha: 0.30),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
                           ),
@@ -294,10 +294,10 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceCard,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _passportCity.contains('GPS')
-                              ? Colors.white12
+                              ? AppTheme.borderDefault
                               : AppTheme.accentCyan,
                         ),
                       ),
@@ -305,7 +305,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                         Icons.public_rounded,
                         color: _passportCity.contains('GPS')
                             ? AppTheme.accentCyan
-                            : AppTheme.accentGold,
+                            : AppTheme.primaryRose,
                         size: 20,
                       ),
                     ),
@@ -319,12 +319,12 @@ class _DiscoverTabState extends State<DiscoverTab> {
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceCard,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.borderDefault),
                       ),
                       child: const Icon(
                         Icons.tune_rounded,
-                        color: AppTheme.accentGold,
+                        color: AppTheme.primaryRose,
                         size: 20,
                       ),
                     ),
@@ -359,23 +359,23 @@ class _DiscoverTabState extends State<DiscoverTab> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
+                duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOut,
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: _isFocused
-                        ? AppTheme.primaryRose.withValues(alpha: 0.75)
-                        : Colors.white.withValues(alpha: 0.09),
-                    width: _isFocused ? 1.4 : 1,
+                        ? AppTheme.primaryRose.withValues(alpha: 0.80)
+                        : AppTheme.borderDefault,
+                    width: _isFocused ? 1.5 : 1.0,
                   ),
                   boxShadow: _isFocused
                       ? [
                           BoxShadow(
-                            color: AppTheme.primaryRose.withValues(alpha: 0.18),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
+                            color: AppTheme.primaryRose.withValues(alpha: 0.15),
+                            blurRadius: 12,
+                            offset: const Offset(0, 2),
                           )
                         ]
                       : [],
@@ -392,7 +392,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                         color: AppTheme.textMuted, fontSize: 13),
                     prefixIcon: const Icon(
                       Icons.search_rounded,
-                      color: AppTheme.accentGold,
+                      color: AppTheme.primaryRose,
                       size: 20,
                     ),
                     suffixIcon: _query.isNotEmpty
@@ -409,6 +409,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
                           )
                         : null,
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 12),
                   ),

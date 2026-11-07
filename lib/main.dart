@@ -136,38 +136,43 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
           decoration: const BoxDecoration(
             gradient: RadialGradient(
               colors: [
-                Color(0x2BFF2A6D),
+                Color(0x28006FEE), // electric blue subtle glow
                 AppTheme.darkBackground,
               ],
-              radius: 1.2,
+              radius: 1.4,
             ),
           ),
           child: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 24),
+                    // ── Logo ───────────────────────────────────────────────
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      width: 72,
+                      height: 72,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: AppTheme.sunsetGradient,
                       ),
                       child: const Icon(Icons.favorite_rounded,
-                          size: 50, color: Colors.white),
+                          size: 36, color: Colors.white),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
+                    // ── Heading ─────────────────────────────────────────────
                     ShaderMask(
                       shaderCallback: (bounds) =>
                           AppTheme.primaryGradient.createShader(bounds),
                       child: const Text(
                         'Welcome Back',
                         style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
                           color: Colors.white,
+                          letterSpacing: -0.8,
                         ),
                       ),
                     ),
@@ -179,58 +184,42 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                     ),
                     const SizedBox(height: 36),
 
-                    // Input Box Email
+                    // ── Card Container ──────────────────────────────────────
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 4),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceCard,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.white12),
+                        color: AppTheme.surfaceDark,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.borderDefault),
                       ),
-                      child: TextField(
-                        controller: _emailController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.email_rounded,
-                              color: AppTheme.primaryRose),
-                          hintText: 'Email address',
-                          hintStyle: TextStyle(color: AppTheme.textMuted),
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                      child: Column(
+                        children: [
+                          // Email Field
+                          _HeroInputField(
+                            controller: _emailController,
+                            hint: 'Email address',
+                            icon: Icons.email_outlined,
+                          ),
+                          const SizedBox(height: 12),
 
-                    // Input Box Password
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceCard,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      child: TextField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.lock_rounded,
-                              color: AppTheme.primaryRose),
-                          hintText: 'Password',
-                          hintStyle: TextStyle(color: AppTheme.textMuted),
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
+                          // Password Field
+                          _HeroInputField(
+                            controller: _passwordController,
+                            hint: 'Password',
+                            icon: Icons.lock_outline_rounded,
+                            isObscure: true,
+                          ),
+                          const SizedBox(height: 24),
 
-                    // Login Button
-                    AnimatedGlowButton(
-                      label: _isSubmitting ? 'SIGNING IN...' : 'SIGN IN',
-                      onPressed: _isSubmitting ? null : _handleLogin,
-                      gradient: AppTheme.primaryGradient,
+                          // Sign In Button
+                          AnimatedGlowButton(
+                            label: _isSubmitting ? 'SIGNING IN...' : 'SIGN IN',
+                            onPressed: _isSubmitting ? null : _handleLogin,
+                            gradient: AppTheme.primaryGradient,
+                            height: 52,
+                          ),
+                        ],
+                      ),
                     ),
 
                     const SizedBox(height: 20),
@@ -239,7 +228,8 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                       children: [
                         const Text(
                           "Don't have an account? ",
-                          style: TextStyle(color: AppTheme.textSecondary),
+                          style: TextStyle(color: AppTheme.textSecondary,
+                              fontSize: 14),
                         ),
                         GestureDetector(
                           onTap: () => context.go('/signup'),
@@ -247,12 +237,14 @@ class _LoginScreenAuthState extends State<LoginScreenAuth> {
                             'Create One',
                             style: TextStyle(
                               color: AppTheme.primaryRose,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
                             ),
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -301,70 +293,186 @@ class _SignupScreenAuthState extends State<SignupScreenAuth> {
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
         title: const Text('Create Account'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppTheme.textPrimary, size: 20),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: GlowLoadingOverlay(
         isLoading: _isSubmitting,
         message: 'Creating account...',
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                const Text(
-                  'Join GlowDate Today',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Connect with extraordinary people nearby',
-                  style: TextStyle(color: AppTheme.textSecondary),
-                ),
-                const SizedBox(height: 32),
-                _buildInputTile(Icons.person_rounded, 'Full Name',
-                    controller: _nameController),
-                const SizedBox(height: 16),
-                _buildInputTile(Icons.email_rounded, 'Email Address',
-                    controller: _emailController),
-                const SizedBox(height: 16),
-                _buildInputTile(Icons.lock_rounded, 'Password',
-                    isObscure: true, controller: _passwordController),
-                const SizedBox(height: 32),
-                AnimatedGlowButton(
-                  label: _isSubmitting ? 'CREATING ACCOUNT...' : 'GET STARTED',
-                  onPressed: _isSubmitting ? null : _handleSignup,
-                  backgroundColor: AppTheme.primaryRose,
-                ),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              colors: [
+                Color(0x20006FEE),
+                AppTheme.darkBackground,
               ],
+              radius: 1.4,
+              center: Alignment(0, -0.8),
+            ),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  ShaderMask(
+                    shaderCallback: (b) =>
+                        AppTheme.primaryGradient.createShader(b),
+                    child: const Text(
+                      'Join GlowDate Today',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.6,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Connect with extraordinary people nearby',
+                    style: TextStyle(color: AppTheme.textSecondary,
+                        fontSize: 14),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // ── Card ──────────────────────────────────────────────────
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceDark,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.borderDefault),
+                    ),
+                    child: Column(
+                      children: [
+                        _HeroInputField(
+                          controller: _nameController,
+                          hint: 'Full Name',
+                          icon: Icons.person_outline_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _HeroInputField(
+                          controller: _emailController,
+                          hint: 'Email Address',
+                          icon: Icons.email_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        _HeroInputField(
+                          controller: _passwordController,
+                          hint: 'Password',
+                          icon: Icons.lock_outline_rounded,
+                          isObscure: true,
+                        ),
+                        const SizedBox(height: 24),
+                        AnimatedGlowButton(
+                          label: _isSubmitting
+                              ? 'CREATING ACCOUNT...'
+                              : 'GET STARTED',
+                          onPressed: _isSubmitting ? null : _handleSignup,
+                          gradient: AppTheme.primaryGradient,
+                          height: 52,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildInputTile(IconData icon, String hint,
-      {bool isObscure = false, TextEditingController? controller}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+/// ─────────────────────────────────────────────────────────────────────────────
+/// HeroUI-style text input field with focus ring
+/// ─────────────────────────────────────────────────────────────────────────────
+class _HeroInputField extends StatefulWidget {
+  final TextEditingController controller;
+  final String hint;
+  final IconData icon;
+  final bool isObscure;
+
+  const _HeroInputField({
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    this.isObscure = false,
+  });
+
+  @override
+  State<_HeroInputField> createState() => _HeroInputFieldState();
+}
+
+class _HeroInputFieldState extends State<_HeroInputField> {
+  final FocusNode _focus = FocusNode();
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      setState(() => _isFocused = _focus.hasFocus);
+    });
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isFocused
+              ? AppTheme.primaryRose.withOpacity(0.80)
+              : AppTheme.borderDefault,
+          width: _isFocused ? 1.5 : 1.0,
+        ),
+        boxShadow: _isFocused
+            ? [
+                BoxShadow(
+                  color: AppTheme.primaryRose.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [],
       ),
       child: TextField(
-        controller: controller,
-        obscureText: isObscure,
-        style: const TextStyle(color: Colors.white),
+        controller: widget.controller,
+        focusNode: _focus,
+        obscureText: widget.isObscure,
+        style: const TextStyle(
+            color: AppTheme.textPrimary, fontSize: 15),
         decoration: InputDecoration(
-          icon: Icon(icon, color: AppTheme.primaryRose),
-          hintText: hint,
-          hintStyle: const TextStyle(color: AppTheme.textMuted),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          prefixIcon: Icon(
+            widget.icon,
+            color: _isFocused ? AppTheme.primaryRose : AppTheme.textMuted,
+            size: 18,
+          ),
+          hintText: widget.hint,
+          hintStyle: const TextStyle(
+              color: AppTheme.textMuted, fontSize: 14),
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
         ),
       ),
     );

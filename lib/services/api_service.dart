@@ -10,6 +10,7 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../config/api_config.dart';
 import '../config/supabase_config.dart';
 import '../models/profile_model.dart';
+import 'jwt_service.dart';
 import 'razorpay_service.dart';
 
 /// Central API Service for GlowDate Dating App.
@@ -272,15 +273,22 @@ class AppApiService {
     }
   }
 
-  /// Sign out current session
+  /// Sign out current session — revokes both tokens on the backend
   static Future<Map<String, dynamic>> logout() async {
     final token = await getStoredToken();
+    final refreshToken = await getStoredRefreshToken();
     try {
       if (token != null && token != 'demo-token') {
         final url = Uri.parse('${ApiConfig.baseUrl}/auth/logout');
         await http
-            .post(url, headers: ApiConfig.getHeaders(token: token))
-            .timeout(const Duration(seconds: 3));
+            .post(
+              url,
+              headers: ApiConfig.getHeaders(token: token),
+              body: refreshToken != null
+                  ? jsonEncode({'refresh_token': refreshToken})
+                  : null,
+            )
+            .timeout(const Duration(seconds: 5));
       }
     } catch (_) {}
 
@@ -292,17 +300,166 @@ class AppApiService {
     return {'success': true, 'message': 'Logged out successfully'};
   }
 
-  /// Fetch currently authenticated user info
-  static Future<Map<String, dynamic>?> getCurrentUser() async {
-    final token = await getStoredToken();
-    if (token == null) return null;
+  // ── JWT Token Management ──────────────────────────────────────────────────
+
+  /// Proactively refresh the access token if it expires within 5 minutes.
+  /// Stores the new token and returns it. Falls back to the current token
+  /// if refresh fails (the server will return 401 on the actual call).
+  static Future<String?> _getValidToken() async {
+    String? token = await getStoredToken();
+    if (token == null || token == 'demo-token') return token;
+
+    // If token expires within 5 minutes, refresh it now
+    if (JwtService.expiresWithin(token, thresholdSeconds: 300)) {
+      debugPrint('[JWT] Access token expiring soon — refreshing...');
+      final refreshed = await _refreshAccessToken();
+      if (refreshed != null) {
+        token = refreshed;
+      }
+    }
+    return token;
+  }
+
+  /// Call /auth/refresh with the stored refresh token.
+  /// Returns the new access token string, or null on failure.
+  static Future<String?> _refreshAccessToken() async {
+    final refreshToken = await getStoredRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) return null;
+
+    // Bail out if the refresh token itself is expired
+    if (JwtService.isExpired(refreshToken)) {
+      debugPrint('[JWT] Refresh token expired — user must log in again');
+      await clearAuthData();
+      return null;
+    }
 
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/auth/me');
+      final url = Uri.parse('${ApiConfig.baseUrl}/auth/refresh');
       final response = await http
-          .get(url, headers: ApiConfig.getHeaders(token: token))
-          .timeout(ApiConfig.timeout);
+          .post(
+            url,
+            headers: ApiConfig.getHeaders(),
+            body: jsonEncode({'refresh_token': refreshToken}),
+          )
+          .timeout(const Duration(seconds: 10));
 
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        final newToken = body['data']?['access_token']?.toString();
+        if (newToken != null && newToken.isNotEmpty) {
+          await saveToken(newToken);
+          debugPrint('[JWT] Token refreshed — '
+              '${JwtService.expiryDescription(newToken)}');
+          return newToken;
+        }
+      } else {
+        // Refresh token rejected — clear session
+        debugPrint('[JWT] Token refresh failed (${response.statusCode}) — clearing auth');
+        await clearAuthData();
+      }
+    } catch (e) {
+      debugPrint('[JWT] Refresh request error: $e');
+    }
+    return null;
+  }
+
+  /// Authenticated GET — automatically refreshes token if expiring soon.
+  /// If the server returns 401, attempts one token refresh then retries.
+  static Future<http.Response> _authGet(Uri url) async {
+    String? token = await _getValidToken();
+    final response = await http
+        .get(url, headers: ApiConfig.getHeaders(token: token))
+        .timeout(ApiConfig.timeout);
+
+    if (response.statusCode == 401) {
+      // Token was rejected — try one refresh and retry
+      final newToken = await _refreshAccessToken();
+      if (newToken != null) {
+        return http
+            .get(url, headers: ApiConfig.getHeaders(token: newToken))
+            .timeout(ApiConfig.timeout);
+      }
+    }
+    return response;
+  }
+
+  /// Authenticated POST — same auto-refresh logic as _authGet.
+  static Future<http.Response> _authPost(Uri url,
+      {required Map<String, dynamic> body}) async {
+    String? token = await _getValidToken();
+    final response = await http
+        .post(
+          url,
+          headers: ApiConfig.getHeaders(token: token),
+          body: jsonEncode(body),
+        )
+        .timeout(ApiConfig.timeout);
+
+    if (response.statusCode == 401) {
+      final newToken = await _refreshAccessToken();
+      if (newToken != null) {
+        return http
+            .post(
+              url,
+              headers: ApiConfig.getHeaders(token: newToken),
+              body: jsonEncode(body),
+            )
+            .timeout(ApiConfig.timeout);
+      }
+    }
+    return response;
+  }
+
+  /// Authenticated PUT — same auto-refresh logic.
+  static Future<http.Response> _authPut(Uri url,
+      {required Map<String, dynamic> body}) async {
+    String? token = await _getValidToken();
+    final response = await http
+        .put(
+          url,
+          headers: ApiConfig.getHeaders(token: token),
+          body: jsonEncode(body),
+        )
+        .timeout(ApiConfig.timeout);
+
+    if (response.statusCode == 401) {
+      final newToken = await _refreshAccessToken();
+      if (newToken != null) {
+        return http
+            .put(
+              url,
+              headers: ApiConfig.getHeaders(token: newToken),
+              body: jsonEncode(body),
+            )
+            .timeout(ApiConfig.timeout);
+      }
+    }
+    return response;
+  }
+
+  /// Authenticated DELETE — same auto-refresh logic.
+  static Future<http.Response> _authDelete(Uri url) async {
+    String? token = await _getValidToken();
+    final response = await http
+        .delete(url, headers: ApiConfig.getHeaders(token: token))
+        .timeout(ApiConfig.timeout);
+
+    if (response.statusCode == 401) {
+      final newToken = await _refreshAccessToken();
+      if (newToken != null) {
+        return http
+            .delete(url, headers: ApiConfig.getHeaders(token: newToken))
+            .timeout(ApiConfig.timeout);
+      }
+    }
+    return response;
+  }
+
+  /// Fetch current authenticated user info from /auth/me
+  static Future<Map<String, dynamic>?> getCurrentUser() async {
+    try {
+      final url = Uri.parse('${ApiConfig.baseUrl}/auth/me');
+      final response = await _authGet(url);
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         return body['data'] as Map<String, dynamic>;
@@ -311,7 +468,34 @@ class AppApiService {
     return null;
   }
 
-  /// Request password reset link
+  /// Change password for the currently authenticated user.
+  static Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final url = Uri.parse('${ApiConfig.baseUrl}/auth/change-password');
+      final response = await _authPost(
+        url,
+        body: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        },
+      );
+      final body = _tryParseJson(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': body?['message'] ?? 'Password changed'};
+      }
+      return {
+        'success': false,
+        'message': body?['message'] ?? body?['detail'] ?? 'Failed to change password',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  /// Request a password reset email for the given address.
   static Future<Map<String, dynamic>> forgotPassword({required String email}) async {
     try {
       final url = Uri.parse('${ApiConfig.baseUrl}/auth/forgot-password');
@@ -322,39 +506,73 @@ class AppApiService {
             body: jsonEncode({'email': email.trim()}),
           )
           .timeout(ApiConfig.timeout);
-
+      final body = _tryParseJson(response.body);
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        return {'success': true, 'message': body['message'] ?? 'Reset instructions sent'};
+        return {'success': true, 'message': body?['message'] ?? 'Reset instructions sent'};
       }
-    } catch (_) {}
-
-    if (_supabase != null) {
-      try {
-        await _supabase!.auth.resetPasswordForEmail(email);
-        return {'success': true, 'message': 'Reset link sent to $email'};
-      } catch (e) {
-        return {'success': false, 'message': e.toString()};
+      return {'success': false, 'message': body?['message'] ?? 'Failed to send reset instructions'};
+    } catch (_) {
+      // Supabase fallback
+      if (_supabase != null) {
+        try {
+          await _supabase!.auth.resetPasswordForEmail(email);
+          return {'success': true, 'message': 'Reset link sent to $email'};
+        } catch (e) {
+          return {'success': false, 'message': e.toString()};
+        }
       }
+      return {'success': true, 'message': 'Reset instructions sent to $email'};
     }
-
-    return {'success': true, 'message': 'Reset instructions sent to $email'};
   }
 
-  /// Reset user password
+  /// Reset password using the JWT reset token received by email.
   static Future<Map<String, dynamic>> resetPassword({
-    required String email,
+    required String resetToken,
     required String newPassword,
   }) async {
-    if (_supabase != null) {
-      try {
-        await _supabase!.auth.updateUser(UserAttributes(password: newPassword));
-        return {'success': true, 'message': 'Password updated successfully'};
-      } catch (e) {
-        return {'success': false, 'message': e.toString()};
+    try {
+      final url = Uri.parse('${ApiConfig.baseUrl}/auth/reset-password');
+      final response = await http
+          .post(
+            url,
+            headers: ApiConfig.getHeaders(),
+            body: jsonEncode({
+              'reset_token': resetToken,
+              'new_password': newPassword,
+            }),
+          )
+          .timeout(ApiConfig.timeout);
+      final body = _tryParseJson(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': body?['message'] ?? 'Password reset successfully'};
       }
+      return {'success': false, 'message': body?['message'] ?? 'Failed to reset password'};
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
     }
-    return {'success': true, 'message': 'Password updated successfully'};
+  }
+
+  /// Return a diagnostic snapshot of the current token state (for developer settings).
+  static Future<Map<String, dynamic>> getTokenDiagnostics() async {
+    final token = await getStoredToken();
+    final refreshToken = await getStoredRefreshToken();
+    return {
+      'access_token': {
+        'present': token != null && token.isNotEmpty,
+        'is_demo': token == 'demo-token',
+        'well_formed': JwtService.isWellFormed(token),
+        'expired': JwtService.isExpired(token),
+        'expiry': JwtService.expiryDescription(token),
+        'subject': JwtService.getSubject(token),
+        'type': JwtService.getTokenType(token),
+      },
+      'refresh_token': {
+        'present': refreshToken != null && refreshToken.isNotEmpty,
+        'well_formed': JwtService.isWellFormed(refreshToken),
+        'expired': JwtService.isExpired(refreshToken),
+        'expiry': JwtService.expiryDescription(refreshToken),
+      },
+    };
   }
 
   /// Verify OTP code

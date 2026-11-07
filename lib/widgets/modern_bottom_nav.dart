@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
+/// HeroUI-styled floating bottom navigation bar.
+/// Glass-frosted pill shape with electric-blue active indicator.
 class ModernBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -19,23 +21,26 @@ class ModernBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(36),
+        borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: Container(
-            height: 70,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            height: 68,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
-              color: const Color(0x73161422),
-              borderRadius: BorderRadius.circular(36),
-              border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.2),
+              color: AppTheme.surfaceDark.withOpacity(0.80),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: AppTheme.borderDefault,
+                width: 1.0,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  blurRadius: 25,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withOpacity(0.5),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
                 ),
               ],
             ),
@@ -53,7 +58,7 @@ class ModernBottomNav extends StatelessWidget {
                   label: 'Likes',
                   isSelected: currentIndex == 1,
                   badgeCount: newMatchCount,
-                  badgeColor: AppTheme.accentGold,
+                  badgeColor: AppTheme.dangerRose,
                   onTap: () => onTap(1),
                 ),
                 _NavItem(
@@ -61,7 +66,7 @@ class ModernBottomNav extends StatelessWidget {
                   label: 'Matches',
                   isSelected: currentIndex == 2,
                   badgeCount: unreadChatCount,
-                  badgeColor: AppTheme.primaryRose,
+                  badgeColor: AppTheme.emeraldGreen,
                   onTap: () => onTap(2),
                 ),
                 _NavItem(
@@ -79,7 +84,7 @@ class ModernBottomNav extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavItem extends StatefulWidget {
   final IconData icon;
   final String label;
   final bool isSelected;
@@ -97,79 +102,122 @@ class _NavItem extends StatelessWidget {
   });
 
   @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pressController;
+  late final Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+      reverseDuration: const Duration(milliseconds: 180),
+      lowerBound: 0.0,
+      upperBound: 1.0,
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.88)
+        .animate(CurvedAnimation(parent: _pressController, curve: Curves.easeOut));
+  }
+
+  @override
+  void dispose() {
+    _pressController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTapDown: (_) => _pressController.forward(),
+      onTapUp: (_) {
+        _pressController.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _pressController.reverse(),
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 16 : 12,
-          vertical: 10,
+      child: AnimatedBuilder(
+        animation: _scaleAnim,
+        builder: (_, child) => Transform.scale(
+          scale: _scaleAnim.value,
+          child: child,
         ),
-        decoration: BoxDecoration(
-          gradient: isSelected ? AppTheme.primaryGradient : null,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 230),
+          curve: Curves.easeInOut,
+          padding: EdgeInsets.symmetric(
+            horizontal: widget.isSelected ? 18 : 14,
+            vertical: 10,
+          ),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? AppTheme.primaryRose.withOpacity(0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: widget.isSelected
+                ? Border.all(
                     color: AppTheme.primaryRose.withOpacity(0.35),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    width: 1.0,
+                  )
+                : null,
+          ),
+          child: Row(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    widget.icon,
+                    size: 22,
+                    color: widget.isSelected
+                        ? AppTheme.primaryRose
+                        : AppTheme.textSecondary,
                   ),
-                ]
-              : null,
-        ),
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  icon,
-                  size: 24,
-                  color: isSelected ? Colors.white : AppTheme.textSecondary,
-                ),
-                if (!isSelected && badgeCount > 0)
-                  Positioned(
-                    top: -4,
-                    right: -6,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: badgeColor,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        '$badgeCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                  if (!widget.isSelected && widget.badgeCount > 0)
+                    Positioned(
+                      top: -4,
+                      right: -6,
+                      child: Container(
+                        padding: const EdgeInsets.all(3.5),
+                        decoration: BoxDecoration(
+                          color: widget.badgeColor,
+                          shape: BoxShape.circle,
                         ),
-                        textAlign: TextAlign.center,
+                        constraints: const BoxConstraints(
+                          minWidth: 15,
+                          minHeight: 15,
+                        ),
+                        child: Text(
+                          '${widget.badgeCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            if (isSelected) ...[
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
+                ],
               ),
+              if (widget.isSelected) ...[
+                const SizedBox(width: 8),
+                Text(
+                  widget.label,
+                  style: const TextStyle(
+                    color: AppTheme.primaryRose,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

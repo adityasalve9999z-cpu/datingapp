@@ -5,10 +5,7 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
 
-/// Wraps the logo mark with a mouse-hover reaction (scale + brighter glow),
-/// same MouseRegion + AnimatedContainer pattern used across the app's other
-/// screens. Only fires with an actual pointer (web/desktop) — harmless no-op
-/// on touch devices, which have no hover concept.
+/// Hover-scale wrapper (web/desktop hover; no-op on touch)
 class _HoverGlow extends StatefulWidget {
   final Widget child;
   const _HoverGlow({required this.child});
@@ -25,19 +22,21 @@ class _HoverGlowState extends State<_HoverGlow> {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+      onExit:  (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        transform: _isHovered ? (Matrix4.identity()..scale(1.06)) : Matrix4.identity(),
+        transform: _isHovered
+            ? (Matrix4.identity()..scale(1.06))
+            : Matrix4.identity(),
         transformAlignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryRose.withOpacity(_isHovered ? 0.75 : 0.5),
-              blurRadius: _isHovered ? 46 : 35,
-              spreadRadius: _isHovered ? 8 : 5,
+              color: AppTheme.primaryRose.withOpacity(_isHovered ? 0.70 : 0.40),
+              blurRadius: _isHovered ? 50 : 32,
+              spreadRadius: _isHovered ? 10 : 6,
             ),
           ],
         ),
@@ -56,61 +55,54 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _animController;
+  late AnimationController _entryController;
   late Animation<double> _scaleAnim;
   late Animation<double> _fadeAnim;
-  late Animation<double> _bgBreathAnimation;
 
-  // Heartbeat pulse for the logo mark once the entrance animation settles —
-  // two quick beats then a rest, matching the rhythm used on the home and
-  // settings screens, rather than a generic smooth breathing loop.
-  late final AnimationController _heartbeatController;
-  late final Animation<double> _heartbeatScale;
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseScale;
+  late final Animation<double> _glowRadius;
+
   Timer? _navTimer;
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
+
+    // Entry pop animation
+    _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 900),
     );
-
-    _scaleAnim = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.elasticOut),
+    _scaleAnim = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _entryController, curve: Curves.elasticOut),
     );
-
     _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeIn),
+      CurvedAnimation(parent: _entryController, curve: Curves.easeIn),
     );
 
-    _heartbeatController = AnimationController(
-      duration: const Duration(milliseconds: 1400),
+    // Subtle heartbeat pulse
+    _pulseController = AnimationController(
       vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    );
+    _pulseScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.10).chain(CurveTween(curve: Curves.easeOut)), weight: 14),
+      TweenSequenceItem(tween: Tween(begin: 1.10, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 12),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.06).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
+      TweenSequenceItem(tween: Tween(begin: 1.06, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 52),
+    ]).animate(_pulseController);
+
+    _glowRadius = Tween<double>(begin: 1.1, end: 1.6).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
     );
 
-    _heartbeatScale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.14).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
-      TweenSequenceItem(tween: Tween(begin: 1.14, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.08).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
-      TweenSequenceItem(tween: Tween(begin: 1.08, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 10),
-      TweenSequenceItem(tween: ConstantTween(1.0), weight: 56),
-    ]).animate(_heartbeatController);
-
-    _bgBreathAnimation = Tween<double>(begin: 1.2, end: 1.8).animate(
-      CurvedAnimation(
-        parent: _heartbeatController,
-        curve: Curves.easeInOutSine,
-      ),
-    );
-
-    _animController.forward().whenComplete(() {
-      // Start the ambient heartbeat only after the entrance pop finishes,
-      // so the two animations don't fight each other on the same scale value.
-      if (mounted) _heartbeatController.repeat();
+    _entryController.forward().whenComplete(() {
+      if (mounted) _pulseController.repeat();
     });
 
-    _navTimer = Timer(const Duration(milliseconds: 2200), () {
+    _navTimer = Timer(const Duration(milliseconds: 2400), () {
       if (!mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.isAuthenticated) {
@@ -124,8 +116,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _navTimer?.cancel();
-    _animController.dispose();
-    _heartbeatController.dispose();
+    _entryController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -134,99 +126,102 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       body: AnimatedBuilder(
-        animation: Listenable.merge([_animController, _heartbeatController]),
-        builder: (context, child) {
+        animation: Listenable.merge([_entryController, _pulseController]),
+        builder: (context, _) {
           return Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: const [
-                  Color(0x44FF2A6D),
+                  Color(0x40006FEE), // HeroUI primary blue glow
                   AppTheme.darkBackground,
                 ],
-                radius: _bgBreathAnimation.value,
+                radius: _glowRadius.value,
               ),
             ),
-            child: newMethod(),
+            child: Center(
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: ScaleTransition(
+                  scale: _scaleAnim,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // ── Logo Mark ─────────────────────────────────────────
+                      Transform.scale(
+                        scale: _pulseScale.value,
+                        child: _HoverGlow(
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: AppTheme.sunsetGradient,
+                            ),
+                            child: const Icon(
+                              Icons.favorite_rounded,
+                              size: 48,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // ── App Name ──────────────────────────────────────────
+                      ShaderMask(
+                        shaderCallback: (bounds) =>
+                            AppTheme.primaryGradient.createShader(bounds),
+                        child: const Text(
+                          'GlowDate',
+                          style: TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -1.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Where Meaningful Connections Spark',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.textSecondary,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+
+                      // ── Progress Indicator ────────────────────────────────
+                      SizedBox(
+                        width: 120,
+                        height: 3,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: const LinearProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryRose),
+                            backgroundColor: Color(0x20006FEE),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Loading your experience...',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textMuted,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           );
         },
       ),
     );
-  }
-
-  Center newMethod() {
-    return Center(
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: ScaleTransition(
-                scale: _scaleAnim,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Transform.scale(
-                      scale: _heartbeatScale.value,
-                      child: _HoverGlow(
-                        child: Container(
-                          padding: const EdgeInsets.all(28),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: AppTheme.sunsetGradient,
-                          ),
-                          child: const Icon(
-                            Icons.favorite_rounded,
-                            size: 70,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    ShaderMask(
-                      shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
-                      child: const Text(
-                        'GlowDate',
-                        style: TextStyle(
-                          fontSize: 42,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: -1,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Where Meaningful Connections Spark',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: AppTheme.textSecondary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    // Animated Glow Loading Line
-                    SizedBox(
-                      width: 140,
-                      height: 4,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(2),
-                        child: const LinearProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryRose),
-                          backgroundColor: Color(0x33FF2A6D),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Loading your experience...',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textMuted,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ],
-              ),
-            ),
-          ),
-        );
   }
 }
