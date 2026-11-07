@@ -8,7 +8,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../config/api_config.dart';
-import '../config/supabase_config.dart';
 import '../models/profile_model.dart';
 import 'jwt_service.dart';
 import 'razorpay_service.dart';
@@ -411,7 +410,7 @@ class AppApiService {
   }
 
   /// Authenticated PUT — same auto-refresh logic.
-  static Future<http.Response> _authPut(Uri url,
+  static Future<http.Response> authPut(Uri url,
       {required Map<String, dynamic> body}) async {
     String? token = await _getValidToken();
     final response = await http
@@ -438,7 +437,7 @@ class AppApiService {
   }
 
   /// Authenticated DELETE — same auto-refresh logic.
-  static Future<http.Response> _authDelete(Uri url) async {
+  static Future<http.Response> authDelete(Uri url) async {
     String? token = await _getValidToken();
     final response = await http
         .delete(url, headers: ApiConfig.getHeaders(token: token))
@@ -1496,8 +1495,7 @@ class AppApiService {
     final completer = Completer<Map<String, dynamic>>();
     
     final email = await getSavedUserEmail() ?? 'test@example.com';
-    final name = await getSavedUserName() ?? 'User';
-    final phone = '9999999999'; // Default for test
+    const phone = '9999999999'; // Default for test
     
     final razorpay = RazorpayService(
       onSuccess: (response) {

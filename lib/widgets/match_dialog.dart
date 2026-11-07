@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/profile_model.dart';
 import '../theme/app_theme.dart';

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_theme.dart';
@@ -16,7 +15,6 @@ class PhotoVerificationScreen extends StatefulWidget {
 class _PhotoVerificationScreenState extends State<PhotoVerificationScreen>
     with TickerProviderStateMixin {
   int _step = 0; // 0: Intro, 1: Selfie Camera Pose 1, 2: Selfie Pose 2, 3: Verifying AI, 4: Success
-  bool _isAnalyzing = false;
   double _scanProgress = 0.0;
   Timer? _scanTimer;
 
@@ -80,7 +78,6 @@ class _PhotoVerificationScreenState extends State<PhotoVerificationScreen>
       // Start AI Biometric verification
       setState(() {
         _step = 3;
-        _isAnalyzing = true;
         _scanProgress = 0.0;
       });
 
@@ -93,7 +90,6 @@ class _PhotoVerificationScreenState extends State<PhotoVerificationScreen>
         if (_scanProgress >= 1.0) {
           _scanTimer?.cancel();
           setState(() {
-            _isAnalyzing = false;
             _step = 4;
           });
         }

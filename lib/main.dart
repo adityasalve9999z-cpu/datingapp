@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
+import 'widgets/animated_glow_button.dart';
 import 'widgets/shimmer_loading.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
