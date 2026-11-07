@@ -198,7 +198,7 @@ class AuthProvider extends ChangeNotifier {
 
   /// Force a token refresh immediately (e.g., called from settings or on app resume).
   Future<bool> refreshToken() async {
-    final diagnostics = await AppApiService.getTokenDiagnostics();
+    await AppApiService.getTokenDiagnostics();
     final newToken = await AppApiService.getStoredToken();
     if (newToken != _accessToken) {
       _accessToken = newToken;

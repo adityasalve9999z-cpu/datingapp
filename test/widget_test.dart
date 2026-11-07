@@ -9,6 +9,7 @@ import 'package:datingapp/providers/profile_provider.dart';
 import 'package:datingapp/providers/discovery_feed_provider.dart';
 import 'package:datingapp/providers/matches_and_chat_provider.dart';
 import 'package:datingapp/providers/app_settings_provider.dart';
+import 'package:datingapp/providers/app_loading_provider.dart';
 
 void main() {
   testWidgets('App loads GlowDateApp successfully', (tester) async {
@@ -20,6 +21,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => DiscoveryFeedProvider()),
           ChangeNotifierProvider(create: (_) => MatchesAndChatProvider()),
           ChangeNotifierProvider(create: (_) => AppSettingsProvider()),
+          ChangeNotifierProvider(create: (_) => AppLoadingProvider()),
         ],
         child: const GlowDateApp(),
       ),
@@ -34,9 +36,21 @@ void main() {
   });
 
   testWidgets('Home screen shows the discovery shell', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => ProfileProvider()),
+          ChangeNotifierProvider(create: (_) => DiscoveryFeedProvider()),
+          ChangeNotifierProvider(create: (_) => MatchesAndChatProvider()),
+          ChangeNotifierProvider(create: (_) => AppSettingsProvider()),
+          ChangeNotifierProvider(create: (_) => AppLoadingProvider()),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Discover'), findsWidgets);
     expect(find.byIcon(Icons.favorite_rounded), findsWidgets);
   });
 }
-

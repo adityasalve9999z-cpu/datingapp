@@ -22,6 +22,8 @@ class AppTheme {
   static const Color emeraldGreen   = Color(0xFF17C964);   // HeroUI "success"
   static const Color warningAmber   = Color(0xFFF5A524);   // HeroUI "warning"
   static const Color dangerRose     = Color(0xFFF31260);   // HeroUI "danger"
+  static const Color successGreen   = emeraldGreen;        // Semantic alias
+  static const Color dangerRed      = dangerRose;          // Semantic alias
 
   // ── Text ─────────────────────────────────────────────────────────────────────
   static const Color textPrimary   = Color(0xFFECEDEE);   // zinc-100

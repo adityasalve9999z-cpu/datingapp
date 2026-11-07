@@ -6,8 +6,6 @@ import 'models/profile_model.dart';
 import 'providers/auth_provider.dart';
 import 'splash.dart';
 import 'home.dart' hide SettingsScreen;
-import 'login/login.dart';
-import 'login/signup.dart';
 import 'login/forgot_password.dart';
 import 'screens/otp_verification_screen.dart';
 import 'screens/onboarding_wizard_screen.dart';
