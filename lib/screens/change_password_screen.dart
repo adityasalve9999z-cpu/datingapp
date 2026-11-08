@@ -1,3 +1,9 @@
+// ============================================================================
+// GlowDate - Change Password Feature
+// Provides secure password updates with real-time validation, strength analysis,
+// and synchronized backend authentication state.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
